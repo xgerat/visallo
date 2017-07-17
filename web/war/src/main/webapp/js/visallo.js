@@ -237,6 +237,7 @@ function(jQuery,
 
                     require([
                         'moment',
+                        'util/jquery/bootstrapTypeaheadScrollFix',
                         'bootstrap',
                         'easing',
                         'jquery-scrollstop',
@@ -245,7 +246,7 @@ function(jQuery,
                         'util/formatters',
                         'util/visibility/util',
                         'util/handlebars/after_auth_helpers'
-                    ], function(moment) {
+                    ], function(moment, bootstrapTypeaheadScrollFix) {
                         var language = 'en';
                         try {
                             var languagePref = localStorage.getItem('language');
@@ -255,9 +256,13 @@ function(jQuery,
                         } catch(langerror) { /*eslint no-empty:0 */ }
                         moment.locale(language);
 
+                        bootstrapTypeaheadScrollFix();
+
                         // Default datepicker options
                         $.fn.datepicker.defaults.format = 'yyyy-mm-dd';
                         $.fn.datepicker.defaults.autoclose = true;
+
+                        bootstrapTypeaheadScrollFix();
 
                         if (popoutDetails) {
                             visalloData.isFullscreen = true;
