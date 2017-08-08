@@ -163,7 +163,10 @@ function setupRequireJs(data, callback) {
     require.deps = data.webWorkerResources;
     require.callback = callback;
     importScripts(BASE_URL + '/libs/requirejs/require.js?' + data.cacheBreaker);
-    require.load = asyncRequireJSLoader
+
+    if (visalloEnvironment.prod) {
+        require.load = asyncRequireJSLoader
+    }
 }
 
 function onMessageHandler(event) {
