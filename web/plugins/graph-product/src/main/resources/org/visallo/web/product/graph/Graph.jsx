@@ -642,7 +642,7 @@ define([
             }
             if (draw) {
                 const upElement = cy.renderer().findNearestElement(x, y, true, false);
-                if (!upElement || draw.vertexId === upElement.id()) {
+                if (!upElement || draw.vertexId === upElement.id() || draw.toVertexId) {
                     this.cancelDraw();
                     if (ctrlKey && upElement) {
                         this.onContextTap(event);
