@@ -14,28 +14,30 @@ var VisalloAmdExternals = [
  'data/web-worker/store/selection/actions',
  'data/web-worker/store/product/selectors',
  'data/web-worker/store/ontology/selectors'
-].map(path => ({ [path]: { amd: path }}));
+].map(path => ({ [path]: { amd: path, commonjs2: false, commonjs: false }}));
 
 module.exports = {
   entry: {
     card: './js/card/SavedSearchTableContainer.jsx'
   },
   output: {
-    path: './dist',
-    filename: 'Card.js',
-    library: 'Card',
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name].js',
+    library: '[name]',
     libraryTarget: 'umd',
   },
   externals: VisalloAmdExternals,
   resolve: {
-    extensions: ['', '.js', '.jsx', '.hbs']
+    extensions: ['.js', '.jsx', '.hbs']
   },
   module: {
-    loaders: [
+    rules: [
         {
             test: /\.jsx?$/,
-            exclude: /(node_modules)/,
-            loader: 'babel'
+            include: path.join(__dirname, 'js'),
+            use: [
+                { loader: 'babel-loader' }
+            ]
         }
     ]
   },
@@ -43,8 +45,10 @@ module.exports = {
   plugins: [
     new webpack.optimize.UglifyJsPlugin({
         mangle: false,
+        sourceMap: true,
         compress: {
-            drop_debugger: false
+            drop_debugger: false,
+            warnings: true
         }
     })
   ]
