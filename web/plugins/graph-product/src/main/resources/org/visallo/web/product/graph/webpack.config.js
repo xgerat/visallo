@@ -20,6 +20,7 @@ var VisalloAmdExternals = [
     'data/web-worker/store/undo/actions',
     'data/web-worker/store/workspace/actions-impl',
     'data/web-worker/store/workspace/actions',
+    'data/web-worker/store/ontology/selectors',
     'data/web-worker/util/ajax',
     'org/visallo/web/product/graph/dist/actions-impl',
     'public/v1/api',
@@ -32,13 +33,20 @@ var VisalloAmdExternals = [
     'util/withDataRequest',
     'util/withTeardown',
     'util/withFormFieldErrors',
+    'util/ontology/relationshipSelect',
     'detail/dropdowns/propertyForm/justification',
     'util/visibility/edit',
     'flight/lib/component',
     'fast-json-patch',
     'updeep',
     'underscore',
-    'colorjs'
+    'colorjs',
+    'react',
+    'create-react-class',
+    'prop-types',
+    'react-dom',
+    'redux',
+    'react-redux'
 ].map(path => ({ [path]: { amd: path }}));
 
 var baseConfig = {
@@ -48,34 +56,7 @@ var baseConfig = {
     library: '[name]',
     libraryTarget: 'umd',
   },
-  externals: VisalloAmdExternals.concat([
-    {
-      react: {
-        root: 'React',
-        commonjs2: 'react',
-        commonjs: 'react',
-        amd: 'react'
-      },
-    },
-    {
-      'react-dom': {
-        root: 'ReactDOM',
-        commonjs2: 'react-dom',
-        commonjs: 'react-dom',
-        amd: 'react-dom'
-      }
-    },
-    {
-      'redux': {
-          amd: 'redux'
-      }
-    },
-    {
-      'react-redux': {
-        amd: 'react-redux'
-      }
-    }
-  ]),
+  externals: VisalloAmdExternals,
   resolve: {
     extensions: ['', '.js', '.jsx', '.hbs', '.ejs']
   },

@@ -1,4 +1,6 @@
 
+input { .box-shadow(none); }
+
 @padding: 20px;
 
 .controls {
@@ -7,7 +9,6 @@
   top: @padding;
   margin-right: @padding;
   opacity: 0.9;
-  .transition(transform 0.1s ease-out);
   z-index: @graph-zIndex;
 
   @bg: #929292;
@@ -199,3 +200,5 @@
 }
 
 @import "controls/segmented";
+@import "controls/colors";
+@import "controls/typeahead";

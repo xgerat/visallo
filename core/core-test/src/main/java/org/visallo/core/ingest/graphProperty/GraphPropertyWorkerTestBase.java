@@ -253,6 +253,7 @@ public abstract class GraphPropertyWorkerTestBase {
             gpw.setOntologyRepository(ontologyRepository);
             gpw.setWorkspaceRepository(workspaceRepository);
             gpw.setConfiguration(getConfiguration());
+            gpw.setOntologyRepository(ontologyRepository);
             gpw.setGraph(getGraph());
             gpw.setVisibilityTranslator(getVisibilityTranslator());
             gpw.setWorkQueueRepository(getWorkQueueRepository());

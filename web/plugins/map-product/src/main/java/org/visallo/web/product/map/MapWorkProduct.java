@@ -7,7 +7,6 @@ import org.json.JSONObject;
 import org.vertexium.*;
 import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.graph.GraphUpdateContext;
-import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workspace.WorkspaceProperties;
 import org.visallo.core.model.workspace.product.WorkProductElements;
@@ -21,8 +20,10 @@ public class MapWorkProduct extends WorkProductElements {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(MapWorkProduct.class);
 
     @Inject
-    public MapWorkProduct(OntologyRepository ontologyRepository, AuthorizationRepository authorizationRepository) {
-        super(ontologyRepository, authorizationRepository);
+    public MapWorkProduct(
+            AuthorizationRepository authorizationRepository
+    ) {
+        super(authorizationRepository);
     }
 
     @Override

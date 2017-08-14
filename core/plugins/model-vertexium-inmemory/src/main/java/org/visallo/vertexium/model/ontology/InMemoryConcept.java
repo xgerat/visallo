@@ -4,6 +4,7 @@ import org.vertexium.Authorizations;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.util.JSONUtil;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.util.*;
 
@@ -18,7 +19,9 @@ public class InMemoryConcept extends Concept {
     private String conceptIRI;
     private List<String> addRelatedConceptWhiteList;
     private byte[] glyphIcon;
+    private String glyphIconFilePath;
     private byte[] glyphIconSelected;
+    private String glyphIconSelectedFilePath;
     private byte[] mapGlyphIcon;
     private boolean userVisible = true;
     private boolean updateable = true;
@@ -27,10 +30,38 @@ public class InMemoryConcept extends Concept {
     private Boolean addable;
     private Map<String, String> metadata = new HashMap<>();
     private Set<String> intents = new HashSet<>();
+    private String workspaceId;
 
-    public InMemoryConcept(String conceptIRI, String parentIRI) {
+    public InMemoryConcept(String conceptIRI, String parentIRI, String workspaceId) {
         super(parentIRI, new ArrayList<>());
         this.conceptIRI = conceptIRI;
+        this.workspaceId = workspaceId;
+    }
+
+    InMemoryConcept shallowCopy() {
+        InMemoryConcept other = new InMemoryConcept(conceptIRI, getParentConceptIRI(), workspaceId);
+        other.getProperties().addAll(getProperties());
+        other.title = title;
+        other.color = color;
+        other.displayName = displayName;
+        other.displayType = displayType;
+        other.titleFormula = titleFormula;
+        other.subtitleFormula = subtitleFormula;
+        other.timeFormula = timeFormula;
+        other.addRelatedConceptWhiteList = addRelatedConceptWhiteList;
+        other.glyphIcon = glyphIcon;
+        other.glyphIconFilePath = glyphIconFilePath;
+        other.glyphIconSelected = glyphIconSelected;
+        other.glyphIconSelectedFilePath = glyphIconSelectedFilePath;
+        other.mapGlyphIcon = mapGlyphIcon;
+        other.userVisible = userVisible;
+        other.updateable = updateable;
+        other.deleteable = deleteable;
+        other.searchable = searchable;
+        other.addable = addable;
+        other.metadata.putAll(metadata);
+        other.intents.addAll(intents);
+        return other;
     }
 
     @Override
@@ -54,18 +85,23 @@ public class InMemoryConcept extends Concept {
     }
 
     @Override
+    public String getId() {
+        return this.conceptIRI;
+    }
+
+    @Override
     public String getTitle() {
         return title;
     }
 
     @Override
     public boolean hasGlyphIconResource() {
-        return glyphIcon != null;
+        return glyphIcon != null || glyphIconFilePath != null;
     }
 
     @Override
     public boolean hasGlyphIconSelectedResource() {
-        return glyphIconSelected != null;
+        return glyphIconSelected != null || glyphIconSelectedFilePath != null;
     }
 
     @Override
@@ -144,8 +180,12 @@ public class InMemoryConcept extends Concept {
             this.userVisible = (Boolean) value;
         } else if (OntologyProperties.GLYPH_ICON.getPropertyName().equals(name)) {
             this.glyphIcon = (byte[]) value;
+        } else if (OntologyProperties.GLYPH_ICON_FILE_NAME.getPropertyName().equals(name)) {
+            this.glyphIconFilePath = (String) value;
         } else if (OntologyProperties.GLYPH_ICON_SELECTED.getPropertyName().equals(name)) {
             this.glyphIconSelected = (byte[]) value;
+        } else if (OntologyProperties.GLYPH_ICON_SELECTED_FILE_NAME.getPropertyName().equals(name)) {
+            this.glyphIconSelectedFilePath = (String) value;
         } else if (OntologyProperties.MAP_GLYPH_ICON.getPropertyName().equals(name)) {
             this.mapGlyphIcon = (byte[]) value;
         } else if (OntologyProperties.TITLE.getPropertyName().equals(name)) {
@@ -178,7 +218,7 @@ public class InMemoryConcept extends Concept {
             } else {
                 this.deleteable = Boolean.parseBoolean((String) value);
             }
-        } else {
+        } else if (value != null) {
             metadata.put(name, value.toString());
         }
     }
@@ -199,8 +239,12 @@ public class InMemoryConcept extends Concept {
             this.userVisible = true;
         } else if (OntologyProperties.GLYPH_ICON.getPropertyName().equals(name)) {
             this.glyphIcon = null;
+        } else if (OntologyProperties.GLYPH_ICON_FILE_NAME.getPropertyName().equals(name)) {
+            this.glyphIconFilePath = null;
         } else if (OntologyProperties.GLYPH_ICON_SELECTED.getPropertyName().equals(name)) {
             this.glyphIconSelected = null;
+        } else if (OntologyProperties.GLYPH_ICON_SELECTED_FILE_NAME.getPropertyName().equals(name)) {
+            this.glyphIconSelectedFilePath = null;
         } else if (OntologyProperties.MAP_GLYPH_ICON.getPropertyName().equals(name)) {
             this.mapGlyphIcon = null;
         } else if (OntologyProperties.TITLE.getPropertyName().equals(name)) {
@@ -219,7 +263,7 @@ public class InMemoryConcept extends Concept {
             this.deleteable = true;
         } else if (OntologyProperties.INTENT.getPropertyName().equals(name)) {
             intents.clear();
-        } else if (metadata.containsKey(name)){
+        } else if (metadata.containsKey(name)) {
             metadata.remove(name);
         }
     }
@@ -235,11 +279,38 @@ public class InMemoryConcept extends Concept {
     }
 
     @Override
+    public String getGlyphIconFilePath() {
+        return glyphIconFilePath;
+    }
+
+    @Override
+    public String getGlyphIconSelectedFilePath() {
+        return glyphIconSelectedFilePath;
+    }
+
+    @Override
     public byte[] getMapGlyphIcon() {
         return mapGlyphIcon;
     }
 
     public String getConceptIRI() {
         return conceptIRI;
+    }
+
+    public String getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public void removeWorkspaceId() {
+        workspaceId = null;
+    }
+
+    void setWorkspaceId(String workspaceId) {
+        this.workspaceId = workspaceId;
+    }
+
+    @Override
+    public SandboxStatus getSandboxStatus() {
+        return workspaceId == null ? SandboxStatus.PUBLIC : SandboxStatus.PRIVATE;
     }
 }

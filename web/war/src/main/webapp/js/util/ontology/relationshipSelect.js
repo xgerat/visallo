@@ -4,11 +4,11 @@
  * @module components/RelationshipSelect
  * @flight Dropdown selection component for selecting relationships from the ontology
  * @attr {string} [defaultText=Choose a Relationship...] the placeholder text to display
+ * @attr {boolean} [creatable=true] Allow creation of new relationships if the user has ONTOLOGY_ADD privilege
  * @attr {string} [limitParentConceptId=''] Limit edges that contain this concept IRI on one side of the edge
  * @attr {string} [sourceConcept=''] Limit relationships to those that have this concept IRI as the source
  * @attr {string} [targetConcept=''] Limit relationships to those that have this concept IRI as the target
  * @attr {boolean} [focus=false] Activate the field for focus when finished rendering
- * @attr {number} [maxItems=-1] Limit the maximum items that are shown in search list (-1 signifies no limit)
  * @fires module:components/RelationshipSelect#relationshipSelected
  * @listens module:components/RelationshipSelect#limitParentConceptId
  * @listens module:components/RelationshipSelect#selectRelationshipId
@@ -17,50 +17,42 @@
  */
 define([
     'flight/lib/component',
-    './relationships.hbs',
-    './relationship.hbs',
-    'util/withDataRequest',
-    'util/requirejs/promise!util/service/ontologyPromise',
-    './withSelect'
-], function(
-    defineComponent,
-    template,
-    relationshipTemplate,
-    withDataRequest,
-    ontology,
-    withSelect) {
-    'use strict';
+    'util/component/attacher'
+], function(defineComponent, attacher) {
 
-    return defineComponent(RelationshipSelector, withDataRequest, withSelect);
+    return defineComponent(RelationshipSelector);
 
     function RelationshipSelector() {
-
-        this.defaultAttrs({
-            defaultText: i18n('relationship.field.placeholder'),
-            fieldSelector: 'input',
-            limitParentConceptId: '',
-            maxItems: withSelect.maxItemsFromConfiguration('typeahead.edgeLabels.maxItems')
-        });
+        this.after('teardown', function() {
+            this.attacher.teardown();
+        })
 
         this.after('initialize', function() {
-            this.$node.html(template(this.attr));
-
-            this.on('click', {
-                fieldSelector: this.showTypeahead
-            });
+            if ('maxItems' in this.attr) {
+                console.warn('maxItems is no longer supported');
+            }
+            var self = this;
 
             /**
              * Trigger to change the list of relationships to filter with this concept.
              *
+             * If `conceptId` is specifed source/target should not be.
+             *
              * @event module:components/RelationshipSelect#limitParentConceptId
              * @property {object} data
              * @property {string} [data.conceptId=''] The concept IRI to limit by
+             * @property {string} [data.sourceConceptId=''] The source concept IRI to limit by
+             * @property {string} [data.targetConceptId=''] The dest concept IRI to limit by
              * @example
              * RelationshipSelect.attachTo($node)
              * //...
              * $node.trigger('limitParentConceptId', { conceptId: 'http://www.visallo.org/minimal#person' })
              */
-            this.on('limitParentConceptId', this.onLimitParentConceptId);
+            this.on('limitParentConceptId', function(event, data) {
+                const { conceptId, sourceConceptId: sourceId, targetConceptId: targetId } = data;
+                const params = self.attacher._params;
+                self.attacher.params({ ...params, filter: { ...params.filter, conceptId, sourceId, targetId }}).attach();
+            })
 
             /**
              * Trigger to change the list of properties the component works with.
@@ -75,180 +67,43 @@ define([
              * @example <caption>Clear selection</caption>
              * $node.trigger('selectRelationshipId')
              */
-            this.on('selectRelationshipId', this.onSetRelationshipId);
-            this.on('change', {
-                fieldSelector: this.onChange
-            });
+            this.on('selectRelationshipId', function(event, data) {
+                const relationshipId = data && data.relationshipId || null;
+                self.attacher.params({ ...self.attacher._params, value: relationshipId }).attach()
+            })
 
-            this.setupTypeahead();
-        });
-
-        this.onSetRelationshipId = function(event, data) {
-            var relationship = data && data.relationshipId && ontology.relationships.byTitle[data.relationshipId];
-            this.select('fieldSelector').val(relationship && relationship.displayName || '');
-        };
-
-        this.showTypeahead = function() {
-            this.select('fieldSelector').typeahead('lookup').select();
-        };
-
-        this.onLimitParentConceptId = function(event, data) {
-            this.attr.limitParentConceptId = data.conceptId;
-            this.transformRelationships();
-        };
-
-        this.onChange = function(event, data) {
-            const value = $.trim(this.select('fieldSelector').val());
-            if (!value) {
-                this.trigger('relationshipSelected', {
-                    relationship: null
-                });
-            }
-        };
-
-        this.setupTypeahead = function() {
-            var self = this;
-
-            Promise.resolve(ontology)
-                .then(function(ontology) {
-                    if (self.attr.sourceConcept && self.attr.targetConcept) {
-                        return self.dataRequest('ontology', 'relationshipsBetween',
-                            self.attr.sourceConcept,
-                            self.attr.targetConcept
-                        );
+            this.attacher = attacher()
+                .node(this.node)
+                .params({
+                    placeholder: this.attr.defaultText,
+                    creatable: this.attr.creatable !== false,
+                    autofocus: this.attr.focus === true,
+                    filter: {
+                        conceptId: this.attr.limitParentConceptId,
+                        sourceId: this.attr.sourceConcept,
+                        targetId: this.attr.targetConcept
                     }
                 })
-                .done(function(limitedToSourceDest) {
-
-                    if (limitedToSourceDest) {
-                        self.limitedToSourceDest = limitedToSourceDest;
+                .behavior({
+                    onSelected: (attacher, relationship) => {
+                        /**
+                         * Triggered when the user selects a relationship from the list.
+                         *
+                         * @event module:components/RelationshipSelect#relationshipSelected
+                         * @property {object} data
+                         * @property {object} data.relationship The ontology relationship object that was selected
+                         * @example
+                         * $node.on('relationshipSelected', function(event, data) {
+                         *     console.log(data.relationship)
+                         * })
+                         * RelationshipSelect.attachTo($node)
+                         */
+                        this.trigger('relationshipSelected', { relationship })
                     }
+                })
+                .path('components/ontology/RelationshipSelector')
 
-                    var ontologyConcepts = ontology.concepts,
-                        relationshipOntology = ontology.relationships,
-                        transformed = self.transformRelationships(),
-                        placeholderForRelationships = function() {
-                            return transformed.length ?
-                                self.attr.defaultText :
-                                i18n('relationship.field.no_valid');
-                        },
-                        isPlaceholder = function(placeholder) {
-                            return placeholder === self.attr.defaultText ||
-                               placeholder === i18n('relationship.field.no_valid');
-                        },
-                        placeholder = placeholderForRelationships(transformed),
-                        field = self.select('fieldSelector').attr('placeholder', placeholder);
-
-                    field.typeahead({
-                        minLength: 0,
-                        items: self.attr.maxItems,
-                        source: function(query) {
-                            var relationships = self.transformRelationships(),
-                                placeholder = placeholderForRelationships(relationships);
-
-                            relationships.splice(0, 0, placeholder);
-
-                            return relationships;
-                        },
-                        matcher: function(relationship) {
-                            if ($.trim(this.query) === '') {
-                                return true;
-                            }
-                            if (isPlaceholder(relationship)) {
-                                return false;
-                            }
-
-                            return Object.getPrototypeOf(this).matcher.call(this, relationship.displayName);
-                        },
-                        sorter: _.identity,
-                        updater: function(relationshipTitle) {
-                            var $element = this.$element,
-                                relationship = relationshipOntology.byTitle[relationshipTitle];
-
-                            self.currentRelationshipTitle = relationship && relationship.title;
-
-                            /**
-                             * Triggered when the user selects a relationship from the list.
-                             *
-                             * @event module:components/RelationshipSelect#relationshipSelected
-                             * @property {object} data
-                             * @property {object} data.relationship The ontology relationship object that was selected
-                             * @example
-                             * $node.on('relationshipSelected', function(event, data) {
-                             *     console.log(data.relationship)
-                             * })
-                             * RelationshipSelect.attachTo($node)
-                             */
-                            self.trigger('relationshipSelected', {
-                                relationship: relationship
-                            });
-                            return relationship && relationship.displayName || '';
-                        },
-                        highlighter: function(relationship) {
-                            return relationshipTemplate(isPlaceholder(relationship) ?
-                            {
-                                relationship: {
-                                    displayName: relationship
-                                }
-                            } : {
-                                relationship: relationship
-                            });
-                        }
-                    })
-
-                    if (self.attr.focus) {
-                        _.defer(function() {
-                            field.focus();
-                        })
-                    }
-
-                    self.allowEmptyLookup(field);
-                    self.trigger('rendered');
-                });
-        }
-
-        this.transformRelationships = function() {
-            var self = this,
-                list = this.limitedToSourceDest || ontology.relationships.list;
-
-            if (this.attr.limitParentConceptId) {
-                list = _.chain(ontology.relationships.groupedBySourceDestConcepts)
-                    .map(function(r, key) {
-                        return ~key.indexOf(self.attr.limitParentConceptId) ? r : undefined;
-                    })
-                    .compact()
-                    .flatten(true)
-                    .unique(_.property('title'))
-                    .value();
-            }
-
-            var previousSelectionFound = false,
-                transformed = _.chain(list)
-                    .sortBy('displayName')
-                    .reject(function(r) {
-                        return r.userVisible === false;
-                    })
-                    .map(function(r) {
-                        if (r.title === self.currentRelationshipTitle) {
-                            previousSelectionFound = true;
-                        }
-                        return _.extend({}, r, {
-                            toString: function() {
-                                return r.title;
-                            }
-                        })
-                    })
-                    .value();
-
-            if (this.currentRelationshipTitle && !previousSelectionFound) {
-                this.currentRelationshipTitle = null;
-                this.select('fieldSelector').val('');
-                this.trigger('relationshipSelected', {
-                    relationship: null
-                });
-            }
-
-            return transformed;
-        }
+            this.attacher.attach();
+        })
     }
 });

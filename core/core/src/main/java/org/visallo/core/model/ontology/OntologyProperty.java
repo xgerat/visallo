@@ -13,6 +13,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.types.*;
 import org.visallo.web.clientapi.model.ClientApiOntology;
 import org.visallo.web.clientapi.model.PropertyType;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -40,6 +41,10 @@ public abstract class OntologyProperty {
     public String getIri() {
         return getTitle();
     }
+
+    public abstract String getId();
+
+    public abstract SandboxStatus getSandboxStatus();
 
     public abstract String getTitle();
 
@@ -83,6 +88,10 @@ public abstract class OntologyProperty {
 
     public abstract void removeIntent(String intent, Authorizations authorizations);
 
+    public abstract List<String> getConceptIris();
+
+    public abstract List<String> getRelationshipIris();
+
     public void updateIntents(String[] newIntents, Authorizations authorizations) {
         ArrayList<String> toBeRemovedIntents = Lists.newArrayList(getIntents());
         for (String newIntent : newIntents) {
@@ -106,6 +115,8 @@ public abstract class OntologyProperty {
         }
         return results;
     }
+
+    public abstract Map<String, String> getMetadata();
 
     public ClientApiOntology.Property toClientApi() {
         try {
@@ -135,6 +146,7 @@ public abstract class OntologyProperty {
             result.setDependentPropertyIris(getDependentPropertyIris());
             result.setDeleteable(getDeleteable());
             result.setUpdateable(getUpdateable());
+            result.setSandboxStatus(getSandboxStatus());
             if (getPossibleValues() != null) {
                 result.getPossibleValues().putAll(getPossibleValues());
             }
@@ -143,6 +155,9 @@ public abstract class OntologyProperty {
             }
             if (getTextIndexHints() != null) {
                 result.getTextIndexHints().addAll(Arrays.asList(getTextIndexHints()));
+            }
+            for (Map.Entry<String, String> additionalProperty : getMetadata().entrySet()) {
+                result.getMetadata().put(additionalProperty.getKey(), additionalProperty.getValue());
             }
             return result;
         } catch (JSONException e) {

@@ -1,10 +1,10 @@
 define([
-    'react',
+    'create-react-class',
     './ProductListItem'
-], function(React, ProductListItem) {
+], function(createReactClass, ProductListItem) {
     'use strict';
 
-    const ProductList = React.createClass({
+    const ProductList = createReactClass({
         render() {
             const { products, status, onCreate, types, workspace, user, ...rest } = this.props;
             const { loading, loaded } = status;

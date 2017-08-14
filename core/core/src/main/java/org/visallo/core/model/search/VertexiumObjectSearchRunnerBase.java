@@ -46,10 +46,10 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
             User user,
             Authorizations authorizations
     ) {
-        JSONArray filterJson = getFilterJson(searchOptions);
+        JSONArray filterJson = getFilterJson(searchOptions, searchOptions.getWorkspaceId());
 
         QueryAndData queryAndData = getQuery(searchOptions, authorizations);
-        applyFiltersToQuery(queryAndData, filterJson, user);
+        applyFiltersToQuery(queryAndData, filterJson, user, searchOptions);
         applyConceptTypeFilterToQuery(queryAndData, searchOptions);
         applyEdgeLabelFilterToQuery(queryAndData, searchOptions);
         applySortToQuery(queryAndData, searchOptions);
@@ -246,10 +246,10 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
             String conceptType = searchOptions.getOptionalParameter("conceptType", String.class);
             if (conceptType != null) {
                 final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
-                ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, (includeChildNodes == null || includeChildNodes));
+                ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, (includeChildNodes == null || includeChildNodes), searchOptions.getWorkspaceId());
             }
         } else {
-            ontologyRepository.addConceptTypeFilterToQuery(query, getTypeFilters(conceptTypes));
+            ontologyRepository.addConceptTypeFilterToQuery(query, getTypeFilters(conceptTypes), searchOptions.getWorkspaceId());
         }
     }
 
@@ -261,10 +261,10 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
             String edgeLabel = searchOptions.getOptionalParameter("edgeLabel", String.class);
             if (edgeLabel != null) {
                 final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
-                ontologyRepository.addEdgeLabelFilterToQuery(query, edgeLabel, (includeChildNodes == null || includeChildNodes));
+                ontologyRepository.addEdgeLabelFilterToQuery(query, edgeLabel, (includeChildNodes == null || includeChildNodes), searchOptions.getWorkspaceId());
             }
         } else {
-            ontologyRepository.addEdgeLabelFilterToQuery(query, getTypeFilters(labels));
+            ontologyRepository.addEdgeLabelFilterToQuery(query, getTypeFilters(labels), searchOptions.getWorkspaceId());
         }
     }
 
@@ -279,22 +279,22 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
         return filters;
     }
 
-    protected void applyFiltersToQuery(QueryAndData queryAndData, JSONArray filterJson, User user) {
+    protected void applyFiltersToQuery(QueryAndData queryAndData, JSONArray filterJson, User user, SearchOptions searchOptions) {
         for (int i = 0; i < filterJson.length(); i++) {
             JSONObject obj = filterJson.getJSONObject(i);
             if (obj.length() > 0) {
-                updateQueryWithFilter(queryAndData.getQuery(), obj, user);
+                updateQueryWithFilter(queryAndData.getQuery(), obj, user, searchOptions);
             }
         }
     }
 
-    protected JSONArray getFilterJson(SearchOptions searchOptions) {
+    protected JSONArray getFilterJson(SearchOptions searchOptions, String workspaceId) {
         JSONArray filterJson = searchOptions.getRequiredParameter("filter", JSONArray.class);
-        ontologyRepository.resolvePropertyIds(filterJson);
+        ontologyRepository.resolvePropertyIds(filterJson, workspaceId);
         return filterJson;
     }
 
-    private void updateQueryWithFilter(Query graphQuery, JSONObject obj, User user) {
+    private void updateQueryWithFilter(Query graphQuery, JSONObject obj, User user, SearchOptions searchOptions) {
         try {
             String predicateString = obj.optString("predicate");
             String propertyName = obj.getString("propertyName");
@@ -312,7 +312,7 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
                 if (PropertyType.STRING.equals(propertyDataType) && (predicateString == null || "~".equals(predicateString) || "".equals(predicateString))) {
                     graphQuery.has(propertyName, TextPredicate.CONTAINS, value0);
                 } else if (PropertyType.DATE.equals(propertyDataType)) {
-                    applyDateToQuery(graphQuery, obj, predicateString, values);
+                    applyDateToQuery(graphQuery, obj, predicateString, values, searchOptions);
                 } else if (PropertyType.BOOLEAN.equals(propertyDataType)) {
                     graphQuery.has(propertyName, Compare.EQUAL, value0);
                 } else if (PropertyType.GEO_LOCATION.equals(propertyDataType)) {
@@ -371,10 +371,16 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
         }
     }
 
-    private void applyDateToQuery(Query graphQuery, JSONObject obj, String predicate, JSONArray values) throws ParseException {
+    private void applyDateToQuery(
+            Query graphQuery,
+            JSONObject obj,
+            String predicate,
+            JSONArray values,
+            SearchOptions searchOptions
+    ) throws ParseException {
         String propertyName = obj.getString("propertyName");
         PropertyType propertyDataType = PropertyType.DATE;
-        OntologyProperty property = ontologyRepository.getPropertyByIRI(propertyName);
+        OntologyProperty property = ontologyRepository.getPropertyByIRI(propertyName, searchOptions.getWorkspaceId());
 
         if (property != null && values.length() > 0) {
             String displayType = property.getDisplayType();

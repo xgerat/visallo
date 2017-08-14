@@ -1,4 +1,4 @@
-define(['../actions', '../../util/ajax'], function(actions, ajax) {
+define(['../actions', '../../util/ajax', 'require'], function(actions, ajax, require) {
     actions.protectFromMain();
 
     const sort = workspaces => _.sortBy(
@@ -32,19 +32,23 @@ define(['../actions', '../../util/ajax'], function(actions, ajax) {
                         return workspace.workspaceId;
                     })
                 }).then(workspaceId => {
-                    dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
-                    pushSocketMessage({
-                        type: 'setActiveWorkspace',
-                        data: { workspaceId: workspaceId }
-                    });
+                    require(['../ontology/actions-impl'], ontologyActions => {
+                        const getOntology = ontologyActions.get({ workspaceId })(dispatch, getState)
+                        Promise.resolve(getOntology).then(() => {
+                            dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
+                            pushSocketMessage({ type: 'setActiveWorkspace', data: { workspaceId } });
+                        })
+                    })
                 })
             } else {
-                dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
-                dispatch(api.get({ workspaceId }))
-                pushSocketMessage({
-                    type: 'setActiveWorkspace',
-                    data: { workspaceId: workspaceId }
-                });
+                require(['../ontology/actions-impl'], ontologyActions => {
+                    const getOntology = ontologyActions.get({ workspaceId })(dispatch, getState)
+                    Promise.resolve(getOntology).then(() => {
+                        dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
+                        dispatch(api.get({ workspaceId }))
+                        pushSocketMessage({ type: 'setActiveWorkspace', data: { workspaceId } });
+                    })
+                })
             }
         },
 

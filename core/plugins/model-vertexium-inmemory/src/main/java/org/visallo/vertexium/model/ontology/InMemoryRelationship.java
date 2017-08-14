@@ -2,10 +2,10 @@ package org.visallo.vertexium.model.ontology;
 
 import org.vertexium.Authorizations;
 import org.vertexium.util.ConvertingIterable;
-import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.Relationship;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.util.*;
 
@@ -20,16 +20,50 @@ public class InMemoryRelationship extends Relationship {
     private String titleFormula;
     private String subtitleFormula;
     private String timeFormula;
+    private String workspaceId;
+    private Map<String, String> metadata = new HashMap<>();
 
     protected InMemoryRelationship(
             String parentIRI,
             String relationshipIRI,
             List<String> domainConceptIRIs,
             List<String> rangeConceptIRIs,
-            Collection<OntologyProperty> properties
+            Collection<OntologyProperty> properties,
+            String workspaceId
     ) {
         super(parentIRI, domainConceptIRIs, rangeConceptIRIs, properties);
         this.relationshipIRI = relationshipIRI;
+        this.workspaceId = workspaceId;
+    }
+
+    InMemoryRelationship shallowCopy() {
+        InMemoryRelationship other = new InMemoryRelationship(
+                getParentIRI(),
+                getIRI(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                workspaceId);
+        other.getDomainConceptIRIs().addAll(getDomainConceptIRIs());
+        other.getRangeConceptIRIs().addAll(getRangeConceptIRIs());
+        other.getProperties().addAll(getProperties());
+
+        other.displayName = displayName;
+        other.inverseOfs.addAll(inverseOfs);
+        other.intents.addAll(intents);
+        other.userVisible = userVisible;
+        other.deleteable = deleteable;
+        other.updateable = updateable;
+        other.titleFormula = titleFormula;
+        other.subtitleFormula = subtitleFormula;
+        other.timeFormula = timeFormula;
+
+        return other;
+    }
+
+    @Override
+    public String getId() {
+        return relationshipIRI;
     }
 
     @Override
@@ -112,6 +146,8 @@ public class InMemoryRelationship extends Relationship {
             this.deleteable = (Boolean) value;
         } else if (OntologyProperties.UPDATEABLE.getPropertyName().equals(name)) {
             this.updateable = (Boolean) value;
+        } else if (value != null) {
+            metadata.put(name, value.toString());
         }
     }
 
@@ -133,10 +169,34 @@ public class InMemoryRelationship extends Relationship {
             this.updateable = false;
         } else if (OntologyProperties.INTENT.getPropertyName().equals(name)) {
             intents.clear();
+        } else {
+            metadata.remove(name);
         }
+    }
+
+    @Override
+    public Map<String, String> getMetadata() {
+        return metadata;
     }
 
     public void addInverseOf(Relationship inverseOfRelationship) {
         inverseOfs.add(inverseOfRelationship);
+    }
+
+    public String getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public void removeWorkspaceId() {
+        workspaceId = null;
+    }
+
+    void setWorkspaceId(String workspaceId) {
+        this.workspaceId = workspaceId;
+    }
+
+    @Override
+    public SandboxStatus getSandboxStatus() {
+        return workspaceId == null ? SandboxStatus.PUBLIC : SandboxStatus.PRIVATE;
     }
 }

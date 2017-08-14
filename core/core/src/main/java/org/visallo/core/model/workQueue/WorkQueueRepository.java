@@ -1,5 +1,6 @@
 package org.visallo.core.model.workQueue;
 
+import com.google.common.collect.Sets;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
@@ -24,7 +25,9 @@ import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.model.workspace.WorkspaceUser;
 import org.visallo.core.status.model.Status;
+import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
@@ -773,6 +776,59 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
+    public void pushOntologyChange(String workspaceId) {
+        pushOntologyChange(workspaceId, null, null, null);
+    }
+
+    public void pushOntologyChange(String workspaceId, Iterable<String> conceptIds, Iterable<String> relationshipIds, Iterable<String> propertyIds) {
+        pushOntologyChange(workspaceId, OntologyAction.Update, conceptIds, relationshipIds, propertyIds);
+    }
+
+    public void pushOntologyChange(String workspaceId, OntologyAction action, Iterable<String> conceptIds, Iterable<String> relationshipIds, Iterable<String> propertyIds) {
+        JSONObject json = new JSONObject();
+        json.put("type", "ontologyChange");
+
+        JSONObject data = new JSONObject();
+        data.put("action", action.toString());
+        data.put("idType", action.equals(OntologyAction.Update) ? "id" : "iri");
+
+        if (workspaceId != null) {
+            data.put("workspaceId", workspaceId);
+            json.put("permissions", getPermissionsWithWorkspace(workspaceId));
+        }
+        if (conceptIds != null || relationshipIds != null || propertyIds != null) {
+            data.put("conceptIds", conceptIds == null ? new JSONArray() : new JSONArray(Sets.newHashSet(conceptIds)));
+            data.put("propertyIds", propertyIds == null ? new JSONArray() : new JSONArray(Sets.newHashSet(propertyIds)));
+            data.put("relationshipIds", relationshipIds == null ? new JSONArray() : new JSONArray(Sets.newHashSet(relationshipIds)));
+        }
+        json.put("data", data);
+        broadcastJson(json);
+    }
+
+    public void pushOntologyConceptsChange(String workspaceId, List<String> ids) {
+        pushOntologyChange(workspaceId, ids, null, null);
+    }
+
+    public void pushOntologyConceptsChange(String workspaceId, String... ids) {
+        pushOntologyChange(workspaceId, Arrays.asList(ids), null, null);
+    }
+
+    public void pushOntologyPropertiesChange(String workspaceId, String... ids) {
+        pushOntologyChange(workspaceId, null, null, Arrays.asList(ids));
+    }
+
+    public void pushOntologyPropertiesChange(String workspaceId, List<String> ids) {
+        pushOntologyChange(workspaceId, null, null, ids);
+    }
+
+    public void pushOntologyRelationshipsChange(String workspaceId, List<String> ids) {
+        pushOntologyChange(workspaceId, null, ids, null);
+    }
+
+    public void pushOntologyRelationshipsChange(String workspaceId, String... ids) {
+        pushOntologyChange(workspaceId, null, Arrays.asList(ids), null);
+    }
+
     public void pushTextUpdated(String vertexId) {
         pushTextUpdated(vertexId, Priority.NORMAL);
     }
@@ -879,6 +935,23 @@ public abstract class WorkQueueRepository {
         json.put("permissions", permissions);
         json.put("workspaceId", workspaceId);
         broadcastJson(json);
+    }
+
+    private JSONObject getPermissionsWithWorkspace(String workspaceId) {
+        List<WorkspaceUser> users = getWorkspaceRepository().findUsersWithAccess(workspaceId, new SystemUser());
+        return getPermissionsWithUsers(users);
+    }
+
+    private JSONObject getPermissionsWithUsers(List<WorkspaceUser> workspaceUsers) {
+        JSONObject permissions = new JSONObject();
+        JSONArray users = new JSONArray();
+        if (workspaceUsers != null) {
+            for (WorkspaceUser workspaceUser : workspaceUsers) {
+                users.put(workspaceUser.getUserId());
+            }
+        }
+        permissions.put("users", users);
+        return permissions;
     }
 
     private JSONObject getPermissionsWithUsers(
@@ -1280,5 +1353,10 @@ public abstract class WorkQueueRepository {
 
     public void setUserRepository(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    public enum OntologyAction {
+        Update,
+        Delete
     }
 }

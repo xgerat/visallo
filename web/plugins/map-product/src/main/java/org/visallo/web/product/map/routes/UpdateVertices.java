@@ -11,7 +11,6 @@ import org.vertexium.Vertex;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
-import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -38,7 +37,6 @@ public class UpdateVertices implements ParameterizedHandler {
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceHelper workspaceHelper;
     private final WorkQueueRepository workQueueRepository;
-    private final OntologyRepository ontologyRepository;
     private final AuthorizationRepository authorizationRepository;
     private final GraphRepository graphRepository;
 
@@ -49,7 +47,6 @@ public class UpdateVertices implements ParameterizedHandler {
             WorkspaceRepository workspaceRepository,
             WorkspaceHelper workspaceHelper,
             WorkQueueRepository workQueueRepository,
-            OntologyRepository ontologyRepository,
             AuthorizationRepository authorizationRepository,
             GraphRepository graphRepository
     ) {
@@ -58,7 +55,6 @@ public class UpdateVertices implements ParameterizedHandler {
         this.workspaceRepository = workspaceRepository;
         this.workspaceHelper = workspaceHelper;
         this.workQueueRepository = workQueueRepository;
-        this.ontologyRepository = ontologyRepository;
         this.authorizationRepository = authorizationRepository;
         this.graphRepository = graphRepository;
     }
@@ -85,7 +81,7 @@ public class UpdateVertices implements ParameterizedHandler {
         );
 
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.HIGH, user, authorizations)) {
-            MapWorkProduct mapWorkProduct = new MapWorkProduct(ontologyRepository, authorizationRepository);
+            MapWorkProduct mapWorkProduct = new MapWorkProduct(authorizationRepository);
             Vertex productVertex = graph.getVertex(productId, authorizations);
 
             mapWorkProduct.updateVertices(ctx, productVertex, updateVertices, visibilityTranslator.getDefaultVisibility());

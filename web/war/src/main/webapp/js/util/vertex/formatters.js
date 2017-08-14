@@ -3,27 +3,51 @@ define([
     './urlFormatters',
     './formula',
     'util/messages',
-    'util/requirejs/promise!../service/ontologyPromise',
+    'data/web-worker/store/ontology/selectors',
     'util/visibility/util'
 ], function(
     F,
     vertexUrl,
     formula,
     i18n,
-    ontology,
+    ontologySelectors,
     visibilityUtil) {
     'use strict';
 
-    var propertiesByTitle = ontology.properties.byTitle,
-        propertiesByDependentToCompound = ontology.properties.byDependentToCompound,
+    var _state;
+    var getProperty = function(iri) {
+        return ontologySelectors.getProperties(_state)[iri];
+    };
+    var getPropertiesByDependentToCompound = function(iri) {
+        return ontologySelectors.getPropertiesByDependentToCompound(_state)[iri];
+    };
+    var getConcept = function(iri) {
+        return ontologySelectors.getConcepts(_state)[iri];
+    };
+    var getRelationship = function(iri) {
+        return ontologySelectors.getRelationships(_state)[iri];
+    };
+    var applyTint = function(url, color) {
+        var noTint = url.replace(/&tint=[^&+]/);
+        if (color) {
+            return noTint + `&tint=${encodeURIComponent(color)}`
+        }
+        return noTint;
+    };
+    visalloData.storePromise.then(function(store) {
+        _state = store.getState();
+        store.subscribe(function() {
+            _state = store.getState();
+        });
+    })
 
-        /**
-         * Utilities that assist in transforming vertices and edges.
-         *
-         * @alias module:formatters.vertex
-         * @namespace
-         */
-        V = {
+    /**
+     * Utilities that assist in transforming vertices and edges.
+     *
+     * @alias module:formatters.vertex
+     * @namespace
+     */
+    var V = {
 
             /**
              * Check if the passed object is currently published from a case
@@ -444,10 +468,10 @@ define([
                     conceptType = 'http://www.w3.org/2002/07/owl#Thing';
                 }
 
-                concept = ontology.concepts.byId[conceptType];
+                concept = getConcept(conceptType);
                 if (!concept && conceptType !== 'relationship') {
                     console.warn('Concept: ' + conceptType + ' is not in ontology');
-                    concept = ontology.concepts.byId['http://www.w3.org/2002/07/owl#Thing'];
+                    concept = getConcept('http://www.w3.org/2002/07/owl#Thing');
                 }
                 return concept;
             },
@@ -464,7 +488,7 @@ define([
                     properties = [];
                 do {
                     properties = properties.concat(concept.properties);
-                    concept = concept.parentConcept && ontology.concepts.byId[concept.parentConcept];
+                    concept = concept.parentConcept && getConcept(concept.parentConcept);
                 } while (concept);
                 return properties;
             },
@@ -486,7 +510,7 @@ define([
                     if (concept && concept.properties.indexOf(propertyName) >= 0) {
                         return true;
                     }
-                    concept = concept.parentConcept && ontology.concepts.byId[concept.parentConcept];
+                    concept = concept.parentConcept && getConcept(concept.parentConcept);
                 } while (concept);
                 return false;
             },
@@ -507,7 +531,7 @@ define([
                         return true;
                     }
 
-                    conceptType = ontology.concepts.byId[conceptType].parentConcept;
+                    conceptType = getConcept(conceptType).parentConcept;
                 } while (conceptType)
 
                 return false;
@@ -556,7 +580,7 @@ define([
                     };
 
                     _.each(vertex.properties, function(prop) {
-                        var ontologyProperty = ontology.properties.byTitle[prop.name],
+                        var ontologyProperty = getProperty(prop.name),
                             intents = ontologyProperty ? ontologyProperty.intents : null;
                         if (intents) {
                             if (_.indexOf(intents, 'media.clockwiseRotation') >= 0) {
@@ -583,7 +607,7 @@ define([
                     }
                 }
 
-                return concept.glyphIconHref;
+                return applyTint(concept.glyphIconHref, concept.color);
             },
 
             /**
@@ -598,7 +622,10 @@ define([
             selectedImage: function(vertex, optionalWorkspaceId, width) {
                 var concept = V.concept(vertex),
                     conceptImage = V.image(vertex, optionalWorkspaceId, width);
-                return (conceptImage === concept.glyphIconHref) ? (concept.glyphIconSelectedHref || conceptImage) : conceptImage;
+                var out = conceptImage.indexOf(concept.glyphIconHref) === 0 ?
+                    (concept.glyphIconSelectedHref || applyTint(concept.glyphIconHref, '#ffffff')) :
+                    conceptImage;
+                return out;
             },
 
             /**
@@ -611,7 +638,7 @@ define([
              * concept icon.
              */
             imageIsFromConcept: function(vertex, optionalWorkspaceId) {
-                return V.image(vertex, optionalWorkspaceId) === V.concept(vertex).glyphIconHref;
+                return V.image(vertex, optionalWorkspaceId).indexOf(V.concept(vertex).glyphIconHref) === 0;
             },
 
             /**
@@ -662,7 +689,7 @@ define([
                         return V.title(vertex);
                     }),
                     sorted = _.sortBy(verticesWithValues[0], function(vertex) {
-                        var ontologyProperty = propertiesByTitle[V.propName(name)],
+                        var ontologyProperty = getProperty(V.propName(name)),
                             propRaw = V.propRaw(vertex, name, undefined, { defaultValue: ' ' });
 
                         if (_.isString(propRaw)) {
@@ -699,7 +726,7 @@ define([
             propName: function(name) {
                 var autoExpandedName = (/^http:\/\/visallo.org/).test(name) ?
                         name : ('http://visallo.org#' + name),
-                    ontologyProperty = propertiesByTitle[name] || propertiesByTitle[autoExpandedName],
+                    ontologyProperty = getProperty(name) || getProperty(autoExpandedName),
 
                     resolvedName = ontologyProperty && (
                         ontologyProperty.title === name ? name : autoExpandedName
@@ -717,21 +744,29 @@ define([
              * @returns {object} The property
              */
             longestProp: function(vertex, optionalName) {
-                var properties = vertex.properties
+                var properties = _.chain(vertex.properties)
                     .filter(function(a) {
-                        var ontologyProperty = propertiesByTitle[a.name];
+                        var ontologyProperty = getProperty(a.name);
                         if (optionalName && optionalName !== a.name) {
                             return false;
                         }
                         return ontologyProperty && ontologyProperty.userVisible;
                     })
                     .map(function(a) {
-                        var parentProperty = propertiesByDependentToCompound[a.name];
-                        if (parentProperty && V.hasProperty(vertex, parentProperty)) {
-                            return V.prop(vertex, parentProperty, a.key);
+                        var parentProperties = getPropertiesByDependentToCompound(a.name);
+                        if (parentProperties) {
+                            var concept = V.concept(vertex);
+                            return parentProperties.map(parentProperty => {
+                                if (concept.properties.includes(parentProperty)) {
+                                    return V.prop(vertex, parentProperty, a.key);
+                                }
+                                return '';
+                            })
                         }
                         return V.prop(vertex, a.name, a.key);
                     })
+                    .flatten(true)
+                    .value()
                     .sort(function(a, b) {
                         return b.length - a.length;
                     });
@@ -742,7 +777,7 @@ define([
 
             rollup: function(name, values) {
                 name = V.propName(name);
-                var ontologyProperty = propertiesByTitle[name],
+                var ontologyProperty = getProperty(name),
                     min = Number.MAX_VALUE,
                     max = Number.MIN_VALUE,
                     sum = 0;
@@ -797,7 +832,7 @@ define([
              */
             propDisplay: function(name, value, options) {
                 name = V.propName(name);
-                var ontologyProperty = propertiesByTitle[name];
+                var ontologyProperty = getProperty(name);
 
                 if (!ontologyProperty) {
                     return value;
@@ -877,9 +912,14 @@ define([
 
                 name = V.propName(name);
 
+                // This is now on the vertex, for performance just get it there
+                if (name === 'http://visallo.org#conceptType' && !optionalKey && vertex.conceptType) {
+                    return vertex.conceptType;
+                }
+
                 var value = V.propRaw(vertex, name, optionalKey, optionalOpts),
                     ignoreDisplayFormula = optionalOpts && optionalOpts.ignoreDisplayFormula,
-                    ontologyProperty = propertiesByTitle[name];
+                    ontologyProperty = getProperty(name);
 
                 if (!ontologyProperty) {
                     return value;
@@ -933,7 +973,7 @@ define([
 
                 name = V.propName(name);
 
-                var ontologyProperty = ontology.properties.byTitle[name],
+                var ontologyProperty = getProperty(name),
                     dependentIris = ontologyProperty && ontologyProperty.dependentPropertyIris,
                     foundProperties = _.filter(vertex.properties, function(p) {
                         if (dependentIris) {
@@ -973,7 +1013,7 @@ define([
                         id: 'singlePropValid',
                         properties: [property]
                     },
-                    ontologyProperty = ontology.properties.byTitle[propertyName],
+                    ontologyProperty = getProperty(propertyName),
                     formulaString = ontologyProperty.validationFormula,
                     result = true;
                 if (formulaString) {
@@ -988,7 +1028,7 @@ define([
                     throw new Error('Unable to validate without values array')
                 }
 
-                var ontologyProperty = ontology.properties.byTitle[propertyName],
+                var ontologyProperty = getProperty(propertyName),
                     dependentIris = ontologyProperty.dependentPropertyIris,
                     formulaString = ontologyProperty.validationFormula,
                     result,
@@ -1114,7 +1154,7 @@ define([
 
                 name = V.propName(name);
 
-                var ontologyProperty = propertiesByTitle[name],
+                var ontologyProperty = getProperty(name),
                     dependentIris = ontologyProperty && ontologyProperty.dependentPropertyIris || [],
                     iris = dependentIris.length ? dependentIris : [name],
                     properties = transformMatchingVertexProperties(vertex, iris);
@@ -1212,7 +1252,7 @@ define([
     return $.extend({}, F, { vertex: V, vertexUrl: vertexUrl.vertexUrl, edge: E });
 
     function treeLookupForConceptProperty(conceptId, propertyName, additionalScope) {
-        var ontologyConcept = conceptId && ontology.concepts.byId[conceptId],
+        var ontologyConcept = conceptId && getConcept(conceptId),
             formulaString = ontologyConcept && ontologyConcept[propertyName];
 
         if (ontologyConcept && !additionalScope.ontology) {
@@ -1238,12 +1278,12 @@ define([
 
         if (isExtendedDataRow) {
             const tableName = vertexiumObject.id.tableName,
-                ontologyProperty = ontology.properties.byTitle[tableName];
+                ontologyProperty = getProperty(tableName);
             additionalScope.label = ontologyProperty.displayName;
             formulaString = ontologyProperty[formulaKey];
         } else if (isEdge) {
             var edge = vertexiumObject,
-                ontologyRelation = ontology.relationships.byTitle[edge.label],
+                ontologyRelation = getRelationship(edge.label),
                 label = ontologyRelation.displayName;
             additionalScope.label = label;
             additionalScope.ontology = ontologyRelation;

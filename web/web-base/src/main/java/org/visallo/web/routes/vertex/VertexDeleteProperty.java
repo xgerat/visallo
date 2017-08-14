@@ -54,11 +54,11 @@ public class VertexDeleteProperty implements ParameterizedHandler {
             User user,
             Authorizations authorizations
     ) throws Exception {
-        OntologyProperty ontologyProperty = ontologyRepository.getRequiredPropertyByIRI(propertyName);
+        OntologyProperty ontologyProperty = ontologyRepository.getRequiredPropertyByIRI(propertyName, workspaceId);
 
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
 
-        aclProvider.checkCanDeleteProperty(vertex, propertyKey, propertyName, user);
+        aclProvider.checkCanDeleteProperty(vertex, propertyKey, propertyName, user, workspaceId);
 
         boolean isComment = VisalloProperties.COMMENT.isSameName(propertyName);
 

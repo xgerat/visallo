@@ -1,6 +1,9 @@
 define([], function() {
     'use strict';
 
+    var CACHES = {
+        ontology: null
+    };
     var FAST_PASSED = {
         'ontology/ontology': null,
         'ontology/properties': null,
@@ -26,43 +29,39 @@ define([], function() {
         return { promise, resolve, reject };
     }
 
-    function fastPassNoWorker(message, trigger) {
-        var path = message.data.service + '/' + message.data.method;
-        if (path in FAST_PASSED) {
-            if (FAST_PASSED[path]) {
-               FAST_PASSED[path].promise.then(r => {
-                   trigger(r.type, { ...r, requestId: message.data.requestId });
-               })
-               return true;
-            } else {
-
-                // Special case check for properties/relationship request and
-                // resolve using ontology if already requested
-                if (message.data.service === 'ontology' && (
-                message.data.method === 'properties' || message.data.method === 'relationships'
-                )) {
-                    if (FAST_PASSED['ontology/ontology']) {
-                        FAST_PASSED['ontology/ontology'].promise.then(r => {
-                            trigger(r.type, {
-                                ...r,
-                                result: r.result[message.data.method],
-                                requestId: message.data.requestId
-                            });
-                        })
-                        return true;
-                    }
-                }
-                FAST_PASSED[path] = deferred();
-            }
-        }
-        return false;
-    }
 
     function checkForFastPass(message) {
         var path = message.originalRequest.service + '/' + message.originalRequest.method;
         if (FAST_PASSED[path]) {
+
+            // Wrap ontology objects with getter that uses the latest ontology
+            if (path === 'ontology/ontology') {
+                CACHES.ontology = message.result;
+                message.result = {
+                    concepts: wrap(CACHES.ontology.concepts, 'ontology', 'concepts'),
+                    properties: wrap(CACHES.ontology.properties, 'ontology', 'properties'),
+                    relationships: wrap(CACHES.ontology.relationships, 'ontology', 'relationships')
+                };
+            }
             FAST_PASSED[path].resolve(message);
         }
+    }
+
+    function wrap(obj, ...paths) {
+        var wrappedObj = {};
+        Object.keys(obj).forEach(key => {
+            Object.defineProperty(wrappedObj, key, {
+                get: function() {
+                    var latest = CACHES;
+                    paths.forEach(p => {
+                        latest = latest[p];
+                    })
+                    return latest[key];
+                },
+                enumerable: true
+            });
+        })
+        return wrappedObj;
     }
 
     function withDataRequestHandler() {
@@ -101,7 +100,7 @@ define([], function() {
             }
             var message = { type: event.type, data };
 
-            if (!fastPassNoWorker(message, this.trigger.bind(this))) {
+            if (!this.fastPassNoWorker(message)) {
                 this.worker.postMessage(message);
             }
         };
@@ -113,6 +112,80 @@ define([], function() {
 
         this.dataRequestProgress = function(message) {
             this.trigger(message.type, message);
+        };
+
+        this.fastPassNoWorker = function(message) {
+            var path = message.data.service + '/' + message.data.method;
+            if (path in FAST_PASSED) {
+                if (FAST_PASSED[path]) {
+                   FAST_PASSED[path].promise.then(r => {
+                       this.trigger(r.type, { ...r, requestId: message.data.requestId });
+                   })
+                   return true;
+                } else {
+
+                    // Special case check for properties/relationship request and
+                    // resolve using ontology if already requested
+                    if (message.data.service === 'ontology' && (
+                    message.data.method === 'properties' || message.data.method === 'relationships'
+                    )) {
+                        const ontologyPath = 'ontology/ontology';
+                        const existing = FAST_PASSED[ontologyPath] && FAST_PASSED[ontologyPath].promise;
+                        Promise.resolve(existing || this.refreshOntology()).then(r => {
+                            this.trigger(r.type, {
+                                ...r,
+                                result: r.result[message.data.method],
+                                requestId: message.data.requestId
+                            });
+                        })
+                        return true;
+                    }
+                    FAST_PASSED[path] = deferred();
+                }
+            }
+            return false;
+        }
+
+        this.refreshOntology = function() {
+            return this.dataRequestPromise
+                .then(dr => dr('ontology', 'ontology'))
+                .then(ontology => {
+                    return FAST_PASSED['ontology/ontology'].promise;
+                });
+        };
+
+        this.dataRequestFastPassClear = function(message) {
+            var ontologyCleared = false;
+            message.paths.forEach(function(path) {
+                ontologyCleared = ontologyCleared || (path.indexOf('ontology') === 0)
+                FAST_PASSED[path] = null;
+            })
+
+            if (ontologyCleared) {
+                this.refreshOntology().then(ontologyRequest => {
+                    /**
+                     * Triggered when the ontology is modified, either by changing the
+                     * case or something was published.
+                     *
+                     * Listen to this event to be notified and update views
+                     * that might be using the ontology.
+                     *
+                     * @global
+                     * @event ontologyUpdated
+                     * @property {object} data
+                     * @property {object} data.ontology
+                     * @example <caption>From Flight</caption>
+                     * this.on(document, 'ontologyUpdated', function(event, data) {
+                     *     console.log('Ontology:', data.ontology);
+                     * })
+                     * @example <caption>Anywhere</caption>
+                     * $(document).on('ontologyUpdated', function(event, data) {
+                     *     console.log('Ontology:', data.ontology);
+                     * })
+                     */
+                    this.trigger('ontologyUpdated', { ontology: ontologyRequest.result });
+                })
+            }
         };
 
     }

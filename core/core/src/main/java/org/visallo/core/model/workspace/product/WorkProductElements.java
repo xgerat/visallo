@@ -19,14 +19,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public abstract class WorkProductElements implements WorkProduct, WorkProductHasElements {
-    private final OntologyRepository ontologyRepository;
     private final AuthorizationRepository authorizationRepository;
 
     protected WorkProductElements(
-            OntologyRepository ontologyRepository,
             AuthorizationRepository authorizationRepository
     ) {
-        this.ontologyRepository = ontologyRepository;
         this.authorizationRepository = authorizationRepository;
     }
 
@@ -82,7 +79,7 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
             ));
             Iterable<RelatedEdge> productRelatedEdges = graph.findRelatedEdgeSummaryForVertices(productVertices, authorizations);
             List<String> ids = StreamUtil.stream(productRelatedEdges)
-                    .map(edge -> edge.getEdgeId())
+                    .map(RelatedEdge::getEdgeId)
                     .collect(Collectors.toList());
             Map<String, Boolean> relatedEdgesById = graph.doEdgesExist(ids, authorizations);
 
@@ -128,5 +125,4 @@ public abstract class WorkProductElements implements WorkProduct, WorkProductHas
     protected String getEdgeId(String productId, String vertexId) {
         return productId + "_hasVertex_" + vertexId;
     }
-
 }

@@ -20,6 +20,7 @@ define([
     layoutTypes) {
     'use strict';
 
+
     /**
      * The detail pane is rendered using a custom layout engine consisting of a tree of layout components.
      *

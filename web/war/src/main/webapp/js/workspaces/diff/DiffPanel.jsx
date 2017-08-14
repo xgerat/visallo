@@ -1,12 +1,11 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     'classnames',
     'util/vertex/formatters',
     'util/privileges'
-], function(React, classNames, F, Privileges) {
+], function(createReactClass, PropTypes, classNames, F, Privileges) {
     'use strict';
-
-    var PropTypes = React.PropTypes;
 
     function formatVisibility(propertyOrProperties) {
         const property = Array.isArray(propertyOrProperties) ? propertyOrProperties[0] : propertyOrProperties;
@@ -20,7 +19,7 @@ define([
         }, name, property.key)
     }
 
-    const DiffPanel = React.createClass({
+    const DiffPanel = createReactClass({
 
         renderHeader: function(diffs) {
             const { publishing, undoing, onApplyPublishClick, onApplyUndoClick } = this.props;
@@ -107,14 +106,16 @@ define([
             );
         },
 
-        renderDiffActions: function(id, { publish, undo }) {
+        renderDiffActions: function(id, { publish, undo, requiresOntologyPublish }) {
             const { publishing, undoing, onPublishClick, onUndoClick } = this.props;
             const applying = publishing || undoing;
+
+            const disabledBecauseOntologyChange = requiresOntologyPublish && Privileges.missingONTOLOGY_PUBLISH;
 
             return (
                 <td className="actions">
                     <div className="btn-group">
-                        {Privileges.canPUBLISH ? (
+                        {Privileges.canPUBLISH && !disabledBecauseOntologyChange ? (
                             <button className={
                                 classNames('btn', 'btn-mini', 'publish', 'requires-PUBLISH', {
                                     'btn-success': publish
@@ -127,7 +128,7 @@ define([
                                 {i18n('workspaces.diff.button.publish')}
                             </button>
                         ) : null}
-                        {Privileges.canEDIT ? (
+                        {Privileges.canEDIT && !disabledBecauseOntologyChange ? (
                             <button className={
                                 classNames('btn', 'btn-mini', 'undo', 'requires-EDIT', {
                                     'btn-danger': undo
@@ -143,6 +144,11 @@ define([
                     </div>
                 </td>
             );
+        },
+
+        renderRequiresOntologyPublish(diff) {
+            return Privileges.canPUBLISH && diff.requiresOntologyPublish && Privileges.missingONTOLOGY_PUBLISH ?
+                (<div title={ i18n('workspaces.diff.requires.ontology.publish.title') } className="action-subtype">{ i18n('workspaces.diff.requires.ontology.publish') }</div>) : null;
         },
 
         renderVertexDiff: function(diff) {
@@ -180,6 +186,7 @@ define([
                         {action.type !== 'update' ? (
                             <span className="label action-type">{ action.display }</span>
                         ) : null}
+                        {this.renderRequiresOntologyPublish(diff)}
                     </th>
                     {action.type !== 'update' ?
                         this.renderDiffActions(vertexId, diff) : (
@@ -220,6 +227,7 @@ define([
                         {action.type !== 'update' ? (
                             <span className="label action-type">{ action.display }</span>
                         ) : null}
+                        {this.renderRequiresOntologyPublish(diff)}
                     </th>
                     {action.type !== 'update' ?
                         this.renderDiffActions(edgeId, diff) : (
@@ -268,6 +276,7 @@ define([
                             <div className="visibility" data-visibility={nextVisibility} />
                         </div>
                     ) : null}
+                    {this.renderRequiresOntologyPublish(property)}
                 </td>
                 {this.renderDiffActions(id, property)}
               </tr>
@@ -318,5 +327,5 @@ define([
         }
     });
 
-    return React.createFactory(DiffPanel);
+    return DiffPanel;
 });

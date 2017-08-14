@@ -17,7 +17,6 @@ import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -34,7 +33,6 @@ public class RemoveVertices implements ParameterizedHandler {
     private final Graph graph;
     private final WorkspaceRepository workspaceRepository;
     private final WorkQueueRepository workQueueRepository;
-    private final OntologyRepository ontologyRepository;
     private final AuthorizationRepository authorizationRepository;
     private final GraphRepository graphRepository;
 
@@ -50,7 +48,6 @@ public class RemoveVertices implements ParameterizedHandler {
         this.graph = graph;
         this.workspaceRepository = workspaceRepository;
         this.workQueueRepository = workQueueRepository;
-        this.ontologyRepository = ontologyRepository;
         this.authorizationRepository = authorizationRepository;
         this.graphRepository = graphRepository;
     }
@@ -69,7 +66,7 @@ public class RemoveVertices implements ParameterizedHandler {
                 workspaceId
         );
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.HIGH, user, authorizations)) {
-            MapWorkProduct mapWorkProduct = new MapWorkProduct(ontologyRepository, authorizationRepository);
+            MapWorkProduct mapWorkProduct = new MapWorkProduct(authorizationRepository);
             Vertex productVertex = graph.getVertex(productId, authorizations);
             JSONArray removeVertices = new JSONArray(vertexIds);
 

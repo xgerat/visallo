@@ -8,13 +8,19 @@ import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.ontology.Relationship;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.util.SandboxStatusUtil;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class VertexiumRelationship extends Relationship {
     private final Vertex vertex;
     private final List<String> inverseOfIRIs;
+    private final String workspaceId;
 
     public VertexiumRelationship(
             String parentIRI,
@@ -22,11 +28,18 @@ public class VertexiumRelationship extends Relationship {
             List<String> domainConceptIRIs,
             List<String> rangeConceptIRIs,
             List<String> inverseOfIRIs,
-            Collection<OntologyProperty> properties
+            Collection<OntologyProperty> properties,
+            String workspaceId
     ) {
         super(parentIRI, domainConceptIRIs, rangeConceptIRIs, properties);
         this.vertex = vertex;
         this.inverseOfIRIs = inverseOfIRIs;
+        this.workspaceId = workspaceId;
+    }
+
+    @Override
+    public String getId() {
+        return vertex.getId();
     }
 
     @Override
@@ -101,7 +114,26 @@ public class VertexiumRelationship extends Relationship {
         return OntologyProperties.UPDATEABLE.getPropertyValue(vertex, true);
     }
 
+    @Override
+    public Map<String, String> getMetadata() {
+        Map<String, String> metadata = new HashMap<>();
+        if (getSandboxStatus() == SandboxStatus.PRIVATE) {
+            if (VisalloProperties.MODIFIED_BY.hasProperty(vertex)) {
+                metadata.put(VisalloProperties.MODIFIED_BY.getPropertyName(), VisalloProperties.MODIFIED_BY.getPropertyValue(vertex));
+            }
+            if (VisalloProperties.MODIFIED_DATE.hasProperty(vertex)) {
+                metadata.put(VisalloProperties.MODIFIED_DATE.getPropertyName(), VisalloProperties.MODIFIED_DATE.getPropertyValue(vertex).toString());
+            }
+        }
+        return metadata;
+    }
+
     public Vertex getVertex() {
         return vertex;
+    }
+
+    @Override
+    public SandboxStatus getSandboxStatus() {
+        return SandboxStatusUtil.getSandboxStatus(this.vertex, this.workspaceId);
     }
 }

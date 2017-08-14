@@ -15,7 +15,7 @@ define([
     defineComponent,
     withDropdown,
     template,
-    FieldSelection,
+    PropertySelector,
     alertTemplate,
     withTeardown,
     VertexSelector,
@@ -84,7 +84,6 @@ define([
 
             this.select('saveButtonSelector').attr('disabled', true);
             this.select('deleteButtonSelector').hide();
-            this.select('saveButtonSelector').hide();
 
             if (this.attr.property) {
                 this.trigger('propertyselected', {
@@ -108,27 +107,30 @@ define([
         });
 
         this.setupPropertySelectionField = function() {
-            let ontologyRequest;
-
-            if (F.vertex.isEdge(this.attr.data)) {
-                ontologyRequest = this.dataRequest('ontology', 'propertiesByRelationship', this.attr.data.label);
-            } else {
-                ontologyRequest = this.dataRequest('ontology', 'propertiesByConceptId',
-                    F.vertex.prop(this.attr.data, 'conceptType'));
+            const { label, conceptType } = this.attr.data;
+            const filter = { addable: true };
+            if (label) {
+                filter.relationshipId = label
+            } else if (conceptType) {
+                filter.conceptId = conceptType;
             }
 
-            Promise.all([
-                ontologyRequest,
-                acl.getPropertyAcls(this.attr.data)
-            ]).spread((ontologyProperties, propertyAcls) => {
-                FieldSelection.attachTo(this.select('propertyListSelector'), {
-                    properties: ontologyProperties.list,
-                    focus: true,
-                    placeholder: i18n('property.form.field.selection.placeholder'),
-                    unsupportedProperties: _.pluck(_.where(propertyAcls, {addable: false}), 'name')
-                });
-
-                this.manualOpen();
+            const propertyNode = this.select('propertyListSelector');
+            propertyNode.one('rendered', () => {
+                this.on('opened', () => {
+                    propertyNode.find('input').focus()
+                })
+                _.defer(() => {
+                    this.manualOpen();
+                })
+            });
+            PropertySelector.attachTo(propertyNode, {
+                filter: {
+                    conceptId: this.attr.data.conceptType,
+                    relationshipId: this.attr.data.label,
+                    addable: true
+                },
+                placeholder: i18n('property.form.field.selection.placeholder')
             });
         };
 
@@ -231,10 +233,19 @@ define([
             var self = this,
                 property = data.property,
                 disablePreviousValuePrompt = data.disablePreviousValuePrompt,
-                propertyName = property.title,
+                propertyName = property && property.title,
                 config = self.select('configurationSelector'),
                 visibility = self.select('visibilitySelector'),
                 justification = self.select('justificationSelector');
+
+            if (!property) {
+                config.hide();
+                visibility.hide();
+                justification.hide();
+                return;
+            } else {
+                config.show();
+            }
 
             this.currentProperty = property;
             this.$node.find('.errors').hide();
@@ -293,7 +304,6 @@ define([
 
                     this.select('justificationSelector').hide();
                     this.select('visibilitySelector').hide();
-                    this.select('saveButtonSelector').hide();
                     this.select('previousValuesDropdownSelector').hide();
 
                     return;
@@ -305,7 +315,6 @@ define([
             this.select('previousValuesDropdownSelector').hide();
             this.select('justificationSelector').show();
             this.select('visibilitySelector').show();
-            this.select('saveButtonSelector').show();
 
             var deleteButton = this.select('deleteButtonSelector')
                 .toggle(
@@ -435,7 +444,8 @@ define([
 
             this.select('visibilityInputSelector').toggleClass('invalid', !data.valid);
             this.visibilitySource = data;
-            this.modified.visibility = this.currentProperty.metadata ? visibilityModified() : !!this.visibilitySource.value;
+            const metadata = this.currentProperty.metadata;
+            this.modified.visibility = metadata && 'http://visallo.org#visibilityJson' in metadata ? visibilityModified() : !!this.visibilitySource.value;
             this.checkValid();
 
             function visibilityModified() {
@@ -459,7 +469,8 @@ define([
             var self = this;
 
             this.justification = data;
-            this.modified.justification = this.currentProperty.metadata ? justificationModified() : !!this.justification.justificationText;
+            const metadata = this.currentProperty.metadata;
+            this.modified.justification = metadata && 'http://visallo.org#visibilityJson' in metadata ? justificationModified() : !!this.justification.justificationText;
             this.checkValid();
 
             function justificationModified() {

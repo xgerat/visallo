@@ -100,6 +100,14 @@ define([
                 return this.dataRequest('ontology', 'propertiesByDomainType', this.matchType);
             };
 
+            this.on(document, 'ontologyUpdated', function(event, { ontology }) {
+                const { relationships, concepts } = ontology;
+                this.conceptsById = concepts.byId;
+                this.relationshipsById = relationships.byId;
+                this.conceptsByParent = _.groupBy(concepts.byTitle, 'parentConcept');
+                this.relationshipsByParent = _.groupBy(relationships.list, 'parentIri');
+            });
+
             this.filtersLoaded = this.dataRequest('ontology', 'ontology').then(({ relationships, concepts }) => {
                 this.conceptsById = concepts.byId;
                 this.relationshipsById = relationships.byId;
@@ -794,6 +802,7 @@ define([
 
         this.loadEdgeTypes = function() {
             RelationshipSelector.attachTo(this.select('edgeLabelDropdownSelector'), {
+                creatable: false,
                 defaultText: i18n('search.filters.all_edgetypes')
             });
         };
@@ -801,6 +810,7 @@ define([
         this.loadConcepts = function() {
             ConceptSelector.attachTo(this.select('conceptDropdownSelector'), {
                 onlySearchable: true,
+                creatable: false,
                 defaultText: i18n('search.filters.all_concepts')
             })
         };

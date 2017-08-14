@@ -92,14 +92,22 @@
         padding: 0.5em 1.5em 0.5em 0.5em;
         position: relative;
         box-sizing: border-box;
-        overflow: hidden;
-        button {
+        overflow: auto;
+        & > button.close {
           position: absolute;
           right: 4px;
         }
         ul {
           margin: 0;
           padding: 0 0 0 19px;
+        }
+      }
+      .schema-warning {
+        p:last-child {
+          font-weight: bold;
+          font-style: italic;
+          text-align: center;
+          font-size: 110%;
         }
       }
     }
@@ -257,6 +265,13 @@
           padding: 0em 0.5em;
           margin: 0 0 0 30px;
       }
+      .action-subtype {
+        margin: 0 0 0 30px;
+        font-weight: normal;
+        font-style: italic;
+        font-size: 85%;
+        color: #999;        
+      }
       .property-label, .edge-label {
         text-align: right;
         font-weight: bold;
@@ -274,6 +289,10 @@
       }
       .property-value, .edge-value {
         word-break: break-word;
+        .action-subtype {
+          margin: 0;
+          font-size: 95%;
+        }
 
         &.deleted {
           text-decoration: line-through;

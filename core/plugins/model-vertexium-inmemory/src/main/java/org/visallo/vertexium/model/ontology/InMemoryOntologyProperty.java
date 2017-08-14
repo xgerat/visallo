@@ -4,12 +4,12 @@ import com.google.common.collect.ImmutableList;
 import org.vertexium.Authorizations;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
+import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.ontology.OntologyRepositoryBase;
 import org.visallo.web.clientapi.model.PropertyType;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class InMemoryOntologyProperty extends OntologyProperty {
     private String title;
@@ -30,9 +30,20 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     private ImmutableList<String> dependentPropertyIris = ImmutableList.of();
     private List<String> intents = new ArrayList<>();
     private List<String> textIndexHints = new ArrayList<>();
+    private Map<String, String> metadata = new HashMap<>();
+
+    private List<String> conceptIris = new ArrayList<>();
+    private List<String> relationshipIris = new ArrayList<>();
+
+    private String workspaceId;
 
     @Override
     public String getTitle() {
+        return title;
+    }
+
+    @Override
+    public String getId() {
         return title;
     }
 
@@ -97,10 +108,14 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     }
 
     @Override
-    public boolean getDeleteable() { return deleteable; }
+    public boolean getDeleteable() {
+        return deleteable;
+    }
 
     @Override
-    public boolean getUpdateable() { return updateable; }
+    public boolean getUpdateable() {
+        return updateable;
+    }
 
     public String[] getIntents() {
         return this.intents.toArray(new String[this.intents.size()]);
@@ -116,7 +131,7 @@ public class InMemoryOntologyProperty extends OntologyProperty {
         addTextIndexHints(textIndexHints);
     }
 
-    public void addTextIndexHints (String textIndexHints) {
+    public void addTextIndexHints(String textIndexHints) {
         this.textIndexHints.add(textIndexHints);
     }
 
@@ -180,9 +195,13 @@ public class InMemoryOntologyProperty extends OntologyProperty {
         this.dependentPropertyIris = dependentPropertyIris == null ? ImmutableList.<String>of() : ImmutableList.copyOf(dependentPropertyIris);
     }
 
-    public void setUpdateable(boolean updateable) { this.updateable = updateable; }
+    public void setUpdateable(boolean updateable) {
+        this.updateable = updateable;
+    }
 
-    public void setDeleteable(boolean deleteable) { this.deleteable = deleteable; }
+    public void setDeleteable(boolean deleteable) {
+        this.deleteable = deleteable;
+    }
 
     @Override
     public void setProperty(String name, Object value, Authorizations authorizations) {
@@ -230,6 +249,10 @@ public class InMemoryOntologyProperty extends OntologyProperty {
             } else {
                 this.updateable = Boolean.parseBoolean((String) value);
             }
+        } else if (value != null) {
+            this.metadata.put(name, value.toString());
+        } else {
+            this.metadata.remove(name);
         }
     }
 
@@ -246,4 +269,37 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     public void removeIntent(String intent, Authorizations authorizations) {
         this.intents.remove(intent);
     }
+
+    @Override
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    @Override
+    public List<String> getConceptIris() {
+        return conceptIris;
+    }
+
+    @Override
+    public List<String> getRelationshipIris() {
+        return relationshipIris;
+    }
+
+    public void setWorkspaceId(String workspaceId) {
+        this.workspaceId = workspaceId;
+    }
+
+    public String getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public void removeWorkspaceId() {
+        workspaceId = null;
+    }
+
+    @Override
+    public SandboxStatus getSandboxStatus() {
+        return workspaceId == null ? SandboxStatus.PUBLIC : SandboxStatus.PRIVATE;
+    }
+
 }

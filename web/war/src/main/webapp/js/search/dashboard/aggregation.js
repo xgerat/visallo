@@ -433,16 +433,13 @@ define([
             if (!options) {
                 options = {};
             }
-            return Promise.all([
-                this.dataRequest('ontology', 'properties'),
-                Promise.require('util/ontology/propertySelect')
-            ]).spread(function(properties, FieldSelection) {
-                var propertiesToFilter = self.filteredProperties || properties.list;
+            return Promise.require('util/ontology/propertySelect').then(function(FieldSelection) {
+                var propertiesToFilter = self.filteredProperties || ontology.properties.list;
 
                 node.teardownComponent(FieldSelection);
 
                 FieldSelection.attachTo(node, {
-                    selectedProperty: options.selected && properties.byTitle[options.selected] || null,
+                    selectedProperty: options.selected && ontology.properties.byTitle[options.selected] || null,
                     properties: self.filterProperties(propertiesToFilter),
                     showAdminProperties: true,
                     placeholder: options.placeholder || ''

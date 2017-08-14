@@ -4,6 +4,9 @@ import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import com.google.i18n.phonenumbers.PhoneNumberMatch;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import org.vertexium.Element;
+import org.vertexium.Property;
+import org.vertexium.Vertex;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
@@ -14,9 +17,6 @@ import org.visallo.core.model.termMention.TermMentionBuilder;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.VisibilityJson;
-import org.vertexium.Element;
-import org.vertexium.Property;
-import org.vertexium.Vertex;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -24,17 +24,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.vertexium.util.IterableUtils.count;
+import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 
 @Name("Phone Number Extractor")
 @Description("Extracts phone numbers from text")
 public class PhoneNumberGraphPropertyWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(PhoneNumberGraphPropertyWorker.class);
-    public static final String DEFAULT_REGION_CODE = "phoneNumber.defaultRegionCode";
-    public static final String DEFAULT_DEFAULT_REGION_CODE = "US";
+    public static final String PHONE_NUMBER_CONCEPT_INTENT = "phoneNumber";
+    private static final String DEFAULT_REGION_CODE = "phoneNumber.defaultRegionCode";
+    private static final String DEFAULT_DEFAULT_REGION_CODE = "US";
 
     private final PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
     private String defaultRegionCode;
-    private String entityType;
+    private String publicEntityType;
 
     @Override
     public void prepare(GraphPropertyWorkerPrepareData workerPrepareData) throws Exception {
@@ -45,7 +47,7 @@ public class PhoneNumberGraphPropertyWorker extends GraphPropertyWorker {
             defaultRegionCode = DEFAULT_DEFAULT_REGION_CODE;
         }
 
-        entityType = getOntologyRepository().getRequiredConceptIRIByIntent("phoneNumber");
+        publicEntityType = getOntologyRepository().getRequiredConceptIRIByIntent(PHONE_NUMBER_CONCEPT_INTENT, PUBLIC);
     }
 
     @Override
@@ -70,7 +72,7 @@ public class PhoneNumberGraphPropertyWorker extends GraphPropertyWorker {
                     .start(start)
                     .end(end)
                     .title(formattedNumber)
-                    .conceptIri(entityType)
+                    .conceptIri(publicEntityType)
                     .visibilityJson(visibilityJson)
                     .process(getClass().getName())
                     .save(getGraph(), getVisibilityTranslator(), getUser(), getAuthorizations());

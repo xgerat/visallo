@@ -22,6 +22,26 @@ define([
 
     var idIncrementor = 0;
 
+    const headerTypeToDataTypes = type => {
+        if (type) {
+            switch (type) {
+                case 'Boolean':
+                    return ['string', 'boolean'];
+
+                case 'Number':
+                    return ['geoLocation', 'integer', 'currency', 'decimal', 'double', 'number', 'string'];
+
+                case 'Date':
+                case 'DateTime':
+                    return ['date'];
+
+                case 'String':
+                    return ['string'];
+            }
+        }
+    };
+
+
     return defineComponent(ColumnEditor, withDataRequest);
 
     function ColumnEditor() {
@@ -219,6 +239,8 @@ define([
                     .val(this.selectedVertex.id)
 
                 this.showField();
+            } else {
+                this.$node.find('.field').teardownComponent(FieldSelection).hide();
             }
 
             this.cleanupUnusedEntities();
@@ -232,30 +254,14 @@ define([
                     .then(function(properties) {
                         var ontologyProperty = property && _.findWhere(properties.list, { title: property.name });
                         var type = self.attr.type;
-                        var filtered = type ?
-                            _.filter(properties.list, function(property) {
-                                var dataType = property.dataType;
-                                switch (type) {
-                                    case 'Boolean':
-                                        return dataType === 'string' || dataType === 'boolean'     
-                                        
-                                    case 'Number':
-                                        return ['geoLocation', 'integer', 'decimal', 'double', 'number', 'string'].includes(dataType);
-                                    case 'Date':
-                                    case 'DateTime':
-                                        return dataType === 'date'
-
-                                    case 'String':
-                                        return dataType === 'string'
-                                }
-                                return true;
-                            }) : properties.list;
-
+                        var onlyDataTypes = headerTypeToDataTypes(type);
+                        
                         FieldSelection.attachTo(self.$node.find('.field').teardownComponent(FieldSelection).show(), {
                             placeholder: i18n('csv.file_import.mapping.properties.placeholder'),
-                            properties: filtered,
+                            onlyDataTypes: onlyDataTypes,
                             rollupCompound: false,
-                            selectedProperty: ontologyProperty
+                            selectedProperty: ontologyProperty,
+                            limitParentConceptId: conceptProperty.value
                         });
                         if (ontologyProperty) {
                             return self.setOntologyProperty(ontologyProperty, property);
@@ -267,57 +273,61 @@ define([
         }
 
         this.onPropertySelected = function(event, data) {
-            if (this.selectedVertex.properties.some((property) => property.name === data.property.title)) {
+            const selectedProperty = data && data.property;
+            if (selectedProperty && this.selectedVertex.properties.some((property) => property.name === selectedProperty.title)) {
                 this.$node.find('.field input').addClass('invalid');
                 this.$node.find('.field-error').show()
                     .text(i18n('csv.file_import.mapping.error.duplicate.property', this.selectedVertex.displayName));
             } else {
                 this.$node.find('.field input').removeClass('invalid');
                 this.$node.find('.field-error').hide()
-                this.setOntologyProperty(data.property);
+                this.setOntologyProperty(selectedProperty)
             }
         };
 
         this.setOntologyProperty = function(property, previousMapping) {
             var key = this.attr.key,
-                dataType = property.dataType,
-                mapping = previousMapping || {
+                dataType = property && property.dataType,
+                mapping = property ? (previousMapping || {
                     name: property.title,
                     key: key
-                };
+                }) : null;
 
-            if (!_.isObject(mapping.hints)) {
+            if (mapping && !_.isObject(mapping.hints)) {
                 mapping.hints = {};
             }
             this.mapping = mapping;
 
             this.$node.find('.aux_fields').teardownAllComponents().empty();
-            this.$node.find('.identifier').show();
-            this.$node.find('.field-visibility').show();
-            Visibility.attachTo(this.$node.find('.field-visibility').teardownComponent(Visibility).show(), {
-                value: this.mapping.visibilitySource,
-                placeholder: 'Property Visibility'
-            });
+            const hasMapping = Boolean(mapping);
+            this.$node.find('.identifier').toggle(hasMapping);
+            const $visibility = this.$node.find('.field-visibility').teardownComponent(Visibility).toggle(hasMapping);
+            this.select('addMappingButtonSelector').prop('disabled', !hasMapping);
 
-            this.select('addMappingButtonSelector').prop('disabled', false);
+            if (mapping) {
+                Visibility.attachTo($visibility, {
+                    value: this.mapping.visibilitySource,
+                    placeholder: 'Property Visibility'
+                });
 
-            switch (dataType) {
-                case 'boolean':
-                case 'date':
-                case 'geoLocation':
-                    return this.attachAuxiliaryField(property, mapping)
+                switch (dataType) {
+                    case 'boolean':
+                    case 'date':
+                    case 'geoLocation':
+                        return this.attachAuxiliaryField(property, mapping)
 
-                // Passthroughs
-                case 'currency':
-                case 'decimal':
-                case 'double':
-                case 'integer':
-                case 'number':
-                case 'string':
-                    break;
+                    // Passthroughs
+                    case 'currency':
+                    case 'decimal':
+                    case 'double':
+                    case 'integer':
+                    case 'number':
+                    case 'string':
+                        break;
 
-                default:
-                    console.error('Data type', dataType, 'not supported');
+                    default:
+                        console.error('Data type', dataType, 'not supported');
+                }
             }
         };
 

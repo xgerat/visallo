@@ -32,6 +32,11 @@ public class VertexiumUserRepositoryTest extends VisalloInMemoryTestBase {
             protected Collection<UserListener> getUserListeners() {
                 return VertexiumUserRepositoryTest.this.getUserListeners();
             }
+
+            @Override
+            protected AuthorizationRepository getAuthorizationRepository() {
+                return VertexiumUserRepositoryTest.this.getAuthorizationRepository();
+            }
         };
         return vertexiumUserRepository;
     }

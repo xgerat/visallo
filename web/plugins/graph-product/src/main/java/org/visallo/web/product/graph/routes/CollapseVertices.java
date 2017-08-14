@@ -13,7 +13,6 @@ import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
-import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
@@ -34,7 +33,6 @@ public class CollapseVertices implements ParameterizedHandler {
     private final Graph graph;
     private final WorkspaceRepository workspaceRepository;
     private final WorkQueueRepository workQueueRepository;
-    private final OntologyRepository ontologyRepository;
     private final AuthorizationRepository authorizationRepository;
     private final GraphRepository graphRepository;
     private final UserRepository userRepository;
@@ -44,7 +42,6 @@ public class CollapseVertices implements ParameterizedHandler {
             Graph graph,
             WorkspaceRepository workspaceRepository,
             WorkQueueRepository workQueueRepository,
-            OntologyRepository ontologyRepository,
             AuthorizationRepository authorizationRepository,
             GraphRepository graphRepository,
             UserRepository userRepository
@@ -52,7 +49,6 @@ public class CollapseVertices implements ParameterizedHandler {
         this.graph = graph;
         this.workspaceRepository = workspaceRepository;
         this.workQueueRepository = workQueueRepository;
-        this.ontologyRepository = ontologyRepository;
         this.authorizationRepository = authorizationRepository;
         this.graphRepository = graphRepository;
         this.userRepository = userRepository;
@@ -85,7 +81,7 @@ public class CollapseVertices implements ParameterizedHandler {
         );
 
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.HIGH, user, authorizations)) {
-            GraphWorkProduct graphWorkProduct = new GraphWorkProduct(ontologyRepository, authorizationRepository, graphRepository, userRepository);
+            GraphWorkProduct graphWorkProduct = new GraphWorkProduct(authorizationRepository, graphRepository, userRepository);
             Vertex productVertex = graph.getVertex(productId, authorizations);
 
             params.putOpt("id", vertexId);

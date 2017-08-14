@@ -1,10 +1,10 @@
 define([
-    'react',
     'react-redux',
     'react-dom',
     'data/web-worker/store/selection/actions',
     'data/web-worker/store/product/actions',
     'data/web-worker/store/product/selectors',
+    'data/web-worker/store/ontology/selectors',
     'components/DroppableHOC',
     'configuration/plugins/registry',
     'util/retina',
@@ -12,12 +12,12 @@ define([
     './worker/actions',
     './Graph'
 ], function(
-    React,
     redux,
     ReactDom,
     selectionActions,
     productActions,
     productSelectors,
+    ontologySelectors,
     DroppableHOC,
     registry,
     retina,
@@ -400,7 +400,8 @@ define([
 
         (state, props) => {
             var pixelRatio = state.screen.pixelRatio,
-                ontology = state.ontology,
+                concepts = ontologySelectors.getConcepts(state), // Used in F.vertex.image
+                relationships = ontologySelectors.getRelationships(state),
                 panelPadding = state.panel.padding,
                 ghosts = state['org-visallo-graph'].animatingGhosts,
                 uiPreferences = state.user.current.uiPreferences,
@@ -414,7 +415,8 @@ define([
                 ghosts,
                 pixelRatio,
                 uiPreferences,
-                ontology,
+                concepts,
+                relationships,
                 panelPadding,
                 rootId,
                 productElementIds: productSelectors.getElementIdsInProduct(state),

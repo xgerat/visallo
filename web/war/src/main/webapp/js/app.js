@@ -844,14 +844,14 @@ define([
                     visalloData.storePromise,
                     Promise.require('data/web-worker/store/panel/actions')
                 ]).spread((store, actions) => {
-                    this._updateStorePadding = function(padding) {
+                    this._updateStorePadding = _.debounce(function(padding) {
                         store.dispatch(actions.setPadding({
                             top: padding.t,
                             right: padding.r,
                             bottom: padding.b,
                             left: padding.l
                         }))
-                    }
+                    }, 250);
                 })
             }
         };

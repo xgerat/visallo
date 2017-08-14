@@ -81,9 +81,13 @@ define([], function() {
             this.popover = this.dialog.find('.popover');
 
             this.on(this.popover, 'positionDialog', this.positionDialog);
+            this.on(this.popover, 'rendered', this.positionDialog);
             this.on(this.popover, 'closePopover', this.teardown);
             this.on(this.popover, 'keyup', {
                 withPopoverInputSelector: this.withPopoverOnKeyup
+            })
+            this.on(this.popover, 'keydown', {
+                withPopoverInputSelector: this.withPopoverOnKeydown
             })
 
             if (this.attr.teardownOnTap !== false) {
@@ -112,13 +116,29 @@ define([], function() {
             this.registerAnchorTo();
         };
 
+        this.withPopoverOnKeydown = function(event) {
+                var $target = $(event.target);
+
+                // Prevent submit when using enter to select from open menu in react-select
+                if (!this._preventSubmit &&
+                    $target.parent('.Select-input').length &&
+                    $target.closest('.Select.is-open').length) {
+                    this._preventSubmit = true;
+                }
+        };
+
         this.withPopoverOnKeyup = function(event) {
             if (this.enterShouldSubmit && event.which === $.ui.keyCode.ENTER) {
-                var selector = this.attr[this.enterShouldSubmit];
-                if (selector) {
-                    this.popover.find(this.attr[this.enterShouldSubmit]).not(':disabled').click();
+
+                if (this._preventSubmit) {
+                    this._preventSubmit = false;
                 } else {
-                    console.warn('Selector to trigger on enter not found in popover', selector);
+                    var selector = this.attr[this.enterShouldSubmit];
+                    if (selector) {
+                        this.popover.find(this.attr[this.enterShouldSubmit]).not(':disabled').click();
+                    } else {
+                        console.warn('Selector to trigger on enter not found in popover', selector);
+                    }
                 }
             }
         };

@@ -17,7 +17,6 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -53,12 +52,12 @@ public class FormulaEvaluatorTest {
 
         evaluator = new FormulaEvaluator(configuration, ontologyRepository) {
             @Override
-            protected String getOntologyJson() {
+            protected String getOntologyJson(String workspaceId) {
                 return ontologyJson;
             }
 
             @Override
-            protected String getConfigurationJson(Locale locale) {
+            protected String getConfigurationJson(Locale locale, String workspaceId) {
                 return configurationJson;
             }
 
@@ -79,8 +78,8 @@ public class FormulaEvaluatorTest {
 
     @Test
     public void testEvaluatorJson() throws Exception {
-        assertTrue(evaluator.getOntologyJson().length() > 0);
-        assertTrue(evaluator.getConfigurationJson(Locale.getDefault()).length() > 0);
+        assertTrue(evaluator.getOntologyJson(null).length() > 0);
+        assertTrue(evaluator.getConfigurationJson(Locale.getDefault(), null).length() > 0);
     }
 
     @Test

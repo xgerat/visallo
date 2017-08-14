@@ -3,6 +3,7 @@ package org.visallo.web.clientapi.model;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Date;
 
 public enum PropertyType {
@@ -37,12 +38,16 @@ public enum PropertyType {
     }
 
     public static PropertyType convert(String property) {
+        return convert(property, STRING);
+    }
+
+    public static PropertyType convert(String property, PropertyType defaultValue) {
         for (PropertyType pt : PropertyType.values()) {
             if (pt.toString().equalsIgnoreCase(property)) {
                 return pt;
             }
         }
-        return STRING;
+        return defaultValue;
     }
 
     public static Class getTypeClass(PropertyType propertyType) {

@@ -1,18 +1,22 @@
 
 define([
     'flight/lib/component',
+    'react',
     'react-dom',
     './DiffPanel',
     'util/vertex/formatters',
     'util/withDataRequest',
-    'util/dnd'
+    'util/dnd',
+    'require'
 ], function(
     defineComponent,
+    React,
     ReactDOM,
     DiffPanel,
     F,
     withDataRequest,
-    dnd) {
+    dnd,
+    require) {
     'use strict';
 
     var SHOW_CHANGES_TEXT_SECONDS = 3;
@@ -36,8 +40,13 @@ define([
 
     function Diff() {
 
+        this.attributes({
+            diffs: null,
+            schemaTypeSelector: '.schema-type'
+        })
+
         this.render = function() {
-            ReactDOM.render(DiffPanel({
+            ReactDOM.render(React.createElement(DiffPanel, {
                 diffs: this.diffs,
                 formatLabel: this.formatLabel,
                 onPublishClick: this.onMarkPublish.bind(this),
@@ -88,6 +97,7 @@ define([
                 });
             })
             self.on(document, 'objectsSelected', self.onObjectsSelected);
+            self.on('click', { schemaTypeSelector: self.onSchemaTypeChange });
         };
 
         this.processDiffs = function(diffs) {
@@ -166,32 +176,49 @@ define([
                                 };
                                 outputItem.title = diffs[0].title || i18n('vertex.property.title.not_available');
                             }
-                            if (diffs[0].conceptType) {
-                                var concept = self.ontologyConcepts.byId[diffs[0].conceptType];
+                            const conceptType = diffs[0].conceptType || diffs[0].elementConcept;
+                            if (conceptType) {
+                                var concept = self.ontologyConcepts.byId[conceptType];
                                 if (concept) {
+                                    outputItem.concept = concept;
                                     outputItem.conceptImage = concept.glyphIconHref;
                                     outputItem.selectedConceptImage = concept.glyphIconSelectedHref || concept.glyphIconHref;
+                                    if (concept.sandboxStatus !== 'PUBLIC') {
+                                        outputItem.requiresOntologyPublish = true;
+                                    }
                                 }
                             }
                         } else {
                             outputItem.edgeId = elementId;
                             outputItem.edge = edgesById[elementId];
                             if (outputItem.edge) {
-                                outputItem.edgeLabel = self.ontologyRelationships.byTitle[outputItem.edge.label]
-                                .displayName;
+                                outputItem.edgeLabel = self.ontologyRelationships.byTitle[outputItem.edge.label].displayName;
                             } else {
                                 outputItem.edge = {
                                     id: elementId,
                                     properties: [],
                                     'http://visallo.org#visibilityJson': diffs[0].visibilityJson
                                 };
-                                outputItem.edgeLabel = self.ontologyRelationships.byTitle[diffs[0].label].displayName;
+                            }
+
+                            const label = diffs[0].label || diffs[0].elementConcept;
+                            if (label) {
+                                const relationship = self.ontologyRelationships.byId[label];
+                                if (relationship) {
+                                    outputItem.edgeLabel = relationship.displayName;
+                                    outputItem.relationship = relationship;
+                                    if (relationship.sandboxStatus !== 'PUBLIC') {
+                                        outputItem.requiresOntologyPublish = true;
+                                    }
+                                }
                             }
 
                             var sourceId = diffs[0].outVertexId,
                                 targetId = diffs[0].inVertexId,
                                 source = verticesById[sourceId],
                                 target = verticesById[targetId];
+                            outputItem.sourceId = sourceId;
+                            outputItem.targetId = targetId;
                             outputItem.sourceTitle = titleForEdgesVertices(source, sourceId, groupedByElement);
                             outputItem.targetTitle = titleForEdgesVertices(target, targetId, groupedByElement);
                         }
@@ -203,6 +230,7 @@ define([
                                     diff.id = elementId;
                                     diff.publish = outputItem.publish;
                                     diff.undo = outputItem.undo;
+                                    diff.requiresOntologyPublish = outputItem.requiresOntologyPublish;
                                     outputItem.action = diff.deleted ? actionTypes.DELETE : actionTypes.CREATE;
                                     self.diffsForElementId[elementId] = diff;
                                     self.diffsById[elementId] = diff;
@@ -221,6 +249,12 @@ define([
                                             diff.undo = previousDiffsById[diff.id] && previousDiffsById[diff.id].undo;
                                             addDiffDependency(diff.elementId, diff);
                                             diff.className = F.className.to(diff.id);
+                                        }
+
+                                        diff.requiresOntologyPublishProperty = ontologyProperty.sandboxStatus !== 'PUBLIC';
+                                        diff.requiresOntologyPublish = outputItem.requiresOntologyPublish || diff.requiresOntologyPublishProperty;
+                                        if (diff.requiresOntologyPublishProperty) {
+                                            diff.property = ontologyProperty;
                                         }
 
                                         if (compoundProperty &&
@@ -265,6 +299,7 @@ define([
                                     diff.outVertex = verticesById[diff.outVertexId];
                                     diff.className = F.className.to(diff.edgeId);
                                     diff.displayLabel = self.ontologyRelationships.byTitle[diff.label].displayName;
+                                    diff.requiresOntologyPublish = outputItem.requiresOntologyPublish;
                                     self.diffsForElementId[diff.edgeId] = diff;
                                     outputItem.action = diff.deleted ? actionTypes.DELETE : actionTypes.CREATE;
                                     addDiffDependency(diff.inVertexId, diff);
@@ -328,6 +363,8 @@ define([
         };
 
         this.onDeselectAll = function() {
+            this.resetWarning();
+
             var self = this;
             this.diffs.forEach(function(diff) {
                 deselectAction(diff);
@@ -347,9 +384,15 @@ define([
         };
 
         this.onSelectAll = function(action) {
+            const canPublishOntology = Boolean(visalloData.currentUser.privilegesHelper.ONTOLOGY_PUBLISH);
+
+            this.resetWarning();
+
             var self = this;
             this.diffs
-                .filter(function(diff) { return diff.action.type !== 'update' })
+                .filter(function(diff) {
+                    return allowSelect(diff) && diff.action.type !== 'update'
+                })
                 .forEach(function(diff) {
                     selectAction(diff, action);
                     diff.properties.forEach(function(property) {
@@ -357,23 +400,96 @@ define([
                     });
                 });
             Object.keys(this.diffsById).forEach(function(id) {
-                selectAction(self.diffsById[id], action);
+                if (allowSelect(self.diffsById[id])) {
+                    selectAction(self.diffsById[id], action);
+                }
             });
             this.render();
 
+            function allowSelect(diff) {
+                return !diff.requiresOntologyPublish || canPublishOntology;
+            }
             function selectAction(diff, action) {
                 diff.publish = false;
                 diff.undo = false;
                 diff[action] = true;
             }
         };
+
         this.onSelectAllPublish = _.partial(this.onSelectAll, 'publish');
         this.onSelectAllUndo = _.partial(this.onSelectAll, 'undo');
 
-        this.onApplyAll = function(type) {
+        this.onSchemaTypeChange = function(event) {
+            const $li = $(event.target).closest('li')
+            const diffIds = JSON.parse($li.attr('data-diff-ids'));
+
+            diffIds.forEach(id => {
+                this.onMarkPublish(id, false);
+            })
+
+            _.defer(() => {
+                var ontologyToPublish = this.buildOntologyToPublish();
+                if (_.some(ontologyToPublish, _.size)) {
+                    this.skipSchemaWarning = true;
+                    this.handleSchemaChanges(ontologyToPublish);
+                }
+            })
+        };
+
+        this.handleSchemaChanges = function(toPublish) {
+            require(['./schemaWarning.hbs'], tpl => {
+                const makeList = (name, displayName, diffId, lookup) => {
+                    const size = _.size(toPublish[name]);
+                    if (size) {
+                        return {
+                            displayName,
+                            size,
+                            list:  _.map(toPublish[name], (diffs, id) => ({
+                                displayName: lookup[id].displayName,
+                                usages: F.string.plural(diffs.length, 'usage'),
+                                diffs: JSON.stringify(diffs.map(d => d[diffId]))
+                            }))
+                        }
+                    }
+                }
+                const html = tpl({
+                    types: _.compact([
+                        makeList('concepts', i18n('workspaces.diff.schema.warning.type.vertex'), 'vertexId', this.ontologyConcepts.byId),
+                        makeList('relationships', i18n('workspaces.diff.schema.warning.type.edge'), 'edgeId', this.ontologyRelationships.byTitle),
+                        makeList('properties', i18n('workspaces.diff.schema.warning.type.property'), 'id', this.ontologyProperties.byTitle)
+                    ])
+                })
+
+                var error = $('<div>')
+                    .addClass('alert alert-warning')
+                    .html(html)
+                    .prependTo(this.$node.find('.diff-content'))
+                    .alert();
+            })
+        };
+
+        this.onApplyAll = function(type, publishOntology) {
             var self = this,
-                diffsToSend = this.buildDiffsToSend(type);
-            this.publishing = type === 'publish';
+                publishing = type === 'publish';
+
+            if (publishing && !publishOntology) {
+                var ontologyToPublish = this.buildOntologyToPublish();
+                if (_.some(ontologyToPublish, _.size)) {
+                    if (this.skipSchemaWarning) {
+                        this.skipSchemaWarning = false;
+                        this.onApplyAll(type, true);
+                    } else {
+                        this.skipSchemaWarning = true;
+                        this.handleSchemaChanges(ontologyToPublish);
+                    }
+                    return;
+                }
+            }
+
+            this.resetWarning();
+
+            var diffsToSend = this.buildDiffsToSend(type);
+            this.publishing = publishing;
             this.undoing = type === 'undo';
             this.render();
 
@@ -429,8 +545,51 @@ define([
                     _.delay(error.remove.bind(error), 5000)
                 });
         };
-        this.onApplyPublishClick = _.partial(this.onApplyAll, 'publish');
-        this.onApplyUndoClick = _.partial(this.onApplyAll, 'undo');
+        this.onApplyPublishClick = _.partial(this.onApplyAll, 'publish', false);
+        this.onApplyUndoClick = _.partial(this.onApplyAll, 'undo', false);
+
+        this.resetWarning = function() {
+            this.$node.find('.diff-content > .alert').remove();
+            this.skipSchemaWarning = false;
+        }
+
+        this.buildOntologyToPublish = function() {
+            const currentUserId = visalloData.currentUser.id;
+            const concepts = {};
+            const relationships = {};
+            const properties = {};
+            const ontologyObjectCreatedByCurrentUser = ontology => {
+                if (ontology.metadata) {
+                    const modifiedBy = ontology.metadata['http://visallo.org#modifiedBy'];
+                    if (modifiedBy === currentUserId) {
+                        return true
+                    }
+                }
+            }
+            const add = (obj, o, diff) => {
+                if (!ontologyObjectCreatedByCurrentUser(o)) {
+                    if (!obj[o.title]) {
+                        obj[o.title] = [];
+                    }
+                    obj[o.title].push(diff)
+                }
+            };
+            this.diffs.forEach(diff => {
+                if (diff.publish) {
+                    if (diff.requiresOntologyPublish) {
+                        if (diff.concept) add(concepts, diff.concept, diff);
+                        if (diff.relationship) add(relationships, diff.relationship, diff);
+                    }
+                }
+                diff.properties.forEach(diff => {
+                    if (diff.publish && diff.requiresOntologyPublishProperty && diff.property) {
+                        add(properties, diff.property, diff)
+                    }
+                })
+            })
+
+            return { concepts, relationships, properties };
+        };
 
         this.buildDiffsToSend = function(applyType) {
             var self = this,
@@ -572,8 +731,15 @@ define([
             var self = this,
                 diff = this.diffsById[diffId],
                 deps = this.diffDependencies[diffId] || [],
+                canPublishOntology = Boolean(visalloData.currentUser.privilegesHelper.ONTOLOGY_PUBLISH),
                 vertexDiff;
             state = state === undefined ? !diff.undo : state;
+
+            if (diff.requiresOntologyPublish && !canPublishOntology) {
+                return;
+            }
+
+            this.resetWarning();
 
             switch (diff.type) {
                 case 'VertexDiffItem':
@@ -662,8 +828,15 @@ define([
         this.onMarkPublish = function(diffId, state) {
             var self = this,
                 diff = this.diffsById[diffId],
+                canPublishOntology = Boolean(visalloData.currentUser.privilegesHelper.ONTOLOGY_PUBLISH),
                 vertexDiff;
             state = state === undefined ? !diff.publish : state;
+
+            if (diff.requiresOntologyPublish && !canPublishOntology) {
+                return;
+            }
+
+            this.resetWarning();
 
             switch (diff.type) {
 

@@ -1,5 +1,6 @@
 define([
-    'react',
+    'create-react-class',
+    'prop-types',
     './Cytoscape',
     './popoverHelper',
     './styles',
@@ -11,7 +12,8 @@ define([
     'util/retina',
     'components/RegistryInjectorHOC'
 ], function(
-    React,
+    createReactClass,
+    PropTypes,
     Cytoscape,
     PopoverHelper,
     styles,
@@ -28,14 +30,13 @@ define([
     const MaxPreviewPopovers = 5;
     const MaxEdgesBetween = 5;
 
-    const PropTypes = React.PropTypes;
     const noop = function() {};
     const generateCompoundEdgeId = edge => edge.outVertexId + edge.inVertexId + edge.label;
     const isGhost = cyElement => cyElement && cyElement._private && cyElement._private.data && cyElement._private.data.animateTo;
     const isValidElement = cyElement => cyElement && cyElement.is('.c,.v,.e,.partial') && !isGhost(cyElement);
     const isValidNode = cyElement => cyElement && cyElement.is('node.c,node.v,node.partial') && !isGhost(cyElement);
-    const edgeDisplay = (label, ontology, edges) => {
-        const display = label in ontology.relationships ? ontology.relationships[label].displayName : '';
+    const edgeDisplay = (label, ontologyRelationships, edges) => {
+        const display = label in ontologyRelationships ? ontologyRelationships[label].displayName : '';
         const showNum = edges.length > 1;
         const num = showNum ? ` (${F.number.pretty(edges.length)})` : '';
         return display + num;
@@ -63,7 +64,7 @@ define([
                 cache.elements.length !== elements.length ||
                 _.any(cache.elements, (ce, i) => ce !== elements[i])
             ) : cache.elements !== elements
-        ); 
+        );
         if (cache && !vertexChanged) {
             return cache.value
         }
@@ -72,7 +73,7 @@ define([
         return memoizeForStorage[fullKey].value
     }
 
-    const Graph = React.createClass({
+    const Graph = createReactClass({
 
         propTypes: {
             workspace: PropTypes.shape({
@@ -199,7 +200,11 @@ define([
             }
             if (nextProps.registry !== this.props.registry) {
                 memoizeClear();
-            }            
+            }
+            if (nextProps.concepts !== this.props.concepts ||
+                nextProps.relationships !== this.props.relationships) {
+                memoizeClear('vertexToCyNode');
+            }
             const newExtendedData = nextProps.product.extendedData;
             const oldExtendedData = this.props.product.extendedData;
             if (newExtendedData) {
@@ -777,7 +782,7 @@ define([
         },
 
         mapPropsToElements(editable) {
-            const { selection, ghosts, productElementIds, elements, ontology, registry, focusing, product } = this.props;
+            const { selection, ghosts, productElementIds, elements, relationships, registry, focusing, product } = this.props;
             const { hovering, collapsedImageDataUris } = this.state;
             const { vertices: productVertices, edges: productEdges } = productElementIds;
             const { vertices, edges } = elements;
@@ -1011,8 +1016,8 @@ define([
                         const multiEdgeLabel = (edges) => {
                             const numTypes = _.size(_.groupBy(edgesForInfos, 'label'));
                             const display = edges[0] ?
-                                edges[0].label in ontology.relationships ?
-                                    ontology.relationships[edges[0].label].displayName : '' :
+                                edges[0].label in relationships ?
+                                    relationships[edges[0].label].displayName : '' :
                                 '';
 
                             return numTypes === 1 ?
@@ -1045,7 +1050,7 @@ define([
                     if (data.id) {
                         const edgesForInfos = Object.values(_.pick(edges, _.pluck(data.edgeInfos, 'edgeId')));
                         return {
-                            data: mapEdgeToData(data, edgesForInfos, ontology, registry['org.visallo.graph.edge.transformer']),
+                            data: mapEdgeToData(data, edgesForInfos, relationships, registry['org.visallo.graph.edge.transformer']),
                             classes: mapEdgeToClasses(data.edgeInfos, edgesForInfos, focusing, registry['org.visallo.graph.edge.class']),
                             selected: _.any(data.edgeInfos, e => e.edgeId in edgesSelectedById)
                         }
@@ -1173,7 +1178,7 @@ define([
         return vertexIds;
     };
 
-    const mapEdgeToData = (data, edges, ontology, transformers) => {
+    const mapEdgeToData = (data, edges, ontologyRelationships, transformers) => {
         const { id, edgeInfos, outNodeId, inNodeId } = data;
 
         return memoizeFor('org.visallo.graph.edge.transformer', edges, () => {
@@ -1183,7 +1188,7 @@ define([
                 source: outNodeId,
                 target: inNodeId,
                 type: label,
-                label: edgeDisplay(label, ontology, edgeInfos),
+                label: edgeDisplay(label, ontologyRelationships, edgeInfos),
                 edgeInfos,
                 edges
             };
@@ -1458,11 +1463,11 @@ define([
                 return data;
             }, startingData);
         });
-        
+
         if (hovering === vertex.id) {
             return { ...result, truncatedTitle: title }
         }
-            
+
         return result;
     }
 

@@ -110,7 +110,7 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
         ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
 
-        aclProvider.checkCanAddOrUpdateProperty(vertex, propertyKey, propertyName, user);
+        aclProvider.checkCanAddOrUpdateProperty(vertex, propertyKey, propertyName, user, workspaceId);
 
         List<SavePropertyResults> savePropertyResults = saveProperty(
                 vertex,
@@ -179,7 +179,7 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
         if (isCommentProperty(propertyName)) {
             value = valueStr;
         } else {
-            OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName);
+            OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName, workspaceId);
 
             if (property.hasDependentPropertyIris()) {
                 if (valuesStr == null) {

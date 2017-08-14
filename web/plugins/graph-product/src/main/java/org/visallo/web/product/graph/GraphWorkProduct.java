@@ -10,7 +10,6 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
-import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
@@ -41,12 +40,11 @@ public class GraphWorkProduct extends WorkProductElements {
 
     @Inject
     public GraphWorkProduct(
-            OntologyRepository ontologyRepository,
             AuthorizationRepository authorizationRepository,
             GraphRepository graphRepository,
             UserRepository userRepository
     ) {
-        super(ontologyRepository, authorizationRepository);
+        super(authorizationRepository);
         this.authorizationRepository = authorizationRepository;
         this.graphRepository = graphRepository;
         this.userRepository = userRepository;

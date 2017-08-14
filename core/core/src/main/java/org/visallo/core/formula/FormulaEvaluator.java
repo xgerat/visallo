@@ -3,10 +3,7 @@ package org.visallo.core.formula;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Inject;
 import org.apache.commons.io.IOUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Function;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.*;
 import org.vertexium.Authorizations;
 import org.vertexium.VertexiumObject;
 import org.visallo.core.config.Configuration;
@@ -15,7 +12,6 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.ClientApiElement;
 import org.visallo.web.clientapi.model.ClientApiOntology;
 import org.visallo.web.clientapi.model.ClientApiVertexiumObject;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
@@ -36,18 +32,13 @@ import java.util.concurrent.Executors;
  */
 public class FormulaEvaluator {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(FormulaEvaluator.class);
-    public static final String CONFIGURATION_PARAMETER_MAX_THREADS = FormulaEvaluator.class.getName() + ".max.threads";
-    public static final int CONFIGURATION_DEFAULT_MAX_THREADS = 1;
+    private static final String CONFIGURATION_PARAMETER_MAX_THREADS = FormulaEvaluator.class.getName() + ".max.threads";
+    private static final int CONFIGURATION_DEFAULT_MAX_THREADS = 1;
     private Configuration configuration;
     private OntologyRepository ontologyRepository;
     private ExecutorService executorService;
 
-    private static final ThreadLocal<Map<String, Scriptable>> threadLocalScope = new ThreadLocal<Map<String, Scriptable>>() {
-        @Override
-        protected Map<String, Scriptable> initialValue() {
-            return new HashMap<>();
-        }
-    };
+    private static final ThreadLocal<Map<String, Scriptable>> threadLocalScope = ThreadLocal.withInitial(HashMap::new);
 
     @Inject
     public FormulaEvaluator(Configuration configuration, OntologyRepository ontologyRepository) {
@@ -120,10 +111,10 @@ public class FormulaEvaluator {
         String mapKey = userContext.locale.toString() + userContext.timeZone;
         Scriptable scope = scopes.get(mapKey);
         if (scope == null) {
-            scope = setupContext(getOntologyJson(), getConfigurationJson(userContext.locale), userContext.timeZone);
+            scope = setupContext(getOntologyJson(userContext.getWorkspaceId()), getConfigurationJson(userContext.locale, userContext.getWorkspaceId()), userContext.timeZone);
             scopes.put(mapKey, scope);
         } else {
-            scope.put("ONTOLOGY_JSON", scope, Context.toObject(getOntologyJson(), scope));
+            scope.put("ONTOLOGY_JSON", scope, Context.toObject(getOntologyJson(userContext.getWorkspaceId()), scope));
         }
         return scope;
     }
@@ -157,14 +148,14 @@ public class FormulaEvaluator {
     }
 
     private void loadJavaScript(ScriptableObject scope) {
-        evaluateFile(scope, "libs/underscore.js");
-        evaluateFile(scope, "libs/r.js");
-        evaluateFile(scope, "libs/windowTimers.js");
+        evaluateFile(scope, "../libs/underscore.js");
+        evaluateFile(scope, "../libs/r.js");
+        evaluateFile(scope, "../libs/windowTimers.js");
         evaluateFile(scope, "loader.js");
     }
 
-    protected String getOntologyJson() {
-        ClientApiOntology result = ontologyRepository.getClientApiObject();
+    protected String getOntologyJson(String workspaceId) {
+        ClientApiOntology result = ontologyRepository.getClientApiObject(workspaceId);
         try {
             return ObjectMapperFactory.getInstance().writeValueAsString(result);
         } catch (JsonProcessingException ex) {
@@ -172,20 +163,24 @@ public class FormulaEvaluator {
         }
     }
 
-    protected String getConfigurationJson(Locale locale) {
-        return configuration.toJSON(locale).toString();
+    protected String getConfigurationJson(Locale locale, String workspaceId) {
+        return configuration.toJSON(locale, workspaceId).toString();
     }
 
     private void evaluateFile(ScriptableObject scope, String filename) {
-        LOGGER.debug("evaluating file: %s", filename);
-        try (InputStream is = FormulaEvaluator.class.getResourceAsStream(filename)) {
+        String transformed = RequireJsSupport.transformFilePath(filename);
+
+        LOGGER.debug("evaluating file: %s", transformed);
+        try (InputStream is = FormulaEvaluator.class.getResourceAsStream(transformed)) {
             if (is == null) {
-                throw new VisalloException("File not found " + filename);
+                throw new VisalloException("File not found " + transformed);
             }
 
-            Context.getCurrentContext().evaluateString(scope, IOUtils.toString(is), filename, 0, null);
+            Context.getCurrentContext().evaluateString(scope, IOUtils.toString(is), transformed, 0, null);
+        } catch (JavaScriptException ex) {
+            throw new VisalloException("JavaScript error in " + transformed, ex);
         } catch (IOException ex) {
-            throw new VisalloException("Could not read file: " + filename, ex);
+            throw new VisalloException("Could not read file: " + transformed, ex);
         }
     }
 
@@ -253,16 +248,25 @@ public class FormulaEvaluator {
             Scriptable scope = getScriptable(userContext);
             Context context = Context.getCurrentContext();
             String json = toJson(vertexiumObject, userContext.getWorkspaceId(), authorizations);
-            Function function = (Function) scope.get("evaluate" + fieldName + "FormulaJson", scope);
-            Object result = function.call(
-                    context,
-                    scope,
-                    scope,
-                    new Object[]{json, propertyKey, propertyName}
-            );
+            Object func = scope.get("evaluate" + fieldName + "FormulaJson", scope);
 
-            String strResult = (String) context.jsToJava(result, String.class);
-            return strResult;
+            if (func.equals(Scriptable.NOT_FOUND)) {
+                throw new VisalloException("formula function not found");
+            }
+
+            if (func instanceof Function) {
+                Function function = (Function) func;
+                Object result = function.call(
+                        context,
+                        scope,
+                        scope,
+                        new Object[]{json, propertyKey, propertyName}
+                );
+
+                return (String) context.jsToJava(result, String.class);
+            }
+
+            throw new VisalloException("Unknown result from formula");
         }
     }
 }

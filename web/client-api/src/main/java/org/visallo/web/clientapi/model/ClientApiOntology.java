@@ -1,13 +1,9 @@
 package org.visallo.web.clientapi.model;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSetter;
+
+import java.util.*;
 
 public class ClientApiOntology implements ClientApiObject {
     private List<Concept> concepts = new ArrayList<Concept>();
@@ -38,7 +34,47 @@ public class ClientApiOntology implements ClientApiObject {
         this.relationships.addAll(relationships);
     }
 
-    public static class Concept {
+    public ClientApiOntology merge(
+            Collection<Concept> mergeConcepts,
+            Collection<Property> mergeProperties,
+            Collection<Relationship> mergeRelationships) {
+        ClientApiOntology copy = new ClientApiOntology();
+
+        mergeCollections(copy.getConcepts(), concepts, mergeConcepts);
+        mergeCollections(copy.getProperties(), properties, mergeProperties);
+        mergeCollections(copy.getRelationships(), relationships, mergeRelationships);
+
+        return copy;
+    }
+
+    private <T extends OntologyId> void mergeCollections(Collection<T> newList, Collection<T> old, Collection<T> merge) {
+        if (merge == null || merge.size() == 0) {
+            newList.addAll(old);
+        } else {
+            List<T> unmerged = new ArrayList<T>();
+            unmerged.addAll(merge);
+            for (T existing : old) {
+                String existingIri = existing.getTitle();
+                T update = existing;
+
+                for (T unmergedObject : unmerged) {
+                    if (unmergedObject.getTitle().equals(existingIri)) {
+                        update = unmergedObject;
+                        unmerged.remove(unmergedObject);
+                        break;
+                    }
+                }
+                newList.add(update);
+            }
+            newList.addAll(unmerged);
+        }
+    }
+
+    interface OntologyId {
+        String getTitle();
+    }
+
+    public static class Concept implements ClientApiObject, OntologyId {
         private String id;
         private String title;
         private String displayName;
@@ -59,6 +95,7 @@ public class ClientApiOntology implements ClientApiObject {
         private List<String> addRelatedConceptWhiteList = new ArrayList<String>();
         private List<String> properties = new ArrayList<String>();
         private Map<String, String> metadata = new HashMap<String, String>();
+        private SandboxStatus sandboxStatus;
 
         public String getId() {
             return id;
@@ -206,9 +243,17 @@ public class ClientApiOntology implements ClientApiObject {
         public List<String> getIntents() {
             return intents;
         }
+
+        public SandboxStatus getSandboxStatus() {
+            return sandboxStatus;
+        }
+
+        public void setSandboxStatus(SandboxStatus sandboxStatus) {
+            this.sandboxStatus = sandboxStatus;
+        }
     }
 
-    public static class Property {
+    public static class Property implements ClientApiObject, OntologyId {
         private String title;
         private String displayName;
         private boolean userVisible;
@@ -226,6 +271,8 @@ public class ClientApiOntology implements ClientApiObject {
         private boolean updateable;
         private List<String> intents = new ArrayList<String>();
         private List<String> textIndexHints = new ArrayList<String>();
+        private Map<String, String> metadata = new HashMap<String, String>();
+        private SandboxStatus sandboxStatus;
 
         public String getTitle() {
             return title;
@@ -354,6 +401,11 @@ public class ClientApiOntology implements ClientApiObject {
         }
 
         @JsonInclude(JsonInclude.Include.NON_EMPTY)
+        public Map<String, String> getMetadata() {
+            return metadata;
+        }
+
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
         public List<String> getIntents() {
             return intents;
         }
@@ -361,6 +413,14 @@ public class ClientApiOntology implements ClientApiObject {
         @JsonInclude(JsonInclude.Include.NON_EMPTY)
         public List<String> getTextIndexHints() {
             return textIndexHints;
+        }
+
+        public SandboxStatus getSandboxStatus() {
+            return sandboxStatus;
+        }
+
+        public void setSandboxStatus(SandboxStatus sandboxStatus) {
+            this.sandboxStatus = sandboxStatus;
         }
     }
 
@@ -404,7 +464,7 @@ public class ClientApiOntology implements ClientApiObject {
         }
     }
 
-    public static class Relationship {
+    public static class Relationship implements ClientApiObject, OntologyId {
         private String parentIri;
         private String title;
         private String displayName;
@@ -419,6 +479,8 @@ public class ClientApiOntology implements ClientApiObject {
         private List<InverseOf> inverseOfs = new ArrayList<InverseOf>();
         private List<String> intents = new ArrayList<String>();
         private List<String> properties = new ArrayList<String>();
+        private Map<String, String> metadata = new HashMap<String, String>();
+        private SandboxStatus sandboxStatus;
 
         public String getTitle() {
             return title;
@@ -524,6 +586,19 @@ public class ClientApiOntology implements ClientApiObject {
         @JsonInclude(JsonInclude.Include.NON_EMPTY)
         public List<String> getIntents() {
             return intents;
+        }
+
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
+        public Map<String, String> getMetadata() {
+            return metadata;
+        }
+
+        public SandboxStatus getSandboxStatus() {
+            return sandboxStatus;
+        }
+
+        public void setSandboxStatus(SandboxStatus sandboxStatus) {
+            this.sandboxStatus = sandboxStatus;
         }
 
         public static class InverseOf {

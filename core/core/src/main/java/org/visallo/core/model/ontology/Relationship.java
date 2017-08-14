@@ -4,11 +4,9 @@ import com.google.common.collect.Lists;
 import org.json.JSONException;
 import org.vertexium.Authorizations;
 import org.visallo.web.clientapi.model.ClientApiOntology;
+import org.visallo.web.clientapi.model.SandboxStatus;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public abstract class Relationship implements OntologyElement, HasOntologyProperties {
     private final String parentIRI;
@@ -27,6 +25,10 @@ public abstract class Relationship implements OntologyElement, HasOntologyProper
         this.rangeConceptIRIs = rangeConceptIRIs;
         this.properties = properties;
     }
+
+    public abstract String getId();
+
+    public abstract SandboxStatus getSandboxStatus();
 
     public abstract String getIRI();
 
@@ -89,6 +91,8 @@ public abstract class Relationship implements OntologyElement, HasOntologyProper
 
     public abstract void removeProperty(String name, Authorizations authorizations);
 
+    public abstract Map<String, String> getMetadata();
+
     public ClientApiOntology.Relationship toClientApi() {
         try {
             ClientApiOntology.Relationship result = new ClientApiOntology.Relationship();
@@ -106,6 +110,10 @@ public abstract class Relationship implements OntologyElement, HasOntologyProper
             if (getIntents() != null) {
                 result.getIntents().addAll(Arrays.asList(getIntents()));
             }
+            for (Map.Entry<String, String> additionalProperty : getMetadata().entrySet()) {
+                result.getMetadata().put(additionalProperty.getKey(), additionalProperty.getValue());
+            }
+            result.setSandboxStatus(getSandboxStatus());
 
             Iterable<String> inverseOfIRIs = getInverseOfIRIs();
             for (String inverseOfIRI : inverseOfIRIs) {
