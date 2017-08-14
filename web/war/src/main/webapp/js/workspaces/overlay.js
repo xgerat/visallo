@@ -65,7 +65,6 @@ define([
                 MENUBAR_WIDTH = $('.menubar-pane').width();
             })
 
-            this.updateDiffBadgeImmediate = this.updateDiffBadge;
             this.updateDiffBadge = _.throttle(this.updateDiffBadge.bind(this), UPDATE_WORKSPACE_DIFF_SECONDS * 1000)
 
             this.$node.hide().html(template({}));
@@ -199,7 +198,7 @@ define([
             this.$node.show();
             this.updateWithNewWorkspaceData(data);
             this.previousWorkspace = data.workspaceId;
-            this.updateDiffBadgeImmediate();
+            this.updateDiffBadge();
         };
 
         this.onWorkspaceUpdated = function(event, data) {
@@ -241,21 +240,14 @@ define([
 
             Promise.all([
                 this.dataRequest('workspace', 'diff'),
-                this.dataRequest('ontology', 'properties'),
-                this.dataRequest('ontology', 'concepts')
-            ]).done(function(results) {
-                var ontologyProperties = results[1],
-                    ontologyConcepts = results[2],
-                    diffs = results[0].diffs,
-                    diffsWithoutVisibleProperty = _.map(diffs, function(d) {
-                        return _.omit(d, 'visible');
-                    });
+                this.dataRequest('ontology', 'ontology')
+            ]).spread(function({ diffs }, { properties: ontologyProperties, concepts: ontologyConcepts }) {
+                const sameDiff = self.previousDiff && _.isEqual(diffs, self.previousDiff);
 
-                // Check if same
-                if (self.previousDiff && _.isEqual(diffsWithoutVisibleProperty, self.previousDiff)) {
+                if (sameDiff) {
                     return;
                 }
-                self.previousDiff = diffsWithoutVisibleProperty;
+                self.previousDiff = diffs;
 
                 var vertexDiffsById = _.indexBy(diffs, function(diff) {
                         return diff.vertexId;
@@ -335,9 +327,19 @@ define([
 
                             self.updatePopoverSize(tip);
 
-                            Diff.attachTo(tip.find('.popover-content'), {
+                            const $popoverContent = tip.find('.popover-content');
+
+                            $popoverContent
+                                .toggleClass(
+                                    'loading-small-animate',
+                                    Boolean(!$popoverContent.lookupComponent(Diff))
+                                );
+
+                            Diff.attachTo($popoverContent, {
                                 diffs: filteredDiffs
                             });
+                        }).on('hide', () => {
+                            tip.find('.popover-content').teardownComponent(Diff);
                         })
 
                         Diff.teardownAll();
