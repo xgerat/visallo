@@ -127,10 +127,7 @@ define([
                     self.$node
                         .addClass('element-list')
                         .html(template({
-                            scrolling: self.localScrolling || (
-                                self.attr.infiniteScrolling &&
-                                self.attr.total !== self.attr.items.length
-                            )
+                            scrolling: self.isScrolling()
                         }));
 
                     self.attachEvents();
@@ -165,6 +162,13 @@ define([
                     self.trigger('listRendered');
             });
         });
+
+        this.isScrolling = function() {
+            return this.localScrolling || (
+                    this.attr.infiniteScrolling &&
+                    this.attr.total !== this.attr.items.length
+                );
+        };
 
         this.onClick = function(event) {
             event.preventDefault();
@@ -273,6 +277,14 @@ define([
 
         this.onSelectAll = function(e) {
             e.stopPropagation();
+
+            // Don't allow select all if all items are not loaded, it is misleading
+            if (this.isScrolling()) {
+                this.trigger('displayInformation', {
+                    message: i18n('search.noSelectAllWhileLoading')
+                });
+                return;
+            }
 
             var items = this.select('itemSelector').addClass('active');
             this.selectItems(items);
