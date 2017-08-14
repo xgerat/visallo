@@ -365,8 +365,8 @@ define([
         render() {
             const { items, title, element } = this.state;
 
-            return (<div className="vertex-menu" ref="menuDiv">
-                { items.length &&
+            return (items.length ?
+                <div className="vertex-menu" ref="menuDiv">
                     <ElementContextMenuList
                         items={items}
                         elementTitle={title}
@@ -374,18 +374,51 @@ define([
                         element={element}
                         onMenuItemClick={this.handleMenuItemClick}
                     />
-                }
-            </div>);
+                </div>
+            : null);
         },
 
         createCollapsedItemMenuItems() {
-            return [
+            const items = [
                 {
-                    label: i18n('vertex.contextmenu.uncollapse'),
+                    label: i18n('vertex.contextmenu.collapsed-node.rename'),
+                    event: 'editCollapsedNode',
+                    canHandle: () => visalloData.currentWorkspaceEditable
+                },
+                {
+                    label: i18n('vertex.contextmenu.collapsed-node.select.contents'),
+                    submenu: [
+                        {
+                            label: i18n('vertex.contextmenu.collapsed-node.select.all'),
+                            event: 'selectCollapsedNodeContents',
+                            args: { select: 'all' }
+                        },
+                        {
+                            label: i18n('vertex.contextmenu.collapsed-node.select.none'),
+                            event: 'selectCollapsedNodeContents',
+                            args: { select: 'none' }
+                        },
+                        {
+                            label: i18n('vertex.contextmenu.collapsed-node.select.vertices'),
+                            event: 'selectCollapsedNodeContents',
+                            args: { select: 'vertices' }
+                        },
+                        {
+                            label: i18n('vertex.contextmenu.collapsed-node.select.edges'),
+                            event: 'selectCollapsedNodeContents',
+                            args: { select: 'edges' }
+                        }
+                    ]
+                },
+                DIVIDER,
+                {
+                    label: i18n('vertex.contextmenu.collapsed-node.uncollapse'),
                     event: 'uncollapse',
-                    cls: 'requires-EDIT'
+                    canHandle: () => visalloData.currentWorkspaceEditable
                 }
             ];
+
+            return items.filter(item => _.isFunction(item.canHandle) ? item.canHandle() : true);
         },
 
         createEdgeMenuItems() {

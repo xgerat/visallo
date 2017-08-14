@@ -41,7 +41,6 @@ define([
         const num = showNum ? ` (${F.number.pretty(edges.length)})` : '';
         return display + num;
     };
-    const propTypesElementArrays = { vertices: PropTypes.array, edges: PropTypes.array };
     const propTypesElementObjects = { vertices: PropTypes.object, edges: PropTypes.object };
 
     let memoizeForStorage = {};
@@ -164,6 +163,10 @@ define([
                             connectionType
                         }
                     });
+                },
+                editCollapsedNode: (event, { collapsedNodeId }) => { this.onEditCollapsedNode(collapsedNodeId)},
+                selectCollapsedNodeContents: (event, { collapsedNodeId, select }) => {
+                    this.onSelectCollapsedNodeContents(collapsedNodeId, select)
                 },
                 uncollapse: (event, { collapsedNodeId }) => {
                     this.props.onUncollapseNodes(this.props.product.id, collapsedNodeId);
@@ -513,8 +516,7 @@ define([
         },
 
         onCollapseSelectedNodes(nodes) {
-            const { product, productElementIds, rootId } = this.props;
-            const collapsedNodes = product.extendedData.compoundNodes;
+            const { product, rootId } = this.props;
 
             if (nodes.length < 2) return;
 
@@ -592,7 +594,6 @@ define([
                 position = { x: window.lastMousePositionX, y: window.lastMousePositionY };
             }
 
-
             if (this.props.workspace.editable) {
                 Promise.require('util/popovers/fileImport/fileImport')
                     .then(CreateVertex => {
@@ -600,6 +601,64 @@ define([
                             anchorTo: { page: position }
                         });
                     });
+            }
+        },
+
+        onEditCollapsedNode(collapsedNodeId) {
+            const collapsedNode = this.cytoscape.state.cy.getElementById(collapsedNodeId);
+            if (this.props.workspace.editable && collapsedNode) {
+                Promise.require('org/visallo/web/product/graph/popovers/collapsedNode/collapsedNodePopoverShim')
+                    .then(CollapsedNodePopover => {
+                        CollapsedNodePopover.attachTo(this.node, {
+                            cy: this.cytoscape.state.cy,
+                            cyNode: collapsedNode,
+                            props: {
+                                onRename: this.props.onRenameCollapsedNode.bind(this, this.props.product.id, collapsedNodeId),
+                                collapsedNodeId: collapsedNodeId
+                            },
+                            teardownOnTap: true
+                        });
+                    });
+            }
+        },
+
+        onSelectCollapsedNodeContents(collapsedNodeIds, select) {
+            const { selection, product, elements, onSetSelection, onAddSelection, onRemoveSelection } = this.props;
+            const { compoundNodes: collapsedNodes }= product.extendedData;
+            let vertices = [];
+            let edges = [];
+
+            collapsedNodeIds = _.isArray(collapsedNodeIds) ? collapsedNodeIds : [collapsedNodeIds];
+
+            collapsedNodeIds.forEach(id => {
+                vertices = vertices.concat(getVertexIdsFromCollapsedNode(collapsedNodes, id));
+                edges = edges.concat(_.values(elements.edges).reduce((ids, edge) => {
+                    if (vertices.includes(edge.inVertexId) && vertices.includes(edge.outVertexId)) {
+                        ids.push(edge.id);
+                    }
+                    return ids;
+                }, []));
+            });
+
+            switch (select) {
+                case 'all':
+                    onAddSelection({ vertices, edges });
+                    break;
+                case 'none':
+                    onRemoveSelection({ vertices, edges });
+                    break;
+                case 'vertices':
+                    onSetSelection({
+                        vertices: _.uniq(Object.keys(selection.vertices).concat(vertices)),
+                        edges: _.without(Object.keys(selection.edges), edges)
+                    });
+                    break;
+                case 'edges':
+                    onSetSelection({
+                        vertices: _.without(Object.keys(selection.vertices), vertices),
+                        edges: _.uniq(Object.keys(selection.edges).concat(edges))
+                    });
+                    break;
             }
         },
 
@@ -636,7 +695,7 @@ define([
         onTap(event) {
             const { cy, target, position } = event;
             const { x, y } = position;
-            const { ctrlKey, shiftKey } = event.originalEvent;
+            const { ctrlKey, shiftKey, metaKey } = event.originalEvent;
             const { draw, paths } = this.state;
 
             if (paths) {
@@ -664,7 +723,11 @@ define([
                 } else if (!shiftKey && cy === target) {
                     this.coalesceSelection('clear');
                     this.props.onClearSelection();
+                } else if (!shiftKey && !metaKey && isValidElement(target)) {
+                    this.coalesceSelection('clear');
+                    this.coalesceSelection('add', getCyItemTypeAsString(target), target);
                 }
+
             }
         },
 
@@ -765,7 +828,7 @@ define([
             const collapsedNodes = product.extendedData.compoundNodes;
 
             if (collapsedNodes[rootId] && collapsedNodes[rootId].visible) {
-                return collapsedNodes[id];
+                return collapsedNodes[rootId];
             } else {
                 const children = [];
 
@@ -793,7 +856,7 @@ define([
             const filterByRoot = (items) => _.values(_.pick(items, rootNode.children));
 
             const cyNodeConfig = (node) => {
-                const { id, type, pos, children, parent, title } = node;
+                const { id, type, pos, title } = node;
                 let selected, classes, data;
 
                 if (type === 'vertex') {
@@ -808,12 +871,13 @@ define([
                    const vertexIds = getVertexIdsFromCollapsedNode(collapsedNodes, id);
                    selected = vertexIds.some(id => id in verticesSelectedById)
                    classes = mapCollapsedNodeToClasses(id, collapsedNodes, focusing, vertexIds, registry['org.visallo.graph.collapsed.class']);
+                   const nodeTitle = title || generateCollapsedNodeTitle(node, vertices, productVertices, collapsedNodes);
                    data = {
                        ...node,
                        vertexIds,
-                       truncatedTitle: title || F.string.truncate(generateCollapsedNodeTitle(node, vertices, productVertices, collapsedNodes), 3),
+                       truncatedTitle: F.string.truncate(nodeTitle, 3),
                        imageSrc: this.state.collapsedImageDataUris[id] && this.state.collapsedImageDataUris[id].imageDataUri || 'img/loading-large@2x.png'
-                   }
+                   };
                 }
 
                 return {
@@ -829,7 +893,7 @@ define([
             const renderedNodeIds = {};
 
             const cyVertices = filterByRoot(productVertices).reduce((nodes, nodeData) => {
-                const { type, id, pos, parent } = nodeData;
+                const { id, parent } = nodeData;
                 const cyNode = cyNodeConfig(nodeData);
 
                 if (ghosts && id in ghosts) {
@@ -939,27 +1003,28 @@ define([
             });
 
             const cyCollapsedNodes = filterByRoot(collapsedNodes).reduce((nodes, nodeData) => {
-                const { type, id, pos, parent, children } = nodeData;
                 const cyNode = cyNodeConfig(nodeData);
 
-                renderedNodeIds[id] = true;
+                renderedNodeIds[nodeData.id] = true;
 
                 if (ghosts) {
-                    _.mapObject(ghosts, (ghost => {
-                        if (ghost.id in cyNode.vertexIds) {
+                    _.mapObject(ghosts, ((ghost, ghostId) => {
+                        if (cyNode.data.vertexIds.includes(ghostId)) {
                             const ghostData = {
-                                ...cyNode.data,
-                                id: `${cyNode.data.id}-ANIMATING`,
+                                ...mapVertexToData(ghostId, vertices, registry['org.visallo.graph.node.transformer'], hovering),
+                                parent: rootNode.id,
+                                id: `${ghostId}-ANIMATING`,
                                 animateTo: {
-                                    id,
+                                    id: ghostId,
                                     pos: {...cyNode.position}
                                 }
                             };
-                            delete ghostData.parent;
+
                             nodes.push({
                                 ...cyNode,
                                 data: ghostData,
-                                position: retina.pointsToPixels(ghosts[id]),
+                                classes: mapVertexToClasses(ghostId, vertices, focusing, registry['org.visallo.graph.node.class']),
+                                position: retina.pointsToPixels(ghosts[nodeData.id]),
                                 grabbable: false,
                                 selectable: false
                             });

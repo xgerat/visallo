@@ -26,10 +26,6 @@ define([
 
     const api = {
         updateRootId: ({ productId, nodeId }) => (dispatch, getState) => {
-            const state = getState();
-            const workspaceId = state.workspace.currentId;
-            const product = state.product.workspaces[workspaceId].products[productId];
-
             productActions.updateLocalData(productId, 'rootId', nodeId);
         },
 
@@ -255,7 +251,6 @@ define([
         removeElements: ({ productId, elements, undoable}) => (dispatch, getState) => {
             const state = getState();
             const workspaceId = state.workspace.currentId;
-            const workspace = state.workspace.byId[workspaceId];
 
             if (workspaceEditable(state) && elements &&
                 (elements.vertexIds && elements.vertexIds.length) ||
@@ -487,13 +482,49 @@ define([
                     })
                 }
             });
+        },
+
+        renameCollapsedNode: ({ productId, collapsedNodeId, title }) => (dispatch, getState) => {
+            const state = getState();
+            if (!workspaceEditable(state)) { return };
+
+            const workspaceId = state.workspace.currentId;
+
+            dispatch({
+                type: 'PRODUCT_GRAPH_RENAME_COLLAPSED_NODE',
+                payload: {
+                    title,
+                    collapsedNodeId,
+                    productId,
+                    workspaceId
+                }
+            });
+
+            ajax('POST', '/product/graph/node/rename', { productId, compoundNodeId: collapsedNodeId, title })
+                .catch(response => {
+                    const product = state.product.workspaces[workspaceId].products[productId];
+                    const collapsedNode = product.extendedData
+                        && product.extendedData.compoundNodes
+                        && product.extendedData.compoundNodes[collapsedNodeId];
+                    const previousTitle = collapsedNode ? collapsedNode.title : '';
+
+                    dispatch({
+                        type: 'PRODUCT_GRAPH_RENAME_COLLAPSED_NODE',
+                        payload: {
+                            title: previousTitle,
+                            collapsedNodeId,
+                            productId,
+                            workspaceId
+                        }
+                    });
+                });
         }
     };
 
     return api;
 
     function getAdditionalRemovedElementIds(product, removeElements, removeChildren) {
-        const { compoundNodes: collapsedNodes, vertices } = product.extendedData;
+        const { compoundNodes: collapsedNodes } = product.extendedData;
         const collapsedNodeIds = removeElements.collapsedNodeIds || [];
         const additionalVertexIds = [];
         const additionalCollapsedNodeIds = [];
