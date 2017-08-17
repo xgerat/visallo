@@ -299,7 +299,6 @@ public class RdfTripleImportHelper {
 
         Visibility elementVisibility = getVisibility(triple.getEdgeVisibilitySource());
         ElementMutation m = ctx.getElementMutation();
-        VisalloProperties.CONCEPT_TYPE.setProperty(m, OntologyRepository.TYPE_RELATIONSHIP, defaultVisibility);
         if (!isLiteralVisibilityString(triple.getEdgeVisibilitySource())) {
             VisibilityJson visibilityJson = new VisibilityJson(triple.getEdgeVisibilitySource());
             VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, defaultVisibility);
