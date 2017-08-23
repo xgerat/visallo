@@ -2,6 +2,18 @@
 v2.2.3
 ==================
 
+## Added
+
+* web configuration to always search for exact matches when enabled in the configuration
+
+## Changed
+
+* log level for smtp email to display subject and sender to INFO level
+
+## Security
+
+* Added generic error page for all errors to prevent sensitive information from being displayed
+
 v2.2.2
 ==================
 
