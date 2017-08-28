@@ -254,8 +254,8 @@ public class VertexiumUserRepository extends UserRepository {
         m.save(authorizations);
         graph.flush();
 
-        getAuthorizationRepository().updateUser(user, authorizationContext);
         getPrivilegeRepository().updateUser(user, authorizationContext);
+        getAuthorizationRepository().updateUser(user, authorizationContext);
         fireUserLoginEvent(user, authorizationContext);
     }
 
