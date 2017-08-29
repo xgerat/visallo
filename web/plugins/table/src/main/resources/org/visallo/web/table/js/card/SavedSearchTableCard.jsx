@@ -201,6 +201,20 @@ define([
                         if (_.isUndefined(tableView.showRowNumbers)) {
                             tableView.showRowNumbers = DEFAULT_ROW_NUMBERS;
                         }
+                    } else if (tableSettings && search.parameters.conceptType && tableSettings[search.parameters.conceptType]) {
+                        /**
+                         * If there are no configuration for the saved search see if there are default configurations for this
+                         * concept type. Note that if changes are made to the table, the configuration will be stored with
+                         * the saved search configuration, not with the originating concept type configuration.
+                         **/
+                        tableView = {
+                            ...tableSettings[search.parameters.conceptType],
+                            url: search.url
+                        };
+
+                        if (_.isUndefined(tableView.showRowNumbers)) {
+                            tableView.showRowNumbers = DEFAULT_ROW_NUMBERS;
+                        }
                     } else {
                         tableView = tableSearchSettings;
                     }
