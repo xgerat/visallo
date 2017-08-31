@@ -96,6 +96,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
     private void defineRequiredProperties() {
         defineRequiredProperty(VisalloProperties.CONCEPT_TYPE, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
+        defineRequiredProperty(VisalloProperties.MODIFIED_BY, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
+        defineRequiredProperty(VisalloProperties.MODIFIED_DATE, Date.class, TextIndexHint.NONE);
+        defineRequiredProperty(VisalloProperties.VISIBILITY_JSON, String.class, TextIndexHint.NONE);
         defineRequiredProperty(OntologyProperties.ONTOLOGY_TITLE, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
         defineRequiredProperty(OntologyProperties.DISPLAY_NAME, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
         defineRequiredProperty(OntologyProperties.INTENT, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
