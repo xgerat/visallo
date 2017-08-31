@@ -5,6 +5,7 @@ define([
     'util/withCollapsibleSections',
     'util/vertex/formatters',
     'util/withDataRequest',
+    'util/requirejs/promise!util/service/propertiesPromise',
     'util/popovers/propertyInfo/withPropertyInfo',
     'd3'
 ], function(
@@ -14,6 +15,7 @@ define([
     withCollapsibleSections,
     F,
     withDataRequest,
+    config,
     withPropertyInfo,
     d3) {
     'use strict';
@@ -229,6 +231,8 @@ define([
                     }
                 }
             });
+            var dateDisplay = config['date.default.display'];
+
             selection.select('.date')
                 .attr('style', function(p) {
                     return p[0].redacted ? 'display:none' : undefined;
@@ -239,9 +243,15 @@ define([
                     }
                     var modified = p[0].metadata['http://visallo.org#modifiedDate'],
                         created = getCreated(p[0]) || modified,
-                        relativeString = modified && F.date.relativeToNow(F.date.utc(modified));
+                        relativeString = modified && F.date.relativeToNow(F.date.utc(modified)),
+                        dateTimeString = modified && F.date.dateTimeString(modified);
 
-                    if (relativeString) {
+                    if (dateDisplay === 'exact' && dateTimeString) {
+                        if (isEdited(created, modified)) {
+                            return i18n('detail.comments.date.edited', dateTimeString);
+                        }
+                        return dateTimeString;
+                    } else if (relativeString) {
                         if (isEdited(created, modified)) {
                             return i18n('detail.comments.date.edited', relativeString);
                         }
@@ -256,12 +266,18 @@ define([
                     var modified = p[0].metadata['http://visallo.org#modifiedDate'],
                         created = getCreated(p[0]) || modified,
                         modifiedStr = modified && F.date.dateTimeString(modified) || '',
-                        createdStr = created && F.date.dateTimeString(created) || '';
+                        createdStr = created && F.date.dateTimeString(created) || '',
+                        relativeModifiedStr = modified && F.date.relativeToNow(F.date.utc(modified)) || '',
+                        relativeCreatedStr = created && F.date.relativeToNow(F.date.utc(created)) || '';
 
                     if (isEdited(created, modified)) {
-                        return i18n('detail.comments.date.hover.edited', createdStr, modifiedStr);
+                        if (dateDisplay === 'exact') {
+                            return i18n('detail.comments.date.hover.edited', relativeCreatedStr, relativeModifiedStr);
+                        } else {
+                            return i18n('detail.comments.date.hover.edited', createdStr, modifiedStr);
+                        }
                     }
-                    return modifiedStr;
+                    return dateDisplay === 'exact' ? relativeModifiedStr : modifiedStr;
                 });
             selection.select('.replies')
                 .attr('style', function(p) {

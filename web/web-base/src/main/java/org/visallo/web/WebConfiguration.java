@@ -46,6 +46,7 @@ public class WebConfiguration {
     public static final String MAX_SESSION_INACTIVE_INTERVAL_SECONDS = PREFIX + "maxSessionInactiveIntervalSeconds";
     public static final String TIMEZONE_DEFAULT_DETECT = PREFIX + "timezone.defaults.detect";
     public static final String TIMEZONE_DEFAULT_TIMEZONE = PREFIX + "timezone.defaults.timezone";
+    public static final String DATE_DISPLAY = PREFIX + "date.default.display";
     public static final PropertyMetadata PROPERTY_METADATA_SOURCE_TIMEZONE = new PropertyMetadata(
             "http://visallo.org#sourceTimezone",
             "properties.metadata.label.source_timezone",
@@ -75,6 +76,9 @@ public class WebConfiguration {
     public static final Map<String, String> DEFAULTS = new HashMap<>();
 
     static {
+        // To display exact date or relative date
+        DEFAULTS.put(DATE_DISPLAY, "relative");
+
         DEFAULTS.put(LOGIN_SHOW_POWERED_BY, "false");
         DEFAULTS.put(SHOW_VERSION_COMMENTS, "true");
 
