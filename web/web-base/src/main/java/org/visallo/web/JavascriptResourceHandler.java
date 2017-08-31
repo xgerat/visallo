@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 
 public class JavascriptResourceHandler implements RequestResponseHandler {
     private static final int EXECUTOR_CONCURRENT = 3;
@@ -116,9 +118,10 @@ public class JavascriptResourceHandler implements RequestResponseHandler {
         if (previousCompilation == null || previousCompilation.isNecessary(lastModified)) {
             CachedCompilation newCache = new CachedCompilation();
             newCache.setLastModified(lastModified);
-            try (InputStream input = this.getClass().getResourceAsStream(jsResourceName)) {
+            try (InputStream in = this.getClass().getResourceAsStream(jsResourceName)) {
+                checkNotNull(in, "Could not find resource: " + jsResourceName);
                 try (StringWriter writer = new StringWriter()) {
-                    IOUtils.copy(input, writer, StandardCharsets.UTF_8);
+                    IOUtils.copy(in, writer, StandardCharsets.UTF_8);
                     String inputJavascript = writer.toString();
                     newCache.setInput(inputJavascript);
 

@@ -28,6 +28,8 @@ import java.io.OutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class ResourceGet implements ParameterizedHandler {
     private final OntologyRepository ontologyRepository;
 
@@ -192,8 +194,9 @@ public class ResourceGet implements ParameterizedHandler {
         }
         public void write(String tint, HttpServletRequest request, VisalloResponse response) throws IOException {
             ServletContext servletContext = request.getServletContext();
-            try (InputStream openStream = servletContext.getResourceAsStream(path)) {
-                BufferedImage base = ImageIO.read(openStream);
+            try (InputStream in = servletContext.getResourceAsStream(path)) {
+                checkNotNull(in, "Could not find resource: " + path);
+                BufferedImage base = ImageIO.read(in);
                 write(base, tint, response.getOutputStream());
             }
         }

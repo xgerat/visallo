@@ -16,6 +16,8 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 
 public class LessResourceHandler implements RequestResponseHandler {
     private static LessEngine lessCompiler;
@@ -50,9 +52,10 @@ public class LessResourceHandler implements RequestResponseHandler {
     }
 
     private String getCompiled() throws Exception {
-        try (InputStream input = this.getClass().getResourceAsStream(lessResourceName)) {
+        try (InputStream in = this.getClass().getResourceAsStream(lessResourceName)) {
+            checkNotNull(in, "Could not find resource: " + lessResourceName);
             try (StringWriter writer = new StringWriter()) {
-                IOUtils.copy(input, writer, StandardCharsets.UTF_8);
+                IOUtils.copy(in, writer, StandardCharsets.UTF_8);
                 String inputLess = writer.toString();
                 return lessCompiler().compile(inputLess);
             }

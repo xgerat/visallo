@@ -146,9 +146,9 @@ public class MapMarkerImage implements ParameterizedHandler {
             return null;
         }
 
-        try (InputStream resourceInputStream = MapMarkerImage.class.getResourceAsStream(imageFileName)) {
-            checkNotNull(resourceInputStream, "Could not find image resource: " + imageFileName);
-            return ImageIO.read(resourceInputStream);
+        try (InputStream in = MapMarkerImage.class.getResourceAsStream(imageFileName)) {
+            checkNotNull(in, "Could not find resource: " + imageFileName);
+            return ImageIO.read(in);
         }
     }
 

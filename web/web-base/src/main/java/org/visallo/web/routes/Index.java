@@ -84,18 +84,18 @@ public class Index implements ParameterizedHandler {
     private String getLogoImageDataUri(HttpServletRequest request, ResourceBundle resourceBundle) throws IOException {
         String logoPathBundleKey = resourceBundle.getString(LOGO_PATH_BUNDLE_KEY);
         checkNotNull(logoPathBundleKey, LOGO_PATH_BUNDLE_KEY + " configuration not found");
-        try (InputStream is = getResourceAsStream(request, logoPathBundleKey)) {
-            checkNotNull(is, logoPathBundleKey + " resource not found");
-            byte[] bytes = IOUtils.toByteArray(is);
+        try (InputStream in = getResourceAsStream(request, logoPathBundleKey)) {
+            checkNotNull(in, "Could not find resource: " + logoPathBundleKey);
+            byte[] bytes = IOUtils.toByteArray(in);
             return "data:image/png;base64," + DatatypeConverter.printBase64Binary(bytes);
         }
     }
 
     private InputStream getResourceAsStream(HttpServletRequest request, String path) {
-        InputStream is = request.getServletContext().getResourceAsStream(path);
-        if (is == null) {
-            is = getClass().getResourceAsStream(path);
+        InputStream in = request.getServletContext().getResourceAsStream(path);
+        if (in == null) {
+            in = getClass().getResourceAsStream(path);
         }
-        return is;
+        return in;
     }
 }

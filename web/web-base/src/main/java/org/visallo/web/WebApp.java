@@ -34,6 +34,7 @@ import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.CloseableUtils.closeQuietly;
 
 public class WebApp extends App {
@@ -387,10 +388,8 @@ public class WebApp extends App {
     }
 
     public void registerResourceBundle(String resourceBundleResourceName) {
-        InputStream stream = WebApp.class.getResourceAsStream(resourceBundleResourceName);
-        if (stream == null) {
-            throw new VisalloException("Could not find resource bundle resource: " + resourceBundleResourceName);
-        }
+        InputStream in = WebApp.class.getResourceAsStream(resourceBundleResourceName);
+        checkNotNull(in, "Could not find resource: " + resourceBundleResourceName);
         try {
             Pattern pattern = Pattern.compile(".*_([a-z]{2})(?:_([A-Z]{2}))?(?:_(.+))?\\.properties");
             Matcher matcher = pattern.matcher(resourceBundleResourceName);
@@ -400,15 +399,15 @@ public class WebApp extends App {
                 String variant = matcher.group(3);
                 Locale locale = getLocal(language, country, variant);
                 LOGGER.info("registering ResourceBundle plugin file: %s with locale: %s", resourceBundleResourceName, locale);
-                visalloResourceBundleManager.register(stream, locale);
+                visalloResourceBundleManager.register(in, locale);
             } else {
                 LOGGER.info("registering ResourceBundle plugin file: %s", resourceBundleResourceName);
-                visalloResourceBundleManager.register(stream);
+                visalloResourceBundleManager.register(in);
             }
         } catch (IOException e) {
             throw new VisalloException("Could not read resource bundle resource: " + resourceBundleResourceName);
         } finally {
-            closeQuietly(stream);
+            closeQuietly(in);
         }
     }
 

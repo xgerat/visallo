@@ -15,6 +15,8 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class StyleAppendableHandler implements RequestResponseHandler {
     private LessEngine lessCompiler;
     private String css = "";
@@ -28,9 +30,10 @@ public class StyleAppendableHandler implements RequestResponseHandler {
     }
 
     public void appendLessResource(String pathInfo) {
-        try (InputStream input = this.getClass().getResourceAsStream(pathInfo)) {
+        try (InputStream in = this.getClass().getResourceAsStream(pathInfo)) {
+            checkNotNull(in, "Could not find resource: " + pathInfo);
             try (StringWriter writer = new StringWriter()) {
-                IOUtils.copy(input, writer, StandardCharsets.UTF_8);
+                IOUtils.copy(in, writer, StandardCharsets.UTF_8);
                 String inputLess = writer.toString();
                 String output = lessCompiler().compile(inputLess);
                 appendCss(output);
@@ -42,6 +45,7 @@ public class StyleAppendableHandler implements RequestResponseHandler {
 
     public void appendCssResource(String pathInfo) {
         try (InputStream in = this.getClass().getResourceAsStream(pathInfo)) {
+            checkNotNull(in, "Could not find resource: " + pathInfo);
             appendCss(IOUtils.toString(in));
         } catch (IOException ex) {
             throw new VisalloException("Could not append css resource: " + pathInfo, ex);

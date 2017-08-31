@@ -23,6 +23,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 
 public class JsxResourceHandler implements RequestResponseHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(JsxResourceHandler.class);
@@ -67,7 +69,6 @@ public class JsxResourceHandler implements RequestResponseHandler {
     private CachedCompilation getCache() throws IOException, InterruptedException, ExecutionException, ScriptException {
         CachedCompilation cache;
 
-
         if (compilationTask == null) {
             cache = compileIfNecessary(previousCompilation);
         } else if (compilationTask.isDone()) {
@@ -106,9 +107,10 @@ public class JsxResourceHandler implements RequestResponseHandler {
             if (previousCompilation == null || previousCompilation.isNecessary(lastModified)) {
                 CachedCompilation newCache = new CachedCompilation();
                 newCache.setLastModified(lastModified);
-                try (InputStream input = this.getClass().getResourceAsStream(jsResourceName)) {
+                try (InputStream in = this.getClass().getResourceAsStream(jsResourceName)) {
+                    checkNotNull(in, "Could not find resource: " + jsResourceName);
                     try (StringWriter writer = new StringWriter()) {
-                        IOUtils.copy(input, writer, StandardCharsets.UTF_8);
+                        IOUtils.copy(in, writer, StandardCharsets.UTF_8);
                         String inputJavascript = writer.toString();
                         newCache.setInput(inputJavascript);
                         newCache.setPath(toJsResourcePath);
