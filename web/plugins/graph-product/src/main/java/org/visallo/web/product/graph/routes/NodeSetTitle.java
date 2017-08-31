@@ -4,53 +4,42 @@ import com.google.inject.Inject;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
-import org.json.JSONObject;
-import org.vertexium.*;
+import org.vertexium.Authorizations;
+import org.vertexium.Edge;
+import org.vertexium.Graph;
 import org.vertexium.mutation.ElementMutation;
 import org.visallo.core.exception.VisalloAccessDeniedException;
-import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.model.workspace.product.WorkProductElements;
+import org.visallo.core.model.workspace.product.WorkProductServiceHasElementsBase;
 import org.visallo.core.user.User;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
 import org.visallo.web.product.graph.GraphProductOntology;
-import org.visallo.web.product.graph.GraphWorkProduct;
+import org.visallo.web.product.graph.GraphWorkProductService;
 
 public class NodeSetTitle implements ParameterizedHandler {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(NodeSetTitle.class);
-
     private final Graph graph;
     private final WorkspaceRepository workspaceRepository;
     private final WorkQueueRepository workQueueRepository;
     private final AuthorizationRepository authorizationRepository;
-    private final GraphRepository graphRepository;
-    private final UserRepository userRepository;
 
     @Inject
     public NodeSetTitle(
             Graph graph,
             WorkspaceRepository workspaceRepository,
             WorkQueueRepository workQueueRepository,
-            AuthorizationRepository authorizationRepository,
-            GraphRepository graphRepository,
-            UserRepository userRepository
+            AuthorizationRepository authorizationRepository
     ) {
         this.graph = graph;
         this.workspaceRepository = workspaceRepository;
         this.workQueueRepository = workQueueRepository;
         this.authorizationRepository = authorizationRepository;
-        this.graphRepository = graphRepository;
-        this.userRepository = userRepository;
     }
 
     @Handle
@@ -62,8 +51,6 @@ public class NodeSetTitle implements ParameterizedHandler {
             @SourceGuid String sourceGuid,
             User user
     ) throws Exception {
-        JSONObject nodeJson = new JSONObject();
-
         if (!workspaceRepository.hasWritePermissions(workspaceId, user)) {
             throw new VisalloAccessDeniedException(
                     "user " + user.getUserId() + " does not have write access to workspace " + workspaceId,
@@ -78,10 +65,10 @@ public class NodeSetTitle implements ParameterizedHandler {
                 workspaceId
         );
 
-        String edgeId = WorkProductElements.getEdgeId(productId, compoundNodeId);
+        String edgeId = WorkProductServiceHasElementsBase.getEdgeId(productId, compoundNodeId);
         Edge productEdge = graph.getEdge(edgeId, authorizations);
         ElementMutation<Edge> m = productEdge.prepareMutation();
-        GraphProductOntology.NODE_TITLE.setProperty(m, title, GraphWorkProduct.VISIBILITY.getVisibility());
+        GraphProductOntology.NODE_TITLE.setProperty(m, title, GraphWorkProductService.VISIBILITY.getVisibility());
         m.save(authorizations);
         graph.flush();
 

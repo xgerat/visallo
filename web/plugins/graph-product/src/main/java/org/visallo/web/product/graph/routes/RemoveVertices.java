@@ -15,30 +15,25 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
-import org.visallo.web.product.graph.GraphWorkProduct;
+import org.visallo.web.product.graph.GraphWorkProductService;
 
 public class RemoveVertices implements ParameterizedHandler {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RemoveVertices.class);
-
     private final Graph graph;
     private final WorkspaceRepository workspaceRepository;
     private final WorkQueueRepository workQueueRepository;
     private final AuthorizationRepository authorizationRepository;
     private final GraphRepository graphRepository;
-    private final UserRepository userRepository;
+    private final GraphWorkProductService graphWorkProductService;
 
     @Inject
     public RemoveVertices(
@@ -47,14 +42,14 @@ public class RemoveVertices implements ParameterizedHandler {
             WorkQueueRepository workQueueRepository,
             AuthorizationRepository authorizationRepository,
             GraphRepository graphRepository,
-            UserRepository userRepository
+            GraphWorkProductService graphWorkProductService
     ) {
         this.graph = graph;
         this.workspaceRepository = workspaceRepository;
         this.workQueueRepository = workQueueRepository;
         this.authorizationRepository = authorizationRepository;
         this.graphRepository = graphRepository;
-        this.userRepository = userRepository;
+        this.graphWorkProductService = graphWorkProductService;
     }
 
     @Handle
@@ -83,12 +78,11 @@ public class RemoveVertices implements ParameterizedHandler {
                 workspaceId
         );
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.HIGH, user, authorizations)) {
-            GraphWorkProduct graphWorkProduct = new GraphWorkProduct(authorizationRepository, graphRepository, userRepository);
             Vertex productVertex = graph.getVertex(productId, authorizations);
             JSONArray removeVertices = new JSONArray(vertexIds);
 
-            graphWorkProduct.removeVertices(ctx, productVertex, removeVertices, removeChildren, user, WorkspaceRepository.VISIBILITY.getVisibility(), authorizations);
-        } catch(Exception e) {
+            graphWorkProductService.removeVertices(ctx, productVertex, removeVertices, removeChildren, user, WorkspaceRepository.VISIBILITY.getVisibility(), authorizations);
+        } catch (Exception e) {
             throw new VisalloException("Could not remove vertices from product: " + productId);
         }
 
@@ -96,7 +90,7 @@ public class RemoveVertices implements ParameterizedHandler {
         ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, authorizations);
 
         String skipSourceGuid = null;
-        if (params != null && params.has("broadcastOptions")) {
+        if (params.has("broadcastOptions")) {
             JSONObject broadcastOptions = params.getJSONObject("broadcastOptions");
             if (broadcastOptions.optBoolean("preventBroadcastToSourceGuid", false)) {
                 skipSourceGuid = sourceGuid;

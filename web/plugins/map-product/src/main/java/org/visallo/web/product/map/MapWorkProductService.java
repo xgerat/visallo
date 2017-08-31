@@ -9,18 +9,16 @@ import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workspace.WorkspaceProperties;
-import org.visallo.core.model.workspace.product.WorkProductElements;
+import org.visallo.core.model.workspace.product.WorkProductServiceHasElementsBase;
 import org.visallo.core.util.JSONUtil;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.util.List;
 
-public class MapWorkProduct extends WorkProductElements {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(MapWorkProduct.class);
+public class MapWorkProductService extends WorkProductServiceHasElementsBase {
+    public static final String KIND = "org.visallo.web.product.map.MapWorkProduct";
 
     @Inject
-    public MapWorkProduct(
+    public MapWorkProductService(
             AuthorizationRepository authorizationRepository
     ) {
         super(authorizationRepository);
@@ -56,6 +54,7 @@ public class MapWorkProduct extends WorkProductElements {
             }
         }
     }
+
     public void removeVertices(
             GraphUpdateContext ctx,
             Vertex productVertex,
@@ -66,5 +65,10 @@ public class MapWorkProduct extends WorkProductElements {
             JSONUtil.toList(removeVertices)
                     .forEach(id -> ctx.getGraph().softDeleteEdge(getEdgeId(productVertex.getId(), (String) id), authorizations));
         }
+    }
+
+    @Override
+    public String getKind() {
+        return KIND;
     }
 }

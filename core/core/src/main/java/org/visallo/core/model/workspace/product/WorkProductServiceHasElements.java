@@ -4,7 +4,7 @@ import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 
-public interface WorkProductHasElements {
+public interface WorkProductServiceHasElements {
     /**
      * Called when a work product is being deleted.
      */

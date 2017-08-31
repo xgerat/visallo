@@ -8,7 +8,7 @@ import org.vertexium.Visibility;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.user.User;
 
-public interface WorkProduct {
+public interface WorkProductService {
     /**
      * Get custom extended data from the work product. This does not include the extended data stored on the
      * product itself.
@@ -21,4 +21,6 @@ public interface WorkProduct {
             User user,
             Authorizations authorizations
     );
+
+    String getKind();
 }

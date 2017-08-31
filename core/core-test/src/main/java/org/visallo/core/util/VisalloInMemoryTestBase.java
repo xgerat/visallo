@@ -26,7 +26,7 @@ import org.visallo.core.model.workspace.WorkspaceDiffHelper;
 import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceListener;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.model.workspace.product.WorkProduct;
+import org.visallo.core.model.workspace.product.WorkProductService;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.time.TimeRepository;
@@ -111,8 +111,8 @@ public abstract class VisalloInMemoryTestBase {
                 getAuthorizationRepository()
         ) {
             @Override
-            protected WorkProduct getWorkProductByKind(String kind) {
-                return VisalloInMemoryTestBase.this.getWorkProductByKind(kind);
+            protected WorkProductService getWorkProductServiceByKind(String kind) {
+                return VisalloInMemoryTestBase.this.getWorkProductServiceByKind(kind);
             }
 
             @Override
@@ -427,8 +427,8 @@ public abstract class VisalloInMemoryTestBase {
         return graph;
     }
 
-    protected WorkProduct getWorkProductByKind(String kind) {
-        throw new VisalloException("unhandled getWorkProductByKind: " + kind);
+    protected WorkProductService getWorkProductServiceByKind(String kind) {
+        throw new VisalloException("unhandled getWorkProductServiceByKind: " + kind);
     }
 
     public LongRunningProcessRepository getLongRunningProcessRepository() {

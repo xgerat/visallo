@@ -15,13 +15,11 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.WorkspaceProperties;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.model.workspace.product.WorkProductElements;
+import org.visallo.core.model.workspace.product.WorkProductServiceHasElementsBase;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.User;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.StreamUtil;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.GraphPosition;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
@@ -30,16 +28,16 @@ import java.util.stream.Collectors;
 
 import static org.visallo.web.product.graph.GraphProductOntology.ENTITY_POSITION;
 
-public class GraphWorkProduct extends WorkProductElements {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphWorkProduct.class);
+public class GraphWorkProductService extends WorkProductServiceHasElementsBase {
+    public static final String KIND = "org.visallo.web.product.graph.GraphWorkProduct";
+    private static final String ROOT_NODE_ID = "root";
     private final AuthorizationRepository authorizationRepository;
     private final GraphRepository graphRepository;
     private final UserRepository userRepository;
     public static final VisalloVisibility VISIBILITY = new VisalloVisibility(WorkspaceRepository.VISIBILITY_STRING);
-    private static final String ROOT_NODE_ID = "root";
 
     @Inject
-    public GraphWorkProduct(
+    public GraphWorkProductService(
             AuthorizationRepository authorizationRepository,
             GraphRepository graphRepository,
             UserRepository userRepository
@@ -263,10 +261,10 @@ public class GraphWorkProduct extends WorkProductElements {
 
             String edgeId = getEdgeId(productVertex.getId(), vertexId);
             ctx.getOrCreateEdgeAndUpdate(edgeId, productVertex.getId(),
-                    vertexId,
-                    WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                    visibility,
-                    elemCtx -> updateProductEdge(elemCtx, params, visibility)
+                                         vertexId,
+                                         WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                                         visibility,
+                                         elemCtx -> updateProductEdge(elemCtx, params, visibility)
             );
 
             ctx.flush();
@@ -574,5 +572,10 @@ public class GraphWorkProduct extends WorkProductElements {
             vertex.put("title", title);
         }
         vertex.put("parent", parent);
+    }
+
+    @Override
+    public String getKind() {
+        return KIND;
     }
 }

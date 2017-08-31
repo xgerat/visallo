@@ -1,6 +1,5 @@
 package org.visallo.vertexium.model.workspace;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -18,7 +17,6 @@ import org.vertexium.query.Compare;
 import org.vertexium.query.QueryResultsIterable;
 import org.vertexium.search.IndexHint;
 import org.vertexium.util.FilterIterable;
-import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
@@ -39,8 +37,8 @@ import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.*;
 import org.visallo.core.model.workspace.product.Product;
-import org.visallo.core.model.workspace.product.WorkProduct;
-import org.visallo.core.model.workspace.product.WorkProductHasElements;
+import org.visallo.core.model.workspace.product.WorkProductService;
+import org.visallo.core.model.workspace.product.WorkProductServiceHasElements;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.trace.Traced;
@@ -72,8 +70,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     private final GraphRepository graphRepository;
     private final GraphAuthorizationRepository graphAuthorizationRepository;
     private final WorkspaceDiffHelper workspaceDiff;
-    private final Configuration configuration;
-    private Collection<WorkProduct> workProducts;
     private final LockRepository lockRepository;
 
     private Cache<String, Boolean> usersWithReadAccessCache = CacheBuilder.newBuilder()
@@ -129,7 +125,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         this.graphAuthorizationRepository = graphAuthorizationRepository;
         this.workspaceDiff = workspaceDiff;
         this.lockRepository = lockRepository;
-        this.configuration = configuration;
 
         graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
         graphAuthorizationRepository.addAuthorizationToGraph(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
@@ -1068,7 +1063,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                     WorkspaceProperties.TITLE.updateProperty(elemCtx, title.substring(0, Math.min(title.length(), 128)), visibility);
                 }
                 if (kind != null) {
-                    if (getWorkProductByKind(kind) == null) {
+                    if (getWorkProductServiceByKind(kind) == null) {
                         throw new VisalloException("invalid kind: " + kind);
                     }
                     WorkspaceProperties.PRODUCT_KIND.updateProperty(elemCtx, kind, visibility);
@@ -1154,10 +1149,10 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         Vertex productVertex = getGraph().getVertex(productId, authorizations);
 
         String kind = WorkspaceProperties.PRODUCT_KIND.getPropertyValue(productVertex);
-        WorkProduct workProduct = getWorkProductByKind(kind);
+        WorkProductService workProductService = getWorkProductServiceByKind(kind);
 
-        if (workProduct instanceof WorkProductHasElements) {
-            ((WorkProductHasElements) workProduct).cleanUpElements(getGraph(), productVertex, authorizations);
+        if (workProductService instanceof WorkProductServiceHasElements) {
+            ((WorkProductServiceHasElements) workProductService).cleanUpElements(getGraph(), productVertex, authorizations);
         }
 
         getGraph().softDeleteVertex(productId, authorizations);
@@ -1167,33 +1162,6 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         ClientApiWorkspace userWorkspace = toClientApi(ws, user, authorizations);
         getWorkQueueRepository().broadcastWorkProductDelete(productId, userWorkspace);
 
-    }
-
-    protected WorkProduct getWorkProductByKind(String kind) {
-        if (kind == null) {
-            throw new VisalloException("Work product kind must not be null");
-        }
-        if (workProducts == null) {
-            if (configuration == null) {
-                throw new VisalloException("Configuration not injected");
-            } else {
-                workProducts = InjectHelper.getInjectedServices(WorkProduct.class, configuration);
-            }
-        }
-        Optional<WorkProduct> foundProduct = workProducts.stream().filter(
-                workProduct -> workProduct.getClass().getName().equals(kind)
-        ).findFirst();
-
-        if (foundProduct.isPresent()) {
-            return foundProduct.get();
-        } else {
-            throw new VisalloException("Work Product of kind: " + kind + " not found");
-        }
-    }
-
-    @VisibleForTesting
-    public void setWorkProducts(List<WorkProduct> workProducts) {
-        this.workProducts = workProducts;
     }
 
     @Override
@@ -1229,11 +1197,11 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         }
 
         String kind = WorkspaceProperties.PRODUCT_KIND.getPropertyValue(productVertex);
-        WorkProduct workProduct = getWorkProductByKind(kind);
+        WorkProductService workProductService = getWorkProductServiceByKind(kind);
         JSONObject extendedData = null;
         if (includeExtended) {
             checkNotNull(params, "params is required when getting extended data");
-            extendedData = workProduct.getExtendedData(getGraph(), getVertex(workspaceId, user), productVertex, params, user, authorizations);
+            extendedData = workProductService.getExtendedData(getGraph(), getVertex(workspaceId, user), productVertex, params, user, authorizations);
         }
 
         return productVertexToProduct(workspaceId, productVertex, includeExtended, extendedData, authorizations, user);

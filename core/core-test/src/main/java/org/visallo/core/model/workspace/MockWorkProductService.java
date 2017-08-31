@@ -4,12 +4,11 @@ import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
-import org.vertexium.Visibility;
-import org.visallo.core.model.graph.GraphUpdateContext;
-import org.visallo.core.model.workspace.product.WorkProduct;
+import org.visallo.core.model.workspace.product.WorkProductService;
 import org.visallo.core.user.User;
 
-public class MockWorkProduct implements WorkProduct {
+public class MockWorkProductService implements WorkProductService {
+    public static final String KIND = "org.visallo.core.model.workspace.MockWorkProduct";
 
     @Override
     public JSONObject getExtendedData(
@@ -21,5 +20,10 @@ public class MockWorkProduct implements WorkProduct {
             Authorizations authorizations
     ) {
         return new JSONObject();
+    }
+
+    @Override
+    public String getKind() {
+        return KIND;
     }
 }

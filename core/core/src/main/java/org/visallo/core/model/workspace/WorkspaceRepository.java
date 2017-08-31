@@ -1,5 +1,6 @@
 package org.visallo.core.model.workspace;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,6 +29,7 @@ import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.product.Product;
+import org.visallo.core.model.workspace.product.WorkProductService;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.trace.Traced;
@@ -69,6 +71,7 @@ public abstract class WorkspaceRepository {
     private ResourceBundle visalloResourceBundle;
     private final AuthorizationRepository authorizationRepository;
     private Collection<WorkspaceListener> workspaceListeners;
+    private Collection<WorkProductService> workProductServices;
 
     protected WorkspaceRepository(
             Graph graph,
@@ -360,11 +363,13 @@ public abstract class WorkspaceRepository {
         // Need to elevate with videoFrame auth to be able to load and publish VideoFrame properties
         Authorizations authWithVideoFrame = graph.createAuthorizations(
                 authorizations,
-                VideoFrameInfo.VISIBILITY_STRING);
+                VideoFrameInfo.VISIBILITY_STRING
+        );
         Iterable<Vertex> verticesToPublish = graph.getVertices(
                 vertexIdToPublishData.keySet(),
                 FetchHint.ALL_INCLUDING_HIDDEN,
-                authWithVideoFrame);
+                authWithVideoFrame
+        );
 
         for (Vertex vertex : verticesToPublish) {
             String vertexId = vertex.getId();
@@ -392,7 +397,7 @@ public abstract class WorkspaceRepository {
         CloseableUtils.closeQuietly(verticesToPublish);
 
         vertexIdToPublishData.forEach((vertexId, data) ->
-                data.setErrorMessage("Unable to load vertex with id " + vertexId));
+                                              data.setErrorMessage("Unable to load vertex with id " + vertexId));
 
         LOGGER.debug("END publishVertices");
         graph.flush();
@@ -412,7 +417,8 @@ public abstract class WorkspaceRepository {
         Iterable<Vertex> verticesToPublish = graph.getVertices(
                 publishDataByVertexId.keySet(),
                 EnumSet.of(FetchHint.PROPERTIES),
-                authorizations);
+                authorizations
+        );
 
         Map<String, List<String>> vertexIdsByConcept = StreamUtils.stream(verticesToPublish)
                 .collect(Collectors.groupingBy(VisalloProperties.CONCEPT_TYPE::getPropertyValue, Collectors.mapping(Vertex::getId, Collectors.toList())));
@@ -428,7 +434,7 @@ public abstract class WorkspaceRepository {
                     }
                     return concept;
                 })
-                .filter(concept -> concept != null && concept.getSandboxStatus() != SandboxStatus.PUBLIC )
+                .filter(concept -> concept != null && concept.getSandboxStatus() != SandboxStatus.PUBLIC)
                 .flatMap(concept -> {
                     try {
                         return ontologyRepository.getConceptAndAncestors(concept, workspaceId).stream()
@@ -477,7 +483,8 @@ public abstract class WorkspaceRepository {
         Iterable<Edge> edgesToPublish = graph.getEdges(
                 publishDataByEdgeId.keySet(),
                 EnumSet.of(FetchHint.PROPERTIES),
-                authorizations);
+                authorizations
+        );
 
         Map<String, List<String>> edgeIdsByLabel = StreamUtils.stream(edgesToPublish)
                 .collect(Collectors.groupingBy(Edge::getLabel, Collectors.mapping(Edge::getId, Collectors.toList())));
@@ -493,7 +500,7 @@ public abstract class WorkspaceRepository {
                     }
                     return relationship;
                 })
-                .filter(relationship -> relationship != null && relationship.getSandboxStatus() != SandboxStatus.PUBLIC )
+                .filter(relationship -> relationship != null && relationship.getSandboxStatus() != SandboxStatus.PUBLIC)
                 .flatMap(relationship -> {
                     try {
                         return ontologyRepository.getRelationshipAndAncestors(relationship, workspaceId).stream()
@@ -544,7 +551,7 @@ public abstract class WorkspaceRepository {
                     OntologyProperty property = ontologyRepository.getPropertyByIRI(iri, workspaceId);
                     if (property == null) {
                         publishDataByPropertyIri.get(iri).forEach(data ->
-                            data.setErrorMessage("Unable to locate property with IRI " + iri)
+                                                                          data.setErrorMessage("Unable to locate property with IRI " + iri)
                         );
                     }
                     return property;
@@ -557,7 +564,7 @@ public abstract class WorkspaceRepository {
                     } catch (Exception ex) {
                         LOGGER.error("Error publishing property %s", property.getIri(), ex);
                         publishDataByPropertyIri.get(property.getIri()).forEach(data ->
-                            data.setErrorMessage("Unable to publish relationship " + property.getDisplayName())
+                                                                                        data.setErrorMessage("Unable to publish relationship " + property.getDisplayName())
                         );
                     }
                     return property.getId();
@@ -1173,6 +1180,33 @@ public abstract class WorkspaceRepository {
             workspaceListeners = InjectHelper.getInjectedServices(WorkspaceListener.class, configuration);
         }
         return workspaceListeners;
+    }
+
+    protected WorkProductService getWorkProductServiceByKind(String kind) {
+        if (kind == null) {
+            throw new VisalloException("Work product kind must not be null");
+        }
+        if (workProductServices == null) {
+            if (configuration == null) {
+                throw new VisalloException("Configuration not injected");
+            } else {
+                workProductServices = InjectHelper.getInjectedServices(WorkProductService.class, configuration);
+            }
+        }
+        Optional<WorkProductService> foundProductService = workProductServices.stream()
+                .filter(workProduct -> workProduct.getKind().equals(kind))
+                .findFirst();
+
+        if (foundProductService.isPresent()) {
+            return foundProductService.get();
+        } else {
+            throw new VisalloException("Work Product of kind: " + kind + " not found");
+        }
+    }
+
+    @VisibleForTesting
+    public void setWorkProductServices(List<WorkProductService> workProductServices) {
+        this.workProductServices = workProductServices;
     }
 }
 

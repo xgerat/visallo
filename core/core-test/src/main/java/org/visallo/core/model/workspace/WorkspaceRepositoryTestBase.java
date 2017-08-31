@@ -73,7 +73,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
     public void testUpdateProductExtendedData() {
         assumeTrue(supportsWorkProducts());
 
-        String kind = MockWorkProduct.class.getName();
+        String kind = MockWorkProductService.KIND;
         JSONObject params = new JSONObject();
         JSONObject extendedData = new JSONObject();
         extendedData.put("key1", "value1");

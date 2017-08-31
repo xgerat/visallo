@@ -5,10 +5,9 @@ import org.vertexium.*;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyPropertyDefinition;
-import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.*;
-import org.visallo.core.model.workspace.product.WorkProduct;
+import org.visallo.core.model.workspace.product.WorkProductService;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.*;
 
@@ -52,9 +51,9 @@ public class VertexiumWorkspaceRepositoryTest extends WorkspaceRepositoryTestBas
             }
         };
 
-        List<WorkProduct> workProducts = new ArrayList<>();
-        workProducts.add(new MockWorkProduct());
-        workspaceRepository.setWorkProducts(workProducts);
+        List<WorkProductService> workProductServices = new ArrayList<>();
+        workProductServices.add(new MockWorkProductService());
+        workspaceRepository.setWorkProductServices(workProductServices);
 
         return workspaceRepository;
     }

@@ -1,12 +1,9 @@
 package org.visallo.core.model.workspace.product;
 
 import com.google.common.collect.Lists;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
 import org.visallo.core.model.graph.ElementUpdateContext;
-import org.visallo.core.model.graph.GraphUpdateContext;
-import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workspace.WorkspaceProperties;
 import org.visallo.core.security.VisalloVisibility;
@@ -18,10 +15,10 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public abstract class WorkProductElements implements WorkProduct, WorkProductHasElements {
+public abstract class WorkProductServiceHasElementsBase implements WorkProductService, WorkProductServiceHasElements {
     private final AuthorizationRepository authorizationRepository;
 
-    protected WorkProductElements(
+    protected WorkProductServiceHasElementsBase(
             AuthorizationRepository authorizationRepository
     ) {
         this.authorizationRepository = authorizationRepository;

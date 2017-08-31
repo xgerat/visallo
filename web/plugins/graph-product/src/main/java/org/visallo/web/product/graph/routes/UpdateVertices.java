@@ -13,7 +13,6 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
@@ -21,28 +20,24 @@ import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.JSONUtil;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
-import org.visallo.web.product.graph.GraphWorkProduct;
+import org.visallo.web.product.graph.GraphWorkProductService;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class UpdateVertices implements ParameterizedHandler {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UpdateVertices.class);
-
     private final Graph graph;
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceHelper workspaceHelper;
     private final WorkQueueRepository workQueueRepository;
     private final AuthorizationRepository authorizationRepository;
     private final GraphRepository graphRepository;
-    private final UserRepository userRepository;
+    private final GraphWorkProductService graphWorkProductService;
 
     @Inject
     public UpdateVertices(
@@ -52,7 +47,7 @@ public class UpdateVertices implements ParameterizedHandler {
             WorkQueueRepository workQueueRepository,
             AuthorizationRepository authorizationRepository,
             GraphRepository graphRepository,
-            UserRepository userRepository
+            GraphWorkProductService graphWorkProductService
     ) {
         this.graph = graph;
         this.workspaceRepository = workspaceRepository;
@@ -60,7 +55,7 @@ public class UpdateVertices implements ParameterizedHandler {
         this.workQueueRepository = workQueueRepository;
         this.authorizationRepository = authorizationRepository;
         this.graphRepository = graphRepository;
-        this.userRepository = userRepository;
+        this.graphWorkProductService = graphWorkProductService;
     }
 
     @Handle
@@ -98,11 +93,10 @@ public class UpdateVertices implements ParameterizedHandler {
         );
 
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.HIGH, user, authorizations)) {
-            GraphWorkProduct graphWorkProduct = new GraphWorkProduct(authorizationRepository, graphRepository, userRepository);
             Vertex productVertex = graph.getVertex(productId, authorizations);
 
-            graphWorkProduct.updateVertices(ctx, productVertex, updateVertices, user, WorkspaceRepository.VISIBILITY.getVisibility(), authorizations);
-        } catch(Exception e) {
+            graphWorkProductService.updateVertices(ctx, productVertex, updateVertices, user, WorkspaceRepository.VISIBILITY.getVisibility(), authorizations);
+        } catch (Exception e) {
             throw new VisalloException("Could not update vertices in product: " + productId);
         }
 
