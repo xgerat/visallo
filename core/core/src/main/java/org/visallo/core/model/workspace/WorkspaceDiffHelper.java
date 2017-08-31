@@ -67,7 +67,6 @@ public class WorkspaceDiffHelper {
             }
         }
 
-
         for (Edge workspaceEdge : workspaceEdges) {
             List<ClientApiWorkspaceDiff.Item> entityDiffs = diffEdge(workspace, workspaceEdge, authorizations);
             if (entityDiffs != null) {

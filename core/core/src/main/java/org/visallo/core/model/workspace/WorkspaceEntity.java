@@ -46,8 +46,8 @@ public class WorkspaceEntity implements Serializable {
         return stream(workspaceEntities)
                 .map(workspaceEntity -> {
                     if (workspaceEntity.getVertex() == null) {
-                        workspaceEntity.vertex = fetchedVerticesMap.get(workspaceEntity.getEntityVertexId());
-                        if (workspaceEntity.vertex == null) {
+                        Vertex vertex = fetchedVerticesMap.get(workspaceEntity.getEntityVertexId());
+                        if (vertex == null) {
                             LOGGER.error("Could not find vertex for WorkspaceEntity: %s", workspaceEntity);
                             return null;
                         }

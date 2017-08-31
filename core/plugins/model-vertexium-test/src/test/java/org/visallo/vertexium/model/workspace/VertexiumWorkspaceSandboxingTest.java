@@ -59,7 +59,8 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
     private FormulaEvaluator.UserContext userContext;
 
 
-    private User user;
+    private User user1;
+    private User user2;
     private Visibility secretVisibility;
     private Vertex entity1Vertex;
     private WorkspaceHelper workspaceHelper;
@@ -80,7 +81,8 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
     public void before() {
         super.before();
 
-        user = getUserRepository().findOrAddUser("junit", "Junit", "junit@visallo.com", "password");
+        user1 = getUserRepository().findOrAddUser("user1", "user1", "user1@visallo.com", "password");
+        user2 = getUserRepository().findOrAddUser("user2", "user2", "user2@visallo.com", "password");
 
         initialVisibility = getVisibilityTranslator().toVisibility(new VisibilityJson(initialVisibilitySource)).getVisibility();
         secretVisibility = getVisibilityTranslator().toVisibility(new VisibilityJson(SECRET_VISIBILITY_SOURCE)).getVisibility();
@@ -142,10 +144,11 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
         getOntologyRepository().getOrCreateRelationshipType(null, Collections.singleton(thing), Collections.singleton(thing), "label1", true, systemUser, PUBLIC);
 
         UserPropertyAuthorizationRepository authorizationRepository = (UserPropertyAuthorizationRepository) getAuthorizationRepository();
-        authorizationRepository.addAuthorization(user, SECRET_VISIBILITY_SOURCE, systemUser);
-        authorizationRepository.addAuthorization(user, OTHER_VISIBILITY_SOURCE, systemUser);
+        authorizationRepository.addAuthorization(user1, SECRET_VISIBILITY_SOURCE, systemUser);
+        authorizationRepository.addAuthorization(user1, OTHER_VISIBILITY_SOURCE, systemUser);
 
-        workspace = getWorkspaceRepository().add(WORKSPACE_ID, "testWorkspaceTitle", user);
+        workspace = getWorkspaceRepository().add(WORKSPACE_ID, "testWorkspaceTitle", user1);
+        getWorkspaceRepository().updateUserOnWorkspace(workspace, user2.getUserId(), WorkspaceAccess.WRITE, systemUser);
         workspaceAuthorizations = new InMemoryAuthorizations(
                 WORKSPACE_ID,
                 SECRET_VISIBILITY_SOURCE,
@@ -175,7 +178,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
                 getVisibilityTranslator().getDefaultVisibility()
         );
 
-        getWorkspaceRepository().updateEntityOnWorkspace(workspace, entity1Vertex.getId(), user);
+        getWorkspaceRepository().updateEntityOnWorkspace(workspace, entity1Vertex.getId(), user1);
 
         userContext = new FormulaEvaluator.UserContext(LOCALE, null, TIME_ZONE, WORKSPACE_ID);
 
@@ -295,6 +298,24 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
 
         assertEquals(1, diffs.size());
         assertChangedPropertyValueAndVisibilityDiff(diffs.get(0));
+    }
+
+    @Test
+    public void getDiffWithUnauthorizedEntityAndChangedPublicPropertyValueReturnsZeroDiffs() {
+        getGraphRepository().updateElementVisibilitySource(
+                entity1Vertex,
+                SandboxStatus.PRIVATE,
+                SECRET_VISIBILITY_SOURCE,
+                WORKSPACE_ID,
+                workspaceAuthorizations
+        );
+        getGraph().flush();
+
+        changePublicPropertyValueOnWorkspace();
+
+        List<PropertyItem> diffs = getDiffsFromWorkspace(PropertyItem.class, user2);
+
+        assertEquals(0, diffs.size());
     }
 
     @Test
@@ -519,7 +540,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
         SandboxStatus sandboxStatus = SandboxStatusUtil.getSandboxStatus(vertex, WORKSPACE_ID);
         assertEquals(SandboxStatus.PUBLIC, sandboxStatus);
         workspaceHelper.deleteVertex(
-                vertex, WORKSPACE_ID, true, Priority.HIGH, workspaceAuthorizations, user);
+                vertex, WORKSPACE_ID, true, Priority.HIGH, workspaceAuthorizations, user1);
 
         List<VertexItem> vertexDiffs = getDiffsFromWorkspace(VertexItem.class);
 
@@ -558,7 +579,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
         SandboxStatus sandboxStatus = SandboxStatusUtil.getSandboxStatus(vertex, WORKSPACE_ID);
         assertEquals(SandboxStatus.PUBLIC, sandboxStatus);
         workspaceHelper.deleteVertex(
-                vertex, WORKSPACE_ID, true, Priority.HIGH, workspaceAuthorizations, user);
+                vertex, WORKSPACE_ID, true, Priority.HIGH, workspaceAuthorizations, user1);
         assertNull(getGraph().getVertex(vertexId, workspaceAuthorizations));
 
         assertEquals(1, getDiffsFromWorkspace(VertexItem.class).size());
@@ -598,7 +619,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
         Vertex v1 = vertexBuilder.save(workspaceAuthorizations);
         getGraph().flush();
 
-        getWorkspaceRepository().updateEntityOnWorkspace(workspace, v1.getId(), user);
+        getWorkspaceRepository().updateEntityOnWorkspace(workspace, v1.getId(), user1);
         getGraph().flush();
 
         String vertexId = v1.getId();
@@ -616,7 +637,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
         vertexBuilder.save(workspaceAuthorizations);
         getGraph().flush();
 
-        getWorkspaceRepository().updateEntityOnWorkspace(workspace, v1.getId(), user);
+        getWorkspaceRepository().updateEntityOnWorkspace(workspace, v1.getId(), user1);
         getGraph().flush();
 
         assertNotNull(getGraph().getVertex(vertexId, workspaceAuthorizations));
@@ -695,7 +716,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
                 true,
                 Priority.HIGH,
                 workspaceAuthorizations,
-                user
+                user1
         );
 
         List<byte[]> workQueueItems = getWorkQueueItems(getWorkQueueNames().getGraphPropertyQueueName());
@@ -710,7 +731,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
                 true,
                 Priority.HIGH,
                 workspaceAuthorizations,
-                user
+                user1
         );
         List<byte[]> workQueueItems = getWorkQueueItems(getWorkQueueNames().getGraphPropertyQueueName());
         // TODO: Verify work queue items
@@ -728,7 +749,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
                 true,
                 Priority.HIGH,
                 workspaceAuthorizations,
-                user
+                user1
         );
         List<byte[]> workQueueItems = getWorkQueueItems(getWorkQueueNames().getGraphPropertyQueueName());
         // TODO: Verify work queue items
@@ -762,7 +783,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
                 true,
                 Priority.HIGH,
                 workspaceAuthorizations,
-                user
+                user1
         );
 
         List<byte[]> workQueueItems = getWorkQueueItems(getWorkQueueNames().getGraphPropertyQueueName());
@@ -785,7 +806,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
                 true,
                 Priority.HIGH,
                 workspaceAuthorizations,
-                user
+                user1
         );
         List<ClientApiWorkspaceDiff.Item> diffs = getDiffsFromWorkspace();
         undoWorkspaceDiffs(diffs);
@@ -810,7 +831,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
                 true,
                 Priority.HIGH,
                 workspaceAuthorizations,
-                user
+                user1
         );
         publishAllWorkspaceDiffs();
 
@@ -827,8 +848,8 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
         Edge edge = edgeBuilder.save(workspaceAuthorizations);
         getGraph().flush();
 
-        getWorkspaceRepository().updateEntityOnWorkspace(workspace, v1.getId(), user);
-        getWorkspaceRepository().updateEntityOnWorkspace(workspace, v2.getId(), user);
+        getWorkspaceRepository().updateEntityOnWorkspace(workspace, v1.getId(), user1);
+        getWorkspaceRepository().updateEntityOnWorkspace(workspace, v2.getId(), user1);
         return edge;
     }
 
@@ -864,7 +885,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
         Vertex vertex = vertexBuilder.save(workspaceAuthorizations);
         getGraph().flush();
 
-        getWorkspaceRepository().updateEntityOnWorkspace(workspace, vertex.getId(), user);
+        getWorkspaceRepository().updateEntityOnWorkspace(workspace, vertex.getId(), user1);
         getGraph().flush();
         return vertex;
     }
@@ -885,7 +906,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
             }
         }
         ClientApiWorkspaceUndoResponse response = new ClientApiWorkspaceUndoResponse();
-        workspaceUndoHelper.undo(undoItems, response, WORKSPACE_ID, user, workspaceAuthorizations);
+        workspaceUndoHelper.undo(undoItems, response, WORKSPACE_ID, user1, workspaceAuthorizations);
         assertTrue(response.isSuccess());
     }
 
@@ -939,17 +960,25 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
                 .toArray(new ClientApiPublishItem[vertexDiffs.size() + propertyDiffs.size() + edgeDiffs.size()]);
 
         ClientApiWorkspacePublishResponse response =
-                getWorkspaceRepository().publish(allPublishItems, user, WORKSPACE_ID, workspaceAuthorizations);
+                getWorkspaceRepository().publish(allPublishItems, user1, WORKSPACE_ID, workspaceAuthorizations);
         assertTrue(response.isSuccess());
         assertNoDiffs();
     }
 
     private List<ClientApiWorkspaceDiff.Item> getDiffsFromWorkspace() {
+        return getDiffsFromWorkspace(user1);
+    }
+
+    private List<ClientApiWorkspaceDiff.Item> getDiffsFromWorkspace(User user) {
         return getWorkspaceRepository().getDiff(workspace, user, userContext).getDiffs();
     }
 
     private <T extends ClientApiWorkspaceDiff.Item> List<T> getDiffsFromWorkspace(Class<T> itemType) {
-        return getDiffsFromWorkspace()
+        return getDiffsFromWorkspace(itemType, user1);
+    }
+
+    private <T extends ClientApiWorkspaceDiff.Item> List<T> getDiffsFromWorkspace(Class<T> itemType, User user) {
+        return getDiffsFromWorkspace(user)
                 .stream()
                 .filter(diff -> itemType.isAssignableFrom(diff.getClass()))
                 .map(itemType::cast)
@@ -962,7 +991,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
                         .map(this::createPropertyUndoItem)
                         .collect(Collectors.toList());
         ClientApiWorkspaceUndoResponse response = new ClientApiWorkspaceUndoResponse();
-        workspaceUndoHelper.undo(undoItems, response, WORKSPACE_ID, user, workspaceAuthorizations);
+        workspaceUndoHelper.undo(undoItems, response, WORKSPACE_ID, user1, workspaceAuthorizations);
         assertTrue(response.isSuccess());
         assertNoDiffs();
     }
@@ -992,7 +1021,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
                 ontologyProperty,
                 WORKSPACE_ID,
                 workspaceAuthorizations,
-                user);
+                user1);
         getGraph().flush();
     }
 
@@ -1008,7 +1037,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
                 WORKSPACE_ID,
                 "",
                 null,
-                user,
+                user1,
                 workspaceAuthorizations
         );
         visibilityAndMutation.elementMutation.save(workspaceAuthorizations);
@@ -1120,7 +1149,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
     }
 
     private void assertNoDiffs() {
-        assertEquals(0, getWorkspaceRepository().getDiff(workspace, user, userContext).getDiffs().size());
+        assertEquals(0, getWorkspaceRepository().getDiff(workspace, user1, userContext).getDiffs().size());
     }
 
     private static void assertVisibilityOnProperty(Visibility expectedVisibility, Property property) {
