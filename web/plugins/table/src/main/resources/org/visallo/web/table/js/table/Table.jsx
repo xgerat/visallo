@@ -106,6 +106,7 @@ define([
                                            headerRenderer={() => (
                                                <div
                                                    className="configure-column-header"
+                                                   title={i18n('com.visallo.table.config.columns.hover')}
                                                    onClick={(event) => onConfigureColumnsClick(event)}
                                                ></div>
                                            )}
