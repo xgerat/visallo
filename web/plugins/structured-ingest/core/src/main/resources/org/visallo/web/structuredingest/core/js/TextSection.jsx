@@ -4,6 +4,7 @@ define([
     'util/formatters'
 ], function(createReactClass, util, F) {
     'use strict';
+    const VISIBILITY_NAME = 'http://visallo.org#visibilityJson';
 
     const StructuredIngestTextSection = createReactClass({
         getInitialState() {
@@ -25,7 +26,7 @@ define([
                     </button>
                   </div>
                   <div className="table">
-                    { error ? 'Error Analyzing File' :
+                    { error ? i18n('csv.file_import.errors.analyzing.file') :
                       rows ? (
                           <table>
                             {rows.length && total ? (
@@ -49,21 +50,25 @@ define([
                             </tbody>
                           </table>
                       ) :
-                      'Loading...'
+                      i18n('csv.file_import.mapping.loading')
                     }
                     </div>
                 </div>
             )
         },
         onClick() {
-            const { vertex } = this.props;
+            const { vertex, propertyName, propertyKey } = this.props;
+            const property = _.findWhere(vertex.properties, { key: propertyKey, name: propertyName });
+            const visibilitySource = property.metadata
+                && property.metadata[VISIBILITY_NAME]
+                && property.metadata[VISIBILITY_NAME].source;
 
             require([
                 'org/visallo/web/structuredingest/core/js/form',
                 'org/visallo/web/structuredingest/core/templates/modal.hbs'
             ], (CSVMappingForm, template) => {
                 const $modal = $(template({})).appendTo('#app');
-                CSVMappingForm.attachTo($modal, { vertex });
+                CSVMappingForm.attachTo($modal, { vertex, visibilitySource });
             });
         },
         analyze() {
