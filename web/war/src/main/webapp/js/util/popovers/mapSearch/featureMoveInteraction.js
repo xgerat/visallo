@@ -19,18 +19,10 @@ define(['openlayers'], function(ol) {
     ol.inherits(FeatureMoveInteraction, ol.interaction.Pointer);
 
     FeatureMoveInteraction.prototype.fit = function() {
-        var map = this.getMap(),
-            view = map.getView();
+        const map = this.getMap();
+        const view = map.getView();
 
-        map.beforeRender(ol.animation.zoom({
-            resolution: view.getResolution(),
-            duration: ANIMATION_DURATION
-        }));
-        map.beforeRender(ol.animation.pan({
-            source: view.getCenter(),
-            duration: ANIMATION_DURATION
-        }));
-        view.fit(this.circleFeature.getGeometry().getExtent(), map.getSize())
+        view.fit(this.circleFeature.getGeometry().getExtent())
     }
 
     FeatureMoveInteraction.prototype.setMap = function(map) {
