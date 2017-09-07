@@ -167,7 +167,7 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
 
         String author = extractTextField(metadata, authorKeys);
         if (authorPropertyIri != null && author != null && author.length() > 0) {
-            m.addPropertyValue(propertyKey, authorPropertyIri, author, data.createPropertyMetadata(getUser()), data.getVisibility());
+            m.addPropertyValue(propertyKey, authorPropertyIri, author, data.createPropertyMetadata(getUser()), data.getProperty().getVisibility());
         }
 
         String customImageMetadata = extractTextField(metadata, customFlickrMetadataKeys);
@@ -189,7 +189,7 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
                 text = new JSONObject(customImageMetadataJson.get("description").toString()).get("_content") +
                         "\n" + customImageMetadataJson.get("tags").toString();
                 StreamingPropertyValue textValue = new StreamingPropertyValue(new ByteArrayInputStream(text.getBytes(charset)), String.class);
-                addTextProperty(textExtractMapping, m, propertyKey, textValue, textMetadata, data.getVisibility());
+                addTextProperty(textExtractMapping, m, propertyKey, textValue, textMetadata, data.getProperty().getVisibility());
 
                 Date lastUpdate = GenericDateExtractor
                         .extractSingleDate(customImageMetadataJson.get("lastupdate").toString());
@@ -200,14 +200,14 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
                 if (titlePropertyIri != null) {
                     org.vertexium.Metadata titleMetadata = data.createPropertyMetadata(getUser());
                     VisalloProperties.CONFIDENCE_METADATA.setMetadata(titleMetadata, SYSTEM_ASSIGNED_CONFIDENCE, defaultVisibility);
-                    m.addPropertyValue(propertyKey, titlePropertyIri, customImageMetadataJson.get("title").toString(), titleMetadata, data.getVisibility());
+                    m.addPropertyValue(propertyKey, titlePropertyIri, customImageMetadataJson.get("title").toString(), titleMetadata, data.getProperty().getVisibility());
                 }
             } catch (JSONException e) {
                 LOGGER.warn("Image returned invalid custom metadata");
             }
         } else {
             StreamingPropertyValue textValue = new StreamingPropertyValue(new ByteArrayInputStream(text.getBytes(charset)), String.class);
-            addTextProperty(textExtractMapping, m, propertyKey, textValue, textMetadata, data.getVisibility());
+            addTextProperty(textExtractMapping, m, propertyKey, textValue, textMetadata, data.getProperty().getVisibility());
 
             VisalloProperties.MODIFIED_DATE.setProperty(m, extractDate(metadata), defaultVisibility);
             String title = extractTextField(metadata, subjectKeys);
@@ -215,7 +215,7 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
                 if (titlePropertyIri != null) {
                     org.vertexium.Metadata titleMetadata = data.createPropertyMetadata(getUser());
                     VisalloProperties.CONFIDENCE_METADATA.setMetadata(titleMetadata, SYSTEM_ASSIGNED_CONFIDENCE, defaultVisibility);
-                    m.addPropertyValue(propertyKey, titlePropertyIri, title, titleMetadata, data.getVisibility());
+                    m.addPropertyValue(propertyKey, titlePropertyIri, title, titleMetadata, data.getProperty().getVisibility());
                 }
             }
 
@@ -226,7 +226,7 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
                 if (numberOfPages != null) {
                     org.vertexium.Metadata numberOfPagesMetadata = data.createPropertyMetadata(getUser());
                     VisalloProperties.CONFIDENCE_METADATA.setMetadata(numberOfPagesMetadata, SYSTEM_ASSIGNED_CONFIDENCE, defaultVisibility);
-                    pageCountProperty.addPropertyValue(m, propertyKey, Long.valueOf(numberOfPages), numberOfPagesMetadata, data.getVisibility());
+                    pageCountProperty.addPropertyValue(m, propertyKey, Long.valueOf(numberOfPages), numberOfPagesMetadata, data.getProperty().getVisibility());
                 }
             }
         }
