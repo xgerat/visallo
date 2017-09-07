@@ -73,7 +73,7 @@ public abstract class MimeTypeGraphPropertyWorker extends GraphPropertyWorker {
 
         ExistingElementMutation<Vertex> m = ((Vertex) data.getElement()).prepareMutation();
         Metadata mimeTypeMetadata = data.createPropertyMetadata(getUser());
-        VisalloProperties.MIME_TYPE.addPropertyValue(m, getMultiKey(data.getProperty()), mimeType, mimeTypeMetadata, data.getVisibility());
+        VisalloProperties.MIME_TYPE.addPropertyValue(m, getMultiKey(data.getProperty()), mimeType, mimeTypeMetadata, data.getProperty().getVisibility());
         m.setPropertyMetadata(data.getProperty(), VisalloProperties.MIME_TYPE.getPropertyName(), mimeType, getVisibilityTranslator().getDefaultVisibility());
         m.save(getAuthorizations());
         getGraph().flush();
