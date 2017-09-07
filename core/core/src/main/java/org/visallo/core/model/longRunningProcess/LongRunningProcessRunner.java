@@ -10,10 +10,6 @@ import org.visallo.core.model.WorkerBase;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.status.MetricsManager;
-import org.visallo.core.status.StatusRepository;
-import org.visallo.core.status.StatusServer;
-import org.visallo.core.status.model.LongRunningProcessRunnerStatus;
-import org.visallo.core.status.model.ProcessStatus;
 import org.visallo.core.user.User;
 import org.visallo.core.util.StoppableRunnable;
 import org.visallo.core.util.VisalloLogger;
@@ -31,17 +27,14 @@ public class LongRunningProcessRunner extends WorkerBase<LongRunningProcessWorke
     private WorkQueueNames workQueueNames;
     private Configuration configuration;
     private List<LongRunningProcessWorker> workers = new ArrayList<>();
-    private final StatusRepository statusRepository;
 
     @Inject
     public LongRunningProcessRunner(
             WorkQueueRepository workQueueRepository,
-            StatusRepository statusRepository,
             Configuration configuration,
             MetricsManager metricsManager
     ) {
         super(workQueueRepository, configuration, metricsManager);
-        this.statusRepository = statusRepository;
     }
 
     public void prepare(Map map) {
@@ -71,20 +64,6 @@ public class LongRunningProcessRunner extends WorkerBase<LongRunningProcessWorke
             }
             workers.add(worker);
         }
-    }
-
-    @Override
-    protected StatusServer createStatusServer() throws Exception {
-        return new StatusServer(configuration, statusRepository, "longRunningProcess", LongRunningProcessRunner.class) {
-            @Override
-            protected ProcessStatus createStatus() {
-                LongRunningProcessRunnerStatus status = new LongRunningProcessRunnerStatus();
-                for (LongRunningProcessWorker worker : workers) {
-                    status.getRunningWorkers().add(worker.getStatus());
-                }
-                return status;
-            }
-        };
     }
 
     @Override

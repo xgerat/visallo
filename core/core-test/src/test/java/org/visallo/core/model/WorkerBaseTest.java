@@ -11,7 +11,6 @@ import org.visallo.core.ingest.WorkerSpout;
 import org.visallo.core.ingest.graphProperty.WorkerItem;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.status.JmxMetricsManager;
-import org.visallo.core.status.StatusServer;
 import org.visallo.core.util.VisalloLogger;
 
 import static junit.framework.TestCase.assertEquals;
@@ -41,7 +40,6 @@ public class WorkerBaseTest {
     public void testExitOnNextTupleFailure_exitOnNextTupleFailure_true() throws Exception {
         stopOnNextTupleException = false;
         when(configuration.getBoolean(eq(TestWorker.class.getName() + ".exitOnNextTupleFailure"), anyBoolean())).thenReturn(true);
-        when(configuration.getBoolean(eq(Configuration.STATUS_ENABLED), anyBoolean())).thenReturn(false);
         when(workQueueRepository.createWorkerSpout(eq("test"))).thenReturn(workerSpout);
         when(workerSpout.nextTuple()).thenThrow(new VisalloException("could not get nextTuple"));
 
@@ -58,7 +56,6 @@ public class WorkerBaseTest {
     public void testExitOnNextTupleFailure_exitOnNextTupleFailure_false() throws Exception {
         stopOnNextTupleException = true;
         when(configuration.getBoolean(eq(TestWorker.class.getName() + ".exitOnNextTupleFailure"), anyBoolean())).thenReturn(false);
-        when(configuration.getBoolean(eq(Configuration.STATUS_ENABLED), anyBoolean())).thenReturn(false);
         when(workQueueRepository.createWorkerSpout(eq("test"))).thenReturn(workerSpout);
         when(workerSpout.nextTuple()).thenThrow(new VisalloException("could not get nextTuple"));
 
@@ -75,11 +72,6 @@ public class WorkerBaseTest {
         @Override
         public TestWorkerItem tupleDataToWorkerItem(byte[] data) {
             return new TestWorkerItem(data);
-        }
-
-        @Override
-        protected StatusServer createStatusServer() throws Exception {
-            throw new VisalloException("not implemented");
         }
 
         @Override

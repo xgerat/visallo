@@ -52,7 +52,6 @@ public class Configuration {
     public static final String HTTP_REPOSITORY = "repository.http";
     public static final String GEOCODER_REPOSITORY = "repository.geocoder";
     public static final String EMAIL_REPOSITORY = "repository.email";
-    public static final String STATUS_REPOSITORY = "repository.status";
     public static final String ONTOLOGY_REPOSITORY_OWL = "repository.ontology.owl";
     public static final String ACL_PROVIDER_REPOSITORY = "repository.acl";
     public static final String FILE_SYSTEM_REPOSITORY = "repository.fileSystem";
@@ -89,8 +88,6 @@ public class Configuration {
     public static final int DEFAULT_MULTIPART_FILE_SIZE_THRESHOLD = 0;
     public static final String STATUS_REFRESH_INTERVAL_SECONDS = "status.refreshIntervalSeconds";
     public static final int STATUS_REFRESH_INTERVAL_SECONDS_DEFAULT = 10;
-    public static final String STATUS_ENABLED = "status.enabled";
-    public static final boolean STATUS_ENABLED_DEFAULT = true;
     public static final String SYSTEM_PROPERTY_PREFIX = "visallo.";
 
     private final ConfigurationLoader configurationLoader;

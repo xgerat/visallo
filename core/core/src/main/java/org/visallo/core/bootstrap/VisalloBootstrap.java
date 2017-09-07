@@ -25,7 +25,6 @@ import org.visallo.core.security.ACLProvider;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.status.JmxMetricsManager;
 import org.visallo.core.status.MetricsManager;
-import org.visallo.core.status.StatusRepository;
 import org.visallo.core.time.TimeRepository;
 import org.visallo.core.trace.TraceRepository;
 import org.visallo.core.trace.Traced;
@@ -165,9 +164,6 @@ public class VisalloBootstrap extends AbstractModule {
                 .in(Scopes.SINGLETON);
         bind(EmailRepository.class)
                 .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.EMAIL_REPOSITORY))
-                .in(Scopes.SINGLETON);
-        bind(StatusRepository.class)
-                .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.STATUS_REPOSITORY))
                 .in(Scopes.SINGLETON);
         bind(ACLProvider.class)
                 .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.ACL_PROVIDER_REPOSITORY))

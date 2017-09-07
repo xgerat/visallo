@@ -21,10 +21,6 @@ import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.status.MetricsManager;
-import org.visallo.core.status.StatusRepository;
-import org.visallo.core.status.StatusServer;
-import org.visallo.core.status.model.GraphPropertyRunnerStatus;
-import org.visallo.core.status.model.ProcessStatus;
 import org.visallo.core.user.User;
 import org.visallo.core.util.*;
 
@@ -39,7 +35,6 @@ import static org.vertexium.util.IterableUtils.toList;
 
 public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphPropertyRunner.class);
-    private final StatusRepository statusRepository;
     private final AuthorizationRepository authorizationRepository;
     private Graph graph;
     private Authorizations authorizations;
@@ -56,13 +51,11 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
     @Inject
     protected GraphPropertyRunner(
             WorkQueueRepository workQueueRepository,
-            StatusRepository statusRepository,
             Configuration configuration,
             MetricsManager metricsManager,
             AuthorizationRepository authorizationRepository
     ) {
         super(workQueueRepository, configuration, metricsManager);
-        this.statusRepository = statusRepository;
         this.authorizationRepository = authorizationRepository;
     }
 
@@ -193,20 +186,6 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
             }
         }
         return termMentionFilters;
-    }
-
-    @Override
-    protected StatusServer createStatusServer() throws Exception {
-        return new StatusServer(configuration, statusRepository, "graphProperty", GraphPropertyRunner.class) {
-            @Override
-            protected ProcessStatus createStatus() {
-                GraphPropertyRunnerStatus status = new GraphPropertyRunnerStatus();
-                for (GraphPropertyThreadedWrapper graphPropertyThreadedWrapper : workerWrappers) {
-                    status.getRunningWorkers().add(graphPropertyThreadedWrapper.getStatus());
-                }
-                return status;
-            }
-        };
     }
 
     private void safeExecuteHandleAllEntireElements(GraphPropertyWorkerItem workerItem) throws Exception {

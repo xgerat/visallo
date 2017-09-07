@@ -26,7 +26,6 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.WorkspaceUser;
-import org.visallo.core.status.model.Status;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
@@ -1286,8 +1285,6 @@ public abstract class WorkQueueRepository {
 
         return json;
     }
-
-    public abstract Map<String, Status> getQueuesStatus();
 
     public void setGraphPropertyRunner(GraphPropertyRunner graphPropertyRunner) {
         this.graphPropertyRunner = graphPropertyRunner;

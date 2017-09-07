@@ -11,14 +11,21 @@ import org.visallo.core.ingest.FileImportSupportingFileHandler;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
 import org.visallo.core.ingest.graphProperty.PostMimeTypeWorker;
 import org.visallo.core.ingest.graphProperty.TermMentionFilter;
+import org.visallo.core.model.Description;
+import org.visallo.core.model.Name;
 import org.visallo.core.model.user.UserListener;
-import org.visallo.core.status.StatusServer;
 import org.visallo.core.util.ServiceLoaderUtil;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.WebAppPlugin;
 
 import java.io.File;
+import java.net.URL;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 public class PluginList implements ParameterizedHandler {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(PluginList.class);
     private final Configuration configuration;
 
     @Inject
@@ -52,7 +59,7 @@ public class PluginList implements ParameterizedHandler {
 
     private JSONObject getUserListenerJson(Class<? extends UserListener> userListenerClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, userListenerClass);
+        getGeneralInfo(json, userListenerClass);
         return json;
     }
 
@@ -66,7 +73,7 @@ public class PluginList implements ParameterizedHandler {
 
     private JSONObject getGraphPropertyWorkerJson(Class<? extends GraphPropertyWorker> graphPropertyWorkerClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, graphPropertyWorkerClass);
+        getGeneralInfo(json, graphPropertyWorkerClass);
         return json;
     }
 
@@ -80,7 +87,7 @@ public class PluginList implements ParameterizedHandler {
 
     private JSONObject getPostMimeTypeWorkerJson(Class<? extends PostMimeTypeWorker> postMimeTypeWorkerClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, postMimeTypeWorkerClass);
+        getGeneralInfo(json, postMimeTypeWorkerClass);
         return json;
     }
 
@@ -108,7 +115,7 @@ public class PluginList implements ParameterizedHandler {
 
     private JSONObject getLibLoaderJson(Class<? extends LibLoader> libLoaderClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, libLoaderClass);
+        getGeneralInfo(json, libLoaderClass);
         return json;
     }
 
@@ -122,7 +129,7 @@ public class PluginList implements ParameterizedHandler {
 
     private JSONObject getFileImportSupportingFileHandlerJson(Class<? extends FileImportSupportingFileHandler> fileImportSupportingFileHandlerClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, fileImportSupportingFileHandlerClass);
+        getGeneralInfo(json, fileImportSupportingFileHandlerClass);
         return json;
     }
 
@@ -136,7 +143,7 @@ public class PluginList implements ParameterizedHandler {
 
     private JSONObject getTermMentionFilterJson(Class<? extends TermMentionFilter> termMentionFilterClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, termMentionFilterClass);
+        getGeneralInfo(json, termMentionFilterClass);
         return json;
     }
 
@@ -150,7 +157,53 @@ public class PluginList implements ParameterizedHandler {
 
     private JSONObject getWebAppPluginJson(Class<? extends WebAppPlugin> webAppPluginClass) {
         JSONObject json = new JSONObject();
-        StatusServer.getGeneralInfo(json, webAppPluginClass);
+        getGeneralInfo(json, webAppPluginClass);
         return json;
+    }
+
+    private static void getGeneralInfo(JSONObject json, Class clazz) {
+        json.put("className", clazz.getName());
+
+        Name nameAnnotation = (Name) clazz.getAnnotation(Name.class);
+        if (nameAnnotation != null) {
+            json.put("name", nameAnnotation.value());
+        }
+
+        Description descriptionAnnotation = (Description) clazz.getAnnotation(Description.class);
+        if (descriptionAnnotation != null) {
+            json.put("description", descriptionAnnotation.value());
+        }
+
+        Manifest manifest = getManifest(clazz);
+        if (manifest != null) {
+            Attributes mainAttributes = manifest.getMainAttributes();
+            json.put("projectVersion", mainAttributes.getValue("Project-Version"));
+            json.put("gitRevision", mainAttributes.getValue("Git-Revision"));
+            json.put("builtBy", mainAttributes.getValue("Built-By"));
+            String value = mainAttributes.getValue("Built-On-Unix");
+            if (value != null) {
+                json.put("builtOn", Long.parseLong(value));
+            }
+        }
+    }
+
+    private static Manifest getManifest(Class clazz) {
+        try {
+            String className = clazz.getSimpleName() + ".class";
+            URL resource = clazz.getResource(className);
+            if (resource == null) {
+                LOGGER.error("Could not get class manifest: " + clazz.getName() + ", could not find resource: " + className);
+                return null;
+            }
+            String classPath = resource.toString();
+            if (!classPath.startsWith("jar")) {
+                return null; // Class not from JAR
+            }
+            String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF";
+            return new Manifest(new URL(manifestPath).openStream());
+        } catch (Exception ex) {
+            LOGGER.error("Could not get class manifest: " + clazz.getName(), ex);
+            return null;
+        }
     }
 }

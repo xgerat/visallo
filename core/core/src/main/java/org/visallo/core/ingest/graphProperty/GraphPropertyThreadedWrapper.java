@@ -8,9 +8,6 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.status.MetricsManager;
 import org.visallo.core.status.PausableTimerContext;
 import org.visallo.core.status.PausableTimerContextAware;
-import org.visallo.core.status.StatusServer;
-import org.visallo.core.status.model.GraphPropertyRunnerStatus;
-import org.visallo.core.status.model.Status;
 import org.visallo.core.trace.Trace;
 import org.visallo.core.trace.TraceSpan;
 import org.visallo.core.util.VisalloLogger;
@@ -186,16 +183,6 @@ public class GraphPropertyThreadedWrapper implements Runnable {
 
     public GraphPropertyWorker getWorker() {
         return worker;
-    }
-
-    public GraphPropertyRunnerStatus.GraphPropertyWorkerStatus getStatus() {
-        GraphPropertyRunnerStatus.GraphPropertyWorkerStatus status = new GraphPropertyRunnerStatus.GraphPropertyWorkerStatus();
-        StatusServer.getGeneralInfo(status, this.worker.getClass());
-        status.getMetrics().put("totalProcessed", Status.Metric.create(totalProcessedCounter));
-        status.getMetrics().put("processing", Status.Metric.create(processingCounter));
-        status.getMetrics().put("totalErrors", Status.Metric.create(totalErrorCounter));
-        status.getMetrics().put("processingTime", Status.Metric.create(processingTimeTimer));
-        return status;
     }
 
     private class Work {

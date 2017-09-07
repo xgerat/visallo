@@ -5,9 +5,6 @@ import com.codahale.metrics.Timer;
 import com.google.inject.Inject;
 import org.json.JSONObject;
 import org.visallo.core.status.MetricsManager;
-import org.visallo.core.status.StatusServer;
-import org.visallo.core.status.model.LongRunningProcessRunnerStatus;
-import org.visallo.core.status.model.Status;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -46,16 +43,6 @@ public abstract class LongRunningProcessWorker {
     }
 
     protected abstract void processInternal(JSONObject longRunningProcessQueueItem);
-
-    public LongRunningProcessRunnerStatus.LongRunningProcessWorkerStatus getStatus() {
-        LongRunningProcessRunnerStatus.LongRunningProcessWorkerStatus status = new LongRunningProcessRunnerStatus.LongRunningProcessWorkerStatus();
-        StatusServer.getGeneralInfo(status, getClass());
-        status.getMetrics().put("totalProcessed", Status.Metric.create(totalProcessedCounter));
-        status.getMetrics().put("processing", Status.Metric.create(processingCounter));
-        status.getMetrics().put("totalErrors", Status.Metric.create(totalErrorCounter));
-        status.getMetrics().put("processingTime", Status.Metric.create(processingTimeTimer));
-        return status;
-    }
 
     @Inject
     public final void setMetricsManager(MetricsManager metricsManager) {

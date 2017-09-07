@@ -8,7 +8,6 @@ import org.visallo.core.ingest.WorkerTuple;
 import org.visallo.core.ingest.graphProperty.WorkerItem;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.status.MetricsManager;
-import org.visallo.core.status.StatusServer;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -16,14 +15,12 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
-    private final boolean statusEnabled;
     private final boolean exitOnNextTupleFailure;
     private final Counter queueSizeMetric;
     private final MetricsManager metricsManager;
     private final String queueSizeMetricName;
     private WorkQueueRepository workQueueRepository;
     private volatile boolean shouldRun;
-    private StatusServer statusServer = null;
     private final Queue<WorkerItemWrapper> tupleQueue = new LinkedList<>();
     private final int tupleQueueSize;
     private Thread processThread;
@@ -37,7 +34,6 @@ public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
         this.metricsManager = metricsManager;
         this.exitOnNextTupleFailure = configuration.getBoolean(getClass().getName() + ".exitOnNextTupleFailure", true);
         this.tupleQueueSize = configuration.getInt(getClass().getName() + ".tupleQueueSize", 10);
-        this.statusEnabled = configuration.getBoolean(Configuration.STATUS_ENABLED, Configuration.STATUS_ENABLED_DEFAULT);
         this.queueSizeMetricName = metricsManager.getNamePrefix(this) + "queue-size-" + Thread.currentThread().getId();
         this.queueSizeMetric = metricsManager.counter(queueSizeMetricName);
     }
@@ -54,9 +50,6 @@ public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
         logger.debug("begin runner");
         WorkerSpout workerSpout = prepareWorkerSpout();
         shouldRun = true;
-        if (statusEnabled) {
-            statusServer = createStatusServer();
-        }
         startProcessThread(logger, workerSpout);
         pollWorkerSpout(logger, workerSpout);
     }
@@ -151,8 +144,6 @@ public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
         }
     }
 
-    protected abstract StatusServer createStatusServer() throws Exception;
-
     protected abstract void process(TWorkerItem workerItem) throws Exception;
 
     /**
@@ -163,9 +154,6 @@ public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
 
     public void stop() {
         shouldRun = false;
-        if (statusServer != null) {
-            statusServer.shutdown();
-        }
         synchronized (tupleQueue) {
             tupleQueue.notifyAll();
         }

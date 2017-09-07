@@ -9,8 +9,6 @@ import org.visallo.core.ingest.WorkerTuple;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.status.model.QueueStatus;
-import org.visallo.core.status.model.Status;
 
 import java.util.*;
 
@@ -91,15 +89,6 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
         };
     }
 
-    @Override
-    public Map<String, Status> getQueuesStatus() {
-        Map<String, Status> results = new HashMap<>();
-        for (Map.Entry<String, List<byte[]>> queue : queues.entrySet()) {
-            results.put(queue.getKey(), new QueueStatus(queue.getValue().size()));
-        }
-        return results;
-    }
-
     public static void clearQueue() {
         queues.clear();
     }
@@ -110,11 +99,6 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
     }
 
     public static List<byte[]> getQueue(String queueName) {
-        List<byte[]> queue = queues.get(queueName);
-        if (queue == null) {
-            queue = new LinkedList<>();
-            queues.put(queueName, queue);
-        }
-        return queue;
+        return queues.computeIfAbsent(queueName, k -> new LinkedList<>());
     }
 }

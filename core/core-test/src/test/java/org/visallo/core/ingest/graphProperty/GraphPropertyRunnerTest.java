@@ -15,7 +15,6 @@ import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.status.JmxMetricsManager;
 import org.visallo.core.status.MetricsManager;
-import org.visallo.core.status.StatusRepository;
 
 import java.io.InputStream;
 import java.util.Collections;
@@ -45,9 +44,6 @@ public class GraphPropertyRunnerTest {
     private WorkQueueRepository workQueueRepository;
 
     @Mock
-    private StatusRepository statusRepository;
-
-    @Mock
     private Configuration configuration;
 
     @Mock
@@ -57,7 +53,6 @@ public class GraphPropertyRunnerTest {
     public void before() {
         testSubject = new GraphPropertyRunner(
                 workQueueRepository,
-                statusRepository,
                 configuration,
                 new JmxMetricsManager(),
                 authorizationRepository
