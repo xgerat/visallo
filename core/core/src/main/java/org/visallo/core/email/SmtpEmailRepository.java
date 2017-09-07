@@ -59,6 +59,8 @@ public class SmtpEmailRepository implements EmailRepository {
             mimeMessage.setSentDate(new Date());
             mimeMessage.setRecipients(Message.RecipientType.TO, InternetAddress.parse(joinedToAddresses));
             Transport.send(mimeMessage);
+        } catch (SendFailedException me) {
+            throw new VisalloException("Error sending emails to: " + Joiner.on(",").join(me.getValidUnsentAddresses(), me.getInvalidAddresses()), me);
         } catch (MessagingException me) {
             throw new VisalloException("exception while sending email", me);
         }
