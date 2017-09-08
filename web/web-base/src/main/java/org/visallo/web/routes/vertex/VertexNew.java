@@ -1,6 +1,7 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -36,6 +37,7 @@ import java.util.ResourceBundle;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@Singleton
 public class VertexNew implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexNew.class);
 

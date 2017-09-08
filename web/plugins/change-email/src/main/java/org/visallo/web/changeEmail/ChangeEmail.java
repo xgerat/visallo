@@ -1,6 +1,7 @@
 package org.visallo.web.changeEmail;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -11,6 +12,7 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 
+@Singleton
 public class ChangeEmail implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ChangeEmail.class);
     private static final String EMAIL_PARAMETER_NAME = "email";

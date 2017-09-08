@@ -1,6 +1,7 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -26,6 +27,7 @@ import org.visallo.web.util.VisibilityValidator;
 
 import java.util.ResourceBundle;
 
+@Singleton
 public class VertexSetVisibility implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexSetVisibility.class);
     private final Graph graph;

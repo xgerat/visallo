@@ -1,6 +1,7 @@
 package org.visallo.web.auth.usernameonly.routes;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.utils.UrlUtils;
@@ -14,6 +15,7 @@ import org.visallo.web.util.RemoteAddressUtil;
 
 import javax.servlet.http.HttpServletRequest;
 
+@Singleton
 public class Login implements ParameterizedHandler {
     private final UserRepository userRepository;
 

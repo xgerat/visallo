@@ -1,6 +1,7 @@
 package org.visallo.web.changePassword;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -12,6 +13,7 @@ import org.visallo.web.BadRequestException;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 
+@Singleton
 public class ChangePassword implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ChangePassword.class);
     private static final String CURRENT_PASSWORD_PARAMETER_NAME = "currentPassword";

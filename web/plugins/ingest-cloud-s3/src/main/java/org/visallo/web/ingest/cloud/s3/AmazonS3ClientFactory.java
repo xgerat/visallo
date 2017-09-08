@@ -4,6 +4,7 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONObject;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
@@ -12,6 +13,7 @@ import org.visallo.web.ingest.cloud.s3.authentication.AuthProvider;
 
 import java.util.Collection;
 
+@Singleton
 public class AmazonS3ClientFactory {
     private static final String PREFIX = "ingest.cloud.s3.";
     private final Configuration configuration;

@@ -2,6 +2,7 @@ package org.visallo.web.plugin.adminImportRdf;
 
 import com.google.common.io.Files;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -31,6 +32,7 @@ import java.util.TimeZone;
 
 import static org.vertexium.util.IterableUtils.toList;
 
+@Singleton
 public class ImportRdf implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ImportRdf.class);
     private final RdfImportHelper rdfImportHelper;

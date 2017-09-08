@@ -1,6 +1,7 @@
 package org.visallo.core.model.longRunningProcess;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONObject;
 import org.vertexium.*;
 import org.visallo.core.model.Description;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @Name("Find Path")
 @Description("Finds a path between two vertices")
+@Singleton
 public class FindPathLongRunningProcessWorker extends LongRunningProcessWorker {
     private final Graph graph;
     private final LongRunningProcessRepository longRunningProcessRepository;

@@ -5,6 +5,7 @@ import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -29,6 +30,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.*;
 
+@Singleton
 public class RequestToken implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RequestToken.class);
     private static final String USERNAME_PARAMETER_NAME = "username";

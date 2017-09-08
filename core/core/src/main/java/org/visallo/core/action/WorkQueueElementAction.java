@@ -1,12 +1,14 @@
 package org.visallo.core.action;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.User;
 
+@Singleton
 public class WorkQueueElementAction extends Action {
     public static final String PROPERTY_PRIORITY = "priority";
     private final WorkQueueRepository workQueueRepository;

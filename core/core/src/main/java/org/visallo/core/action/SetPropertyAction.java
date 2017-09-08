@@ -1,10 +1,12 @@
 package org.visallo.core.action;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONObject;
 import org.vertexium.Graph;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 
+@Singleton
 public class SetPropertyAction extends SetPropertyActionBase {
     public static final String PROPERTY_VALUE = "value";
 

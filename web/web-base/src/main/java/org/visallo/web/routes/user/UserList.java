@@ -1,6 +1,7 @@
 package org.visallo.web.routes.user;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -23,6 +24,7 @@ import java.util.Map;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.vertexium.util.IterableUtils.toList;
 
+@Singleton
 public class UserList implements ParameterizedHandler {
     private final UserRepository userRepository;
     private final WorkspaceRepository workspaceRepository;

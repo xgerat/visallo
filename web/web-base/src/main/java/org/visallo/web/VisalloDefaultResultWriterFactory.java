@@ -2,6 +2,7 @@ package org.visallo.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.resultWriters.ResultWriter;
 import com.v5analytics.webster.resultWriters.ResultWriterBase;
 import com.v5analytics.webster.resultWriters.ResultWriterFactory;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 
+@Singleton
 public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
     public static final String WEB_RESPONSE_HEADER_X_FRAME_OPTIONS = "web.response.header.X-Frame-Options";
     public static final String WEB_RESPONSE_HEADER_X_FRAME_OPTIONS_DEFAULT = "DENY";

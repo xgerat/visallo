@@ -1,6 +1,7 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -22,6 +23,7 @@ import org.visallo.web.VisalloResponse;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+@Singleton
 public class VertexThumbnail implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexThumbnail.class);
 

@@ -1,6 +1,7 @@
 package org.visallo.web.routes.user;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -13,6 +14,7 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiUser;
 
+@Singleton
 public class UserGet implements ParameterizedHandler {
     private final UserRepository userRepository;
     private final WorkspaceRepository workspaceRepository;

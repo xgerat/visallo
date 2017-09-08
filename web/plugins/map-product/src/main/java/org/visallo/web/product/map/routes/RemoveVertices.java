@@ -1,6 +1,7 @@
 package org.visallo.web.product.map.routes;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -24,6 +25,7 @@ import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
 import org.visallo.web.product.map.MapWorkProductService;
 
+@Singleton
 public class RemoveVertices implements ParameterizedHandler {
     private final Graph graph;
     private final WorkspaceRepository workspaceRepository;

@@ -1,6 +1,7 @@
 package org.visallo.web.routes.product;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import org.visallo.core.bootstrap.InjectHelper;
@@ -18,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Singleton
 public class ProductAll implements ParameterizedHandler {
     private final WorkspaceRepository workspaceRepository;
     private final Configuration configuration;

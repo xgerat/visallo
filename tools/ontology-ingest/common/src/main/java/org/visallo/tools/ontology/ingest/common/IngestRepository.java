@@ -2,6 +2,7 @@ package org.visallo.tools.ontology.ingest.common;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.vertexium.*;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
@@ -20,6 +21,7 @@ import java.util.*;
 
 import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 
+@Singleton
 public class IngestRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(IngestRepository.class);
     private final Graph graph;

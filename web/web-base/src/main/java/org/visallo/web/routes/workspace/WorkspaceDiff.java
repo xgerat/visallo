@@ -1,6 +1,7 @@
 package org.visallo.web.routes.workspace;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
@@ -11,6 +12,7 @@ import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
+@Singleton
 public class WorkspaceDiff implements ParameterizedHandler {
     private final WorkspaceRepository workspaceRepository;
 

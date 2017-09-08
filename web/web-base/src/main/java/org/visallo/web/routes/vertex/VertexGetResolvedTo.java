@@ -1,6 +1,7 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -17,6 +18,7 @@ import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Singleton
 public class VertexGetResolvedTo implements ParameterizedHandler {
     private final Graph graph;
     private final TermMentionRepository termMentionRepository;

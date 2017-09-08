@@ -1,6 +1,7 @@
 package org.visallo.core.ping;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.vertexium.Element;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
@@ -14,6 +15,7 @@ import java.io.InputStream;
 
 @Name("Ping")
 @Description("work on special Ping vertices to measure GPW wait time")
+@Singleton
 public class PingGraphPropertyWorker extends GraphPropertyWorker {
     private final PingUtil pingUtil;
 

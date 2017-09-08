@@ -1,6 +1,7 @@
 package org.visallo.core.ingest.graphProperty;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.vertexium.Element;
 import org.vertexium.Property;
 import org.visallo.core.config.Configurable;
@@ -10,6 +11,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import java.util.HashSet;
 import java.util.Set;
 
+@Singleton
 public class MimeTypeGraphPropertyWorkerConfiguration {
     public static final String CONFIGURATION_PREFIX = MimeTypeGraphPropertyWorker.class.getName();
     public static final String HANDLED_CONFIGURATION_PREFIX = CONFIGURATION_PREFIX + ".handled";

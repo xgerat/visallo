@@ -1,6 +1,7 @@
 package org.visallo.web.routes.ontology;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
@@ -18,6 +19,7 @@ import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Singleton
 public class OntologyRelationshipSave extends OntologyBase {
     private final OntologyRepository ontologyRepository;
     private final WorkQueueRepository workQueueRepository;

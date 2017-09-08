@@ -1,6 +1,7 @@
 package org.visallo.web.routes.directory;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -13,6 +14,7 @@ import org.visallo.web.clientapi.model.DirectoryPerson;
 
 import java.util.List;
 
+@Singleton
 public class DirectorySearch implements ParameterizedHandler {
     private final DirectoryRepository directoryRepository;
 

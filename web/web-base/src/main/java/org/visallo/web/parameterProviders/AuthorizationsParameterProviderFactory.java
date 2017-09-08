@@ -1,6 +1,7 @@
 package org.visallo.web.parameterProviders;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.HandlerChain;
 import com.v5analytics.webster.parameterProviders.ParameterProvider;
 import com.v5analytics.webster.parameterProviders.ParameterProviderFactory;
@@ -16,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+@Singleton
 public class AuthorizationsParameterProviderFactory extends ParameterProviderFactory<Authorizations> {
     private final ParameterProvider<Authorizations> parameterProvider;
 

@@ -1,6 +1,7 @@
 package org.visallo.common.rdf;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.hp.hpl.jena.datatypes.RDFDatatype;
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
@@ -32,6 +33,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 
+@Singleton
 public class RdfXmlImportHelper {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RdfXmlImportHelper.class);
     public static final String RDF_TYPE_URI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";

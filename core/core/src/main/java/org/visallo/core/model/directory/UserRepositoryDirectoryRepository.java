@@ -1,6 +1,7 @@
 package org.visallo.core.model.directory;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.DirectoryEntity;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Singleton
 public class UserRepositoryDirectoryRepository extends DirectoryRepository {
     private final UserRepository userRepository;
 

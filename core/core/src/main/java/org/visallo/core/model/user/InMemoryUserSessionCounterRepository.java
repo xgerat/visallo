@@ -2,10 +2,12 @@ package org.visallo.core.model.user;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.visallo.core.time.TimeRepository;
 
 import java.util.Map;
 
+@Singleton
 public class InMemoryUserSessionCounterRepository extends MapUserSessionCounterRepositoryBase {
     private final HashBasedTable<String, String, SessionData> sessionDatas = HashBasedTable.create();
 

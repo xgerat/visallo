@@ -2,6 +2,7 @@ package org.visallo.core.ingest;
 
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.vertexium.*;
@@ -36,6 +37,7 @@ import java.util.*;
 
 import static org.vertexium.util.IterableUtils.toList;
 
+@Singleton
 public class FileImport {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(FileImport.class);
     public static final String MULTI_VALUE_KEY = FileImport.class.getName();

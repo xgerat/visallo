@@ -2,6 +2,7 @@ package org.visallo.core.model.search;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.vertexium.*;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -14,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@Singleton
 public class VertexFindRelatedSearchRunner extends SearchRunner {
     public static final String URI = "/vertex/find-related";
     private final OntologyRepository ontologyRepository;

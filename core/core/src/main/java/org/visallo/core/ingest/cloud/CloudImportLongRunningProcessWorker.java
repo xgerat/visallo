@@ -5,6 +5,7 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -29,6 +30,7 @@ import org.visallo.web.clientapi.model.ClientApiImportProperty;
 import java.io.*;
 import java.util.Collection;
 
+@Singleton
 public class CloudImportLongRunningProcessWorker extends LongRunningProcessWorker {
     private final Configuration configuration;
     private final FileImport fileImport;

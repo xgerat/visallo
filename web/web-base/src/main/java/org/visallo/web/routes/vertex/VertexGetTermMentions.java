@@ -1,6 +1,7 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -13,6 +14,7 @@ import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.web.clientapi.model.ClientApiTermMentionsResponse;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
+@Singleton
 public class VertexGetTermMentions implements ParameterizedHandler {
     private final Graph graph;
     private final TermMentionRepository termMentionRepository;

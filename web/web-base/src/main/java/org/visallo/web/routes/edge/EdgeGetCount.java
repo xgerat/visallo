@@ -1,12 +1,14 @@
 package org.visallo.web.routes.edge;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.visallo.web.clientapi.model.ClientApiVertexCount;
 
+@Singleton
 public class EdgeGetCount implements ParameterizedHandler {
     private final Graph graph;
 

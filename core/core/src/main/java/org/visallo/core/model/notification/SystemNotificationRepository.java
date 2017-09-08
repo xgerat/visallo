@@ -1,6 +1,7 @@
 package org.visallo.core.model.notification;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.json.JSONObject;
 import org.visallo.core.model.user.UserRepository;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Singleton
 public class SystemNotificationRepository extends NotificationRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(SystemNotificationRepository.class);
     private static final String VISIBILITY_STRING = "";

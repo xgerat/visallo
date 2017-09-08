@@ -1,12 +1,14 @@
 package org.visallo.core.action;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONObject;
 import org.vertexium.Graph;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 
 import java.util.Date;
 
+@Singleton
 public class SetPropertyToNowAction extends SetPropertyActionBase {
     @Inject
     public SetPropertyToNowAction(

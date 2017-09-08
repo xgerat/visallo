@@ -1,6 +1,7 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -23,6 +24,7 @@ import java.io.OutputStream;
 
 import static org.visallo.core.model.properties.MediaVisalloProperties.VIDEO_PREVIEW_IMAGE;
 
+@Singleton
 public class VertexVideoPreviewImage implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexVideoPreviewImage.class);
     private final Graph graph;

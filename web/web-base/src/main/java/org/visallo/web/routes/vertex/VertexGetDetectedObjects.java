@@ -1,6 +1,7 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -13,8 +14,8 @@ import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiDetectedObjects;
 
-
 // This route will no longer be needed once we refactor detected objects.
+@Singleton
 public class VertexGetDetectedObjects implements ParameterizedHandler {
     private final Graph graph;
 

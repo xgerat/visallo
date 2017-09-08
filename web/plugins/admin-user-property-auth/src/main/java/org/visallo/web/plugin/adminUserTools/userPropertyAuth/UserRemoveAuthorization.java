@@ -1,6 +1,7 @@
 package org.visallo.web.plugin.adminUserTools.userPropertyAuth;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -12,6 +13,7 @@ import org.visallo.core.model.user.UpdatableAuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 
+@Singleton
 public class UserRemoveAuthorization implements ParameterizedHandler {
     private final UserRepository userRepository;
     private final AuthorizationRepository authorizationRepository;

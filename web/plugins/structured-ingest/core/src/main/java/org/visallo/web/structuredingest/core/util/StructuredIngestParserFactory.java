@@ -1,6 +1,7 @@
 package org.visallo.web.structuredingest.core.util;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.util.VisalloLogger;
@@ -10,6 +11,7 @@ import org.visallo.web.structuredingest.core.model.StructuredIngestParser;
 import java.util.Collection;
 import java.util.Set;
 
+@Singleton
 public class StructuredIngestParserFactory {
 
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(StructuredIngestParserFactory.class);

@@ -2,6 +2,7 @@ package org.visallo.tikaTextExtractor;
 
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import de.l3s.boilerpipe.extractors.NumWordsRulesExtractor;
@@ -65,6 +66,7 @@ import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
  */
 @Name("Tika Text Extractor")
 @Description("Uses Apache Tika to extract text")
+@Singleton
 public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(TikaTextExtractorGraphPropertyWorker.class);
 

@@ -1,6 +1,7 @@
 package org.visallo.web.routes.product;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -13,6 +14,7 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiProduct;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
+@Singleton
 public class ProductGet implements ParameterizedHandler {
     private final WorkspaceRepository workspaceRepository;
 

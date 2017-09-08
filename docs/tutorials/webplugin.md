@@ -11,6 +11,7 @@ Lets do the scaffolding of creating a new web app plugin so that we can delve in
 ```java
 package com.visalloexample.helloworld.web;
 
+import com.google.inject.Singleton;
 import com.v5analytics.webster.Handler;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
@@ -21,6 +22,7 @@ import javax.servlet.ServletContext;
 
 @Name("Selected Vertex Action Web App Plugin")
 @Description("Registers a new menu item which will send back the vertex that it was clicked from and call some action on it")
+@Singleton
 public class SelectedVertexWebAppPlugin implements WebAppPlugin {
     @Override
     public void init(WebApp app, ServletContext servletContext, Handler authenticationHandler) {

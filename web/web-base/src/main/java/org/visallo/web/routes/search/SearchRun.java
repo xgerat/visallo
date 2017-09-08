@@ -1,6 +1,7 @@
 package org.visallo.web.routes.search;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -15,6 +16,7 @@ import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
+@Singleton
 public class SearchRun implements ParameterizedHandler {
     private final SearchRepository searchRepository;
 

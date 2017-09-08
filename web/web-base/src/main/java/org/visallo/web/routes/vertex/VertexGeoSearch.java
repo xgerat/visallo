@@ -1,6 +1,7 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -16,6 +17,7 @@ import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
 import org.visallo.web.clientapi.model.PropertyType;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
+@Singleton
 public class VertexGeoSearch implements ParameterizedHandler {
     private final Graph graph;
     private final OntologyRepository ontologyRepository;

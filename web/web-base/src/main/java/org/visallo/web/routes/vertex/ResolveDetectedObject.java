@@ -1,6 +1,7 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -30,6 +31,7 @@ import org.visallo.web.util.VisibilityValidator;
 import java.util.Date;
 import java.util.ResourceBundle;
 
+@Singleton
 public class ResolveDetectedObject implements ParameterizedHandler {
     private static final String MULTI_VALUE_KEY_PREFIX = ResolveDetectedObject.class.getName();
     private static final String MULTI_VALUE_KEY = ResolveDetectedObject.class.getName();

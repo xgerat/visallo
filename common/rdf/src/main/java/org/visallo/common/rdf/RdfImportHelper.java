@@ -1,6 +1,7 @@
 package org.visallo.common.rdf;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.hp.hpl.jena.shared.JenaException;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
@@ -13,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.TimeZone;
 
+@Singleton
 public class RdfImportHelper {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RdfImportHelper.class);
     private final Graph graph;

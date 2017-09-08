@@ -1,6 +1,7 @@
 package org.visallo.web.routes.longRunningProcess;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -11,6 +12,7 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
+@Singleton
 public class LongRunningProcessById implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LongRunningProcessById.class);
     private final LongRunningProcessRepository longRunningProcessRepository;

@@ -1,6 +1,7 @@
 package org.visallo.web.product.graph;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.Handler;
 import org.apache.commons.io.IOUtils;
 import org.semanticweb.owlapi.model.IRI;
@@ -25,6 +26,7 @@ import java.io.InputStream;
 
 @Name("Product: Graph")
 @Description("Graph visualization")
+@Singleton
 public class GraphWebAppPlugin implements WebAppPlugin {
     private final OntologyRepository ontologyRepository;
     private final UserRepository userRepository;

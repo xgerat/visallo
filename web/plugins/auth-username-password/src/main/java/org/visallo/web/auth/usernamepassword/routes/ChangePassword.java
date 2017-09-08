@@ -1,6 +1,7 @@
 package org.visallo.web.auth.usernamepassword.routes;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -14,6 +15,7 @@ import org.visallo.web.clientapi.model.ClientApiSuccess;
 
 import java.util.Date;
 
+@Singleton
 public class ChangePassword implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ChangePassword.class);
     public static final String TOKEN_PARAMETER_NAME = "token";

@@ -1,6 +1,7 @@
 package org.visallo.web.routes.dashboard;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
@@ -13,6 +14,7 @@ import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
 import java.util.Collection;
 
+@Singleton
 public class DashboardAll implements ParameterizedHandler {
     private final WorkspaceRepository workspaceRepository;
 

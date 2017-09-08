@@ -1,6 +1,7 @@
 package org.visallo.model.queue.inmemory;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONObject;
 import org.vertexium.Graph;
 import org.visallo.core.config.Configuration;
@@ -12,6 +13,7 @@ import org.visallo.core.model.workQueue.WorkQueueRepository;
 
 import java.util.*;
 
+@Singleton
 public class InMemoryWorkQueueRepository extends WorkQueueRepository {
     private static Map<String, List<byte[]>> queues = new HashMap<>();
     private List<BroadcastConsumer> broadcastConsumers = new ArrayList<>();

@@ -1,6 +1,7 @@
 package org.visallo.core.model.longRunningProcess;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONObject;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Singleton
 public class LongRunningProcessRunner extends WorkerBase<LongRunningProcessWorkerItem> {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LongRunningProcessRunner.class);
     private UserRepository userRepository;

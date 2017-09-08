@@ -1,6 +1,7 @@
 package org.visallo.core.http;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.visallo.core.config.Configuration;
@@ -13,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+@Singleton
 public class CachingHttpRepository extends HttpRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(CachingHttpRepository.class);
     public static final String CONFIG_CACHE_DIR = "cachingHttp.cacheDir";

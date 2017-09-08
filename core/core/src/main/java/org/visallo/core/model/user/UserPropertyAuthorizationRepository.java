@@ -2,6 +2,7 @@ package org.visallo.core.model.user;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.vertexium.Graph;
 import org.visallo.core.config.Configurable;
 import org.visallo.core.config.Configuration;
@@ -14,6 +15,7 @@ import org.visallo.core.user.User;
 
 import java.util.Set;
 
+@Singleton
 public class UserPropertyAuthorizationRepository extends UserPropertyAuthorizationRepositoryBase
         implements AuthorizationRepositoryWithCliSupport, UpdatableAuthorizationRepository {
     public static final String CONFIGURATION_PREFIX = UserPropertyAuthorizationRepository.class.getName();

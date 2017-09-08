@@ -2,6 +2,7 @@ package org.visallo.core.email;
 
 import com.google.common.base.Joiner;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
@@ -19,6 +20,7 @@ import java.io.StringWriter;
 import java.util.Date;
 import java.util.Properties;
 
+@Singleton
 public class SmtpEmailRepository implements EmailRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(SmtpEmailRepository.class);
     private static final String CHARSET = "UTF-8";

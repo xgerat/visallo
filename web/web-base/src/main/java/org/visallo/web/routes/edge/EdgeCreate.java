@@ -1,6 +1,7 @@
 package org.visallo.web.routes.edge;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -27,6 +28,7 @@ import org.visallo.web.util.VisibilityValidator;
 
 import java.util.ResourceBundle;
 
+@Singleton
 public class EdgeCreate implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(EdgeCreate.class);
 

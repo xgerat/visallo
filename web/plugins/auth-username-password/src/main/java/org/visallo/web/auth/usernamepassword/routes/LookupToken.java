@@ -5,6 +5,7 @@ import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.ContentType;
 import com.v5analytics.webster.annotations.Handle;
@@ -22,6 +23,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+@Singleton
 public class LookupToken implements ParameterizedHandler {
     public static final String TOKEN_PARAMETER_NAME = "token";
     private static final String TEMPLATE_PATH = "/org/visallo/web/auth/usernamepassword/templates";

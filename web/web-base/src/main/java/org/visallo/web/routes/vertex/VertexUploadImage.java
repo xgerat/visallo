@@ -2,6 +2,7 @@ package org.visallo.web.routes.vertex;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -36,6 +37,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.vertexium.util.IterableUtils.toList;
 import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 
+@Singleton
 public class VertexUploadImage implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexUploadImage.class);
     private static final String SOURCE_UPLOAD = "User Upload";

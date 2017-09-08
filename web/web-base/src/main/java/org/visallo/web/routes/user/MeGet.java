@@ -1,6 +1,7 @@
 package org.visallo.web.routes.user;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.handlers.CSRFHandler;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+@Singleton
 public class MeGet implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(MeGet.class);
     private final UserRepository userRepository;

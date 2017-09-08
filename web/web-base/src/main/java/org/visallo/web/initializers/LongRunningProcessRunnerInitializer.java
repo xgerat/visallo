@@ -1,6 +1,7 @@
 package org.visallo.web.initializers;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRunner;
 import org.visallo.core.util.*;
@@ -9,6 +10,7 @@ import javax.servlet.ServletContext;
 import java.util.ArrayList;
 import java.util.List;
 
+@Singleton
 public class LongRunningProcessRunnerInitializer extends ApplicationBootstrapInitializer implements ShutdownListener {
     private static final String CONFIG_THREAD_COUNT = LongRunningProcessRunnerInitializer.class.getName() + ".threadCount";
     private static final int DEFAULT_THREAD_COUNT = 1;

@@ -1,6 +1,7 @@
 package org.visallo.core.action;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONObject;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
@@ -9,6 +10,7 @@ import java.util.Collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@Singleton
 public class ActionRepository {
     private Collection<Action> actions;
     private final Configuration configuration;

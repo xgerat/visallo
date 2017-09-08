@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -12,6 +13,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.http.HttpRepository;
 import org.visallo.web.VisalloResponse;
 
+@Singleton
 public class MapzenTileProxy implements ParameterizedHandler {
     private static final String MAPZEN_TILE_SERVER = "http://vector.mapzen.com/";
     private final LoadingCache<String, byte[]> cache;

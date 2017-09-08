@@ -3,6 +3,7 @@ package org.visallo.web.product.graph;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 
 import static org.visallo.web.product.graph.GraphProductOntology.ENTITY_POSITION;
 
+@Singleton
 public class GraphWorkProductService extends WorkProductServiceHasElementsBase {
     public static final String KIND = "org.visallo.web.product.graph.GraphWorkProduct";
     private static final String ROOT_NODE_ID = "root";

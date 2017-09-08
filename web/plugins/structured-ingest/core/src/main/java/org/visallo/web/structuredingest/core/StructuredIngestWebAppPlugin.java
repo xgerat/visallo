@@ -1,5 +1,6 @@
 package org.visallo.web.structuredingest.core;
 
+import com.google.inject.Singleton;
 import com.v5analytics.webster.Handler;
 import org.apache.commons.io.IOUtils;
 import org.semanticweb.owlapi.model.IRI;
@@ -25,6 +26,7 @@ import java.io.InputStream;
 
 @Name("Structured File")
 @Description("Supports importing structured data")
+@Singleton
 public class StructuredIngestWebAppPlugin implements WebAppPlugin {
     private final OntologyRepository ontologyRepository;
     private final UserRepository userRepository;

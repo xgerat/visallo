@@ -1,6 +1,7 @@
 package org.visallo.web.routes.map;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -11,6 +12,7 @@ import org.visallo.web.clientapi.model.ClientApiMapGeocodeResponse;
 
 import java.util.List;
 
+@Singleton
 public class GetGeocoder implements ParameterizedHandler {
     private final GeocoderRepository geocoderRepository;
 

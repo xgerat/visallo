@@ -2,6 +2,7 @@ package org.visallo.web.routes.vertex;
 
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -17,6 +18,7 @@ import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.model.ClientApiVertexEdges;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
+@Singleton
 public class VertexEdges implements ParameterizedHandler {
     private final Graph graph;
 

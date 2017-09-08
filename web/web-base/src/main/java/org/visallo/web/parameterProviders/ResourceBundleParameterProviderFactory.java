@@ -1,6 +1,7 @@
 package org.visallo.web.parameterProviders;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.HandlerChain;
 import com.v5analytics.webster.parameterProviders.ParameterProvider;
 import com.v5analytics.webster.parameterProviders.ParameterProviderFactory;
@@ -15,6 +16,7 @@ import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+@Singleton
 public class ResourceBundleParameterProviderFactory extends ParameterProviderFactory<ResourceBundle> {
     private ParameterProvider<ResourceBundle> parameterProvider;
 

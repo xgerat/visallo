@@ -1,6 +1,7 @@
 package org.visallo.web.routes.admin;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import org.json.JSONArray;
@@ -24,6 +25,7 @@ import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+@Singleton
 public class PluginList implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(PluginList.class);
     private final Configuration configuration;

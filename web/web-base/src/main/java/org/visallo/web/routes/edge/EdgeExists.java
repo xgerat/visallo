@@ -1,6 +1,7 @@
 package org.visallo.web.routes.edge;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+@Singleton
 public class EdgeExists implements ParameterizedHandler {
     private final Graph graph;
 

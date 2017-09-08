@@ -2,6 +2,7 @@ package org.visallo.web.routes.workspace;
 
 import com.google.common.base.Joiner;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -14,6 +15,7 @@ import org.visallo.web.clientapi.model.ClientApiPublishItem;
 import org.visallo.web.clientapi.model.ClientApiWorkspacePublishResponse;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
+@Singleton
 public class WorkspacePublish implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspacePublish.class);
     private final WorkspaceRepository workspaceRepository;

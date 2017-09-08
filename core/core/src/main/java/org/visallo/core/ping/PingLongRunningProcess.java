@@ -1,6 +1,7 @@
 package org.visallo.core.ping;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
@@ -14,6 +15,7 @@ import org.visallo.core.util.ClientApiConverter;
 
 @Name("Ping")
 @Description("run on special Ping vertices to measure LRP wait time")
+@Singleton
 public class PingLongRunningProcess extends LongRunningProcessWorker {
     private final UserRepository userRepository;
     private final Graph graph;

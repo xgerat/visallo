@@ -1,6 +1,7 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import org.vertexium.Authorizations;
@@ -19,6 +20,7 @@ import org.visallo.web.routes.search.WebSearchOptionsFactory;
 
 import javax.servlet.http.HttpServletRequest;
 
+@Singleton
 public class VertexFindRelated implements ParameterizedHandler {
     private final VertexFindRelatedSearchRunner searchRunner;
 

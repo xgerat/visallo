@@ -1,6 +1,7 @@
 package org.visallo.core.model.search;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONArray;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
@@ -15,6 +16,7 @@ import org.visallo.core.util.VisalloLoggerFactory;
 
 import java.util.EnumSet;
 
+@Singleton
 public class ElementSearchRunner extends VertexiumObjectSearchRunnerWithRelatedBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ElementSearchRunner.class);
     public static final String URI = "/element/search";

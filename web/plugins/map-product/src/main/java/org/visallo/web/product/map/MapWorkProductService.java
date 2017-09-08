@@ -2,6 +2,7 @@ package org.visallo.web.product.map;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
@@ -14,6 +15,7 @@ import org.visallo.core.util.JSONUtil;
 
 import java.util.List;
 
+@Singleton
 public class MapWorkProductService extends WorkProductServiceHasElementsBase {
     public static final String KIND = "org.visallo.web.product.map.MapWorkProduct";
 

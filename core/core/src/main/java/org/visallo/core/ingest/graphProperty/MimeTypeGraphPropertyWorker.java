@@ -1,6 +1,7 @@
 package org.visallo.core.ingest.graphProperty;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.vertexium.Element;
 import org.vertexium.Metadata;
 import org.vertexium.Property;
@@ -25,6 +26,7 @@ import java.util.Collection;
  * org.visallo.core.ingest.graphProperty.MimeTypeGraphPropertyWorker.handled.myOtherTextProperty.propertyName=http://my.org#myOtherTextProperty
  * </code></pre>
  */
+@Singleton
 public abstract class MimeTypeGraphPropertyWorker extends GraphPropertyWorker {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(MimeTypeGraphPropertyWorker.class);
     private static final String MULTI_VALUE_KEY = MimeTypeGraphPropertyWorker.class.getName();

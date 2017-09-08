@@ -2,6 +2,7 @@ package org.visallo.core.model.notification;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.simpleorm.SimpleOrmContext;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.json.JSONObject;
@@ -19,6 +20,7 @@ import java.util.stream.Stream;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.visallo.core.util.StreamUtil.stream;
 
+@Singleton
 public class UserNotificationRepository extends NotificationRepository {
     private static final String VISIBILITY_STRING = "";
     private final WorkQueueRepository workQueueRepository;

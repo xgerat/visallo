@@ -1,6 +1,7 @@
 package org.visallo.web.routes.user;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import org.visallo.core.model.user.UserSessionCounterRepository;
@@ -10,6 +11,7 @@ import org.visallo.web.clientapi.model.ClientApiSuccess;
 
 import javax.servlet.http.HttpServletRequest;
 
+@Singleton
 public class Logout implements ParameterizedHandler {
     private UserSessionCounterRepository userSessionCounterRepository;
 

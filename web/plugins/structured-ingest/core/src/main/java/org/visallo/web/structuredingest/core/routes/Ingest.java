@@ -1,5 +1,6 @@
 package org.visallo.web.structuredingest.core.routes;
 
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -40,6 +41,7 @@ import org.visallo.web.structuredingest.core.worker.StructuredIngestProcessWorke
 import javax.inject.Inject;
 import java.io.InputStream;
 
+@Singleton
 public class Ingest implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(Ingest.class);
 

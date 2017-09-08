@@ -1,6 +1,7 @@
 package org.visallo.web.routes.resource;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -21,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+@Singleton
 public class ResourceExternalGet implements ParameterizedHandler {
     private final Graph graph;
     private final HttpRepository httpRepository;

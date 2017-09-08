@@ -1,6 +1,7 @@
 package org.visallo.web.routes.ping;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import org.json.JSONObject;
@@ -11,6 +12,7 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.ping.PingUtil;
 import org.visallo.core.user.User;
 
+@Singleton
 public class PingStats implements ParameterizedHandler {
     private final UserRepository userRepository;
     private final Graph graph;

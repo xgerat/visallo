@@ -2,6 +2,7 @@ package org.visallo.core.model.graph;
 
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.vertexium.*;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.visallo.core.exception.VisalloException;
@@ -28,6 +29,7 @@ import java.util.Date;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@Singleton
 public class GraphRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphRepository.class);
     public static final String VISALLO_VERSION_KEY = "visallo.version";

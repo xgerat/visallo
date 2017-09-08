@@ -1,6 +1,7 @@
 package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -16,6 +17,7 @@ import org.visallo.web.clientapi.model.ClientApiHistoricalPropertyResults;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+@Singleton
 public class VertexGetHistory implements ParameterizedHandler {
     private Graph graph;
 

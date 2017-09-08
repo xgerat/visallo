@@ -2,6 +2,7 @@ package org.visallo.web.structuredingest.core.routes;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -18,6 +19,7 @@ import org.visallo.web.structuredingest.core.util.StructuredIngestParserFactory;
 import java.io.InputStream;
 import java.util.List;
 
+@Singleton
 public class Analyze implements ParameterizedHandler {
     private final Graph graph;
     private final StructuredIngestParserFactory structuredIngestParserFactory;

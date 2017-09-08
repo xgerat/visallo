@@ -3,6 +3,7 @@
 #set( $symbol_escape = '\' )
 package ${package}.auth;
 
+import com.google.inject.Singleton;
 import com.google.inject.Inject;
 import com.v5analytics.webster.Handler;
 import org.visallo.core.model.Description;
@@ -15,6 +16,7 @@ import javax.servlet.ServletContext;
 
 @Name("Example Visallo Authentication Plugin")
 @Description("Registers an authentication plugin which demonstrates user/password login.")
+@Singleton
 public class ExampleAuthenticationPlugin implements WebAppPlugin {
     private final Login login;
 

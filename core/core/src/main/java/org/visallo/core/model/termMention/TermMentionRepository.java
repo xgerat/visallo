@@ -1,6 +1,7 @@
 package org.visallo.core.model.termMention;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.vertexium.*;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.util.FilterIterable;
@@ -22,6 +23,7 @@ import static org.vertexium.util.IterableUtils.single;
 import static org.vertexium.util.IterableUtils.singleOrDefault;
 import static org.visallo.core.util.StreamUtil.stream;
 
+@Singleton
 public class TermMentionRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(TermMentionRepository.class);
     public static final String VISIBILITY_STRING = "termMention";

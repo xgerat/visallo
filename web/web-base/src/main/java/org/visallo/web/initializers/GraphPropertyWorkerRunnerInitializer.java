@@ -1,6 +1,7 @@
 package org.visallo.web.initializers;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.ingest.graphProperty.GraphPropertyRunner;
 import org.visallo.core.model.user.UserRepository;
@@ -11,6 +12,7 @@ import javax.servlet.ServletContext;
 import java.util.ArrayList;
 import java.util.List;
 
+@Singleton
 public class GraphPropertyWorkerRunnerInitializer extends ApplicationBootstrapInitializer implements ShutdownListener {
     private static final String CONFIG_THREAD_COUNT = GraphPropertyWorkerRunnerInitializer.class.getName() + ".threadCount";
     private static final int DEFAULT_THREAD_COUNT = 1;

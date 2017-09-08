@@ -1,6 +1,7 @@
 package org.visallo.web.plugin.adminUserTools.userPropertyPrivileges;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -15,6 +16,7 @@ import org.visallo.web.clientapi.model.Privilege;
 
 import java.util.Set;
 
+@Singleton
 public class UserUpdatePrivileges implements ParameterizedHandler {
     private final UserRepository userRepository;
     private final UserPropertyPrivilegeRepository privilegeRepository;

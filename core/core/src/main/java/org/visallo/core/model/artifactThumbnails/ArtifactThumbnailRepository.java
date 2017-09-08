@@ -1,6 +1,7 @@
 package org.visallo.core.model.artifactThumbnails;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.vertexium.Vertex;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
@@ -22,6 +23,7 @@ import java.io.InputStream;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 
+@Singleton
 public class ArtifactThumbnailRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ArtifactThumbnailRepository.class);
     private static final String VISIBILITY_STRING = "";

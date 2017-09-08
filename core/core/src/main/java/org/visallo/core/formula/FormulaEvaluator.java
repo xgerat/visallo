@@ -2,6 +2,7 @@ package org.visallo.core.formula;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.commons.io.IOUtils;
 import org.mozilla.javascript.*;
 import org.vertexium.Authorizations;
@@ -30,6 +31,7 @@ import java.util.concurrent.Executors;
 /**
  * Evaluates JavaScript formulas (title, subtitle, etc) using Java's Rhino JavaScript interpreter.
  */
+@Singleton
 public class FormulaEvaluator {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(FormulaEvaluator.class);
     private static final String CONFIGURATION_PARAMETER_MAX_THREADS = FormulaEvaluator.class.getName() + ".max.threads";

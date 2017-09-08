@@ -4,6 +4,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONObject;
 import org.vertexium.TextIndexHint;
 import org.visallo.core.bootstrap.InjectHelper;
@@ -29,6 +30,7 @@ import java.util.*;
 
 import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 
+@Singleton
 public class UserPropertyPrivilegeRepository extends PrivilegeRepositoryBase implements PrivilegeRepositoryWithCliSupport {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserPropertyPrivilegeRepository.class);
     public static final String PRIVILEGES_PROPERTY_IRI = "http://visallo.org/user#privileges";

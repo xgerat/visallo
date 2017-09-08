@@ -1,6 +1,7 @@
 package org.visallo.web.routes.notification;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -17,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+@Singleton
 public class SystemNotificationSave implements ParameterizedHandler {
     private final SystemNotificationRepository systemNotificationRepository;
     private final WorkQueueRepository workQueueRepository;

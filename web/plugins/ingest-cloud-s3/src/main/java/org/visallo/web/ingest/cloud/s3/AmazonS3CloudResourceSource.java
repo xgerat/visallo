@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.visallo.core.ingest.cloud.CloudResourceSource;
@@ -14,6 +15,7 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+@Singleton
 public class AmazonS3CloudResourceSource implements CloudResourceSource {
     private final AmazonS3ClientFactory amazonS3ClientFactory;
 

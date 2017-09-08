@@ -3,6 +3,7 @@ package org.visallo.core.ingest.graphProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -33,6 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.vertexium.util.IterableUtils.toList;
 
+@Singleton
 public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphPropertyRunner.class);
     private final AuthorizationRepository authorizationRepository;

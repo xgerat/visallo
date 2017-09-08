@@ -1,6 +1,7 @@
 package org.visallo.web.routes.ping;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.ContentType;
 import com.v5analytics.webster.annotations.Handle;
@@ -15,6 +16,7 @@ import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.ping.PingUtil;
 import org.visallo.web.parameterProviders.RemoteAddr;
 
+@Singleton
 public class Ping implements ParameterizedHandler {
     private final Graph graph;
     private final WorkQueueRepository workQueueRepository;

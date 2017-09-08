@@ -2,6 +2,7 @@ package org.visallo.web.routes.vertex;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -20,6 +21,7 @@ import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
 
+@Singleton
 public class VertexMultiple implements ParameterizedHandler {
     private final Graph graph;
     private final UserRepository userRepository;

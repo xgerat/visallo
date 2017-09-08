@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -15,6 +16,7 @@ import org.visallo.web.ingest.cloud.s3.ClientApiBuckets;
 
 import java.util.stream.Collectors;
 
+@Singleton
 public class S3DirectoryListing implements ParameterizedHandler {
     private static String Delimiter = "/";
     private final AmazonS3ClientFactory amazonS3ClientFactory;

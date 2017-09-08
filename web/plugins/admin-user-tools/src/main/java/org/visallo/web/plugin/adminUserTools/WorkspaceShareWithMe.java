@@ -1,6 +1,7 @@
 package org.visallo.web.plugin.adminUserTools;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -13,6 +14,7 @@ import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
 
+@Singleton
 public class WorkspaceShareWithMe implements ParameterizedHandler {
     private final UserRepository userRepository;
     private final WorkspaceRepository workspaceRepository;

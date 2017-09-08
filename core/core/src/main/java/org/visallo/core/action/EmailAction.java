@@ -1,6 +1,7 @@
 package org.visallo.core.action;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.visallo.core.email.EmailRepository;
@@ -8,6 +9,7 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
+@Singleton
 public class EmailAction extends Action {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(EmailAction.class);
     public static final String PROPERTY_FROM_ADDRESS = "fromAddress";

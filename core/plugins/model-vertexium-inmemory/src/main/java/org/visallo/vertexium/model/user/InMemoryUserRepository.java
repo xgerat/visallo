@@ -1,6 +1,8 @@
 package org.visallo.vertexium.model.user;
 
 import com.google.common.collect.Iterables;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.json.JSONObject;
 import org.visallo.core.config.Configuration;
@@ -12,11 +14,11 @@ import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.UserStatus;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Singleton
 public class InMemoryUserRepository extends UserRepository {
     private List<User> users = new ArrayList<>();
 

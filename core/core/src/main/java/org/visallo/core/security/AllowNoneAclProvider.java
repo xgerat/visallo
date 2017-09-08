@@ -1,6 +1,7 @@
 package org.visallo.core.security;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.vertexium.Element;
 import org.vertexium.Graph;
 import org.visallo.core.model.ontology.Ontology;
@@ -11,6 +12,7 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiElement;
 
+@Singleton
 public class AllowNoneAclProvider extends ACLProvider {
     @Inject
     public AllowNoneAclProvider(

@@ -1,6 +1,7 @@
 package org.visallo.tikaTextExtractor;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.vertexium.Element;
 import org.vertexium.Property;
 import org.visallo.core.config.Configurable;
@@ -9,6 +10,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 
 import java.util.Map;
 
+@Singleton
 public class TikaTextExtractorGraphPropertyWorkerConfiguration {
     public static final String CONFIGURATION_PREFIX = TikaTextExtractorGraphPropertyWorker.class.getName();
     public static final String TEXT_EXTRACT_MAPPING_CONFIGURATION_PREFIX = CONFIGURATION_PREFIX + ".textExtractMapping";

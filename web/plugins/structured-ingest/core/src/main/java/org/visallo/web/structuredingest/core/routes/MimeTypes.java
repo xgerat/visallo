@@ -1,6 +1,7 @@
 package org.visallo.web.structuredingest.core.routes;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import org.visallo.web.structuredingest.core.model.ClientApiMimeTypes;
@@ -9,6 +10,7 @@ import org.visallo.web.structuredingest.core.util.StructuredIngestParserFactory;
 
 import java.util.Collection;
 
+@Singleton
 public class MimeTypes implements ParameterizedHandler {
 
     private final StructuredIngestParserFactory structuredIngestParserFactory;

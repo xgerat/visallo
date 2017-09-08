@@ -1,6 +1,7 @@
 package org.visallo.web.routes.config;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -12,6 +13,7 @@ import org.visallo.web.VisalloResponse;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 
+@Singleton
 public class Plugin implements ParameterizedHandler {
     private static final String WEB_PLUGINS_PREFIX = "web.plugins.";
     private static final String DEFAULT_PLUGINS_DIR = "/jsc/configuration/plugins";

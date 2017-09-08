@@ -1,6 +1,7 @@
 package org.visallo.web.routes.admin;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
@@ -25,6 +26,7 @@ import java.util.List;
 
 import static org.vertexium.util.IterableUtils.toList;
 
+@Singleton
 public class AdminUploadOntology implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(AdminUploadOntology.class);
     private final OntologyRepository ontologyRepository;

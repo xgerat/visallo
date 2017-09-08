@@ -3,6 +3,7 @@ package org.visallo.common.rdf;
 import com.codahale.metrics.Meter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.vertexium.*;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.mutation.ExistingElementMutation;
@@ -22,6 +23,7 @@ import org.visallo.web.clientapi.model.VisibilityJson;
 import java.io.*;
 import java.util.*;
 
+@Singleton
 public class RdfTripleImportHelper {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(RdfTripleImportHelper.class);
     private static final String MULTIVALUE_KEY = RdfTripleImportHelper.class.getName();

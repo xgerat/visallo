@@ -2,6 +2,7 @@ package org.visallo.core.ping;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
@@ -25,6 +26,7 @@ import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.List;
 
+@Singleton
 public class PingUtil {
     public static final String VISIBILITY_STRING = "ping";
     public static final Visibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING).getVisibility();

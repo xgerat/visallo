@@ -1,6 +1,7 @@
 package org.visallo.core.model.workspace;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONArray;
 import org.vertexium.*;
 import org.vertexium.util.IterableUtils;
@@ -16,6 +17,7 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@Singleton
 public class WorkspaceUndoHelper {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceUndoHelper.class);
 

@@ -1,6 +1,7 @@
 package org.visallo.web.product.graph.routes;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -30,6 +31,7 @@ import org.visallo.web.product.graph.GraphWorkProductService;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Singleton
 public class UpdateVertices implements ParameterizedHandler {
     private final Graph graph;
     private final WorkspaceRepository workspaceRepository;

@@ -1,6 +1,7 @@
 package org.visallo.tikaMimeType;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerPrepareData;
 import org.visallo.core.ingest.graphProperty.MimeTypeGraphPropertyWorker;
 import org.visallo.core.ingest.graphProperty.MimeTypeGraphPropertyWorkerConfiguration;
@@ -11,6 +12,7 @@ import java.io.InputStream;
 
 @Name("Tika MIME Type")
 @Description("Uses Apache Tika to determine MIME type")
+@Singleton
 public class TikaMimeTypeGraphPropertyWorker extends MimeTypeGraphPropertyWorker {
     private TikaMimeTypeMapper mimeTypeMapper;
 

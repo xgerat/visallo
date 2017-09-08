@@ -2,6 +2,7 @@ package org.visallo.core.model.workspace;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.vertexium.*;
 import org.visallo.core.formula.FormulaEvaluator;
 import org.visallo.core.model.properties.VisalloProperties;
@@ -21,6 +22,7 @@ import java.util.List;
 
 import static org.vertexium.util.IterableUtils.toList;
 
+@Singleton
 public class WorkspaceDiffHelper {
     private final Graph graph;
     private final UserRepository userRepository;

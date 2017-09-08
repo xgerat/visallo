@@ -12,7 +12,7 @@ These Visallo modules provide code generation and run time supoort for developin
 
 ### Setup
 
-We reccomend that you configure three Maven modules to support running the code generator and developing ingestion code for Visallo:
+We recommend that you configure three Maven modules to support running the code generator and developing ingestion code for Visallo:
 
 ##### codegen
 

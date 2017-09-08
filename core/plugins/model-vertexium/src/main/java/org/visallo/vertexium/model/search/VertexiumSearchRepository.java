@@ -3,6 +3,7 @@ package org.visallo.vertexium.model.search;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.json.JSONObject;
 import org.vertexium.*;
 import org.visallo.core.config.Configuration;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.visallo.core.util.StreamUtil.stream;
 
+@Singleton
 public class VertexiumSearchRepository extends SearchRepository {
     public static final String VISIBILITY_STRING = "search";
     public static final VisalloVisibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING);

@@ -1,6 +1,7 @@
 package org.visallo.core.model.notification;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.commons.lang.time.DateUtils;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.lock.LockRepository;
@@ -10,6 +11,7 @@ import org.visallo.core.util.PeriodicBackgroundService;
 
 import java.util.Date;
 
+@Singleton
 public class SystemNotificationService extends PeriodicBackgroundService {
     private static final Integer CHECK_INTERVAL_SECONDS_DEFAULT = 60;
     private static final String CHECK_INTERVAL_CONFIG_NAME = SystemNotificationService.class.getName() + ".checkIntervalSeconds";

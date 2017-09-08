@@ -2,6 +2,7 @@ package org.visallo.web.routes.ontology;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
@@ -20,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Singleton
 public class OntologyPropertySave extends OntologyBase {
     private final OntologyRepository ontologyRepository;
     private final WorkQueueRepository workQueueRepository;

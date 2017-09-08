@@ -1,6 +1,7 @@
 package org.visallo.web.initializers;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.externalResource.ExternalResourceRunner;
 import org.visallo.core.model.user.UserRepository;
@@ -12,6 +13,7 @@ import org.visallo.core.util.VisalloLoggerFactory;
 
 import javax.servlet.ServletContext;
 
+@Singleton
 public class ExternalResourceWorkersInitializer extends ApplicationBootstrapInitializer implements ShutdownListener {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ExternalResourceWorkersInitializer.class);
     private final Configuration config;

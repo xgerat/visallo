@@ -6,6 +6,7 @@ import com.github.jknack.handlebars.io.ServletContextTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import org.apache.commons.io.IOUtils;
@@ -24,6 +25,7 @@ import java.util.ResourceBundle;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@Singleton
 public class Index implements ParameterizedHandler {
     private static final String PLUGIN_JS_RESOURCES_BEFORE_AUTH_PARAM = "pluginJsResourcesBeforeAuth";
     private static final String PLUGIN_JS_RESOURCES_WEB_WORKER_PARAM = "pluginJsResourcesWebWorker";

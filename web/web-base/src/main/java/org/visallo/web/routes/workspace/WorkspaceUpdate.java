@@ -1,6 +1,7 @@
 package org.visallo.web.routes.workspace;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
@@ -26,6 +27,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.ResourceBundle;
 
+@Singleton
 public class WorkspaceUpdate implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(WorkspaceUpdate.class);
     private final WorkspaceRepository workspaceRepository;

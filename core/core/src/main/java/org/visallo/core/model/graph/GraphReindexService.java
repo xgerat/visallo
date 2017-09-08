@@ -1,6 +1,7 @@
 package org.visallo.core.model.graph;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.vertexium.*;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
@@ -9,6 +10,7 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+@Singleton
 public class GraphReindexService {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphReindexService.class);
     private final GraphWithSearchIndex graph;
