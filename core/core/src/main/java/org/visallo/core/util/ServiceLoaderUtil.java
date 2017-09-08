@@ -85,7 +85,17 @@ public class ServiceLoaderUtil {
                             LOGGER.warn("ignoring class '%s' because it is already loaded from '%s'", className, loadedClassNames.get(className));
                             continue;
                         }
-                        services.add(ServiceLoaderUtil.<T>loadClass(serviceFile, className));
+                        Class<? extends T> loadedClass = ServiceLoaderUtil.<T>loadClass(serviceFile, className);
+
+                        VisalloPlugin visalloPlugin = loadedClass.getAnnotation(VisalloPlugin.class);
+                        if (visalloPlugin != null) {
+                            if (configuration.getBoolean(CONFIG_DISABLE_PREFIX + className, visalloPlugin.disabledByDefault())) {
+                                LOGGER.debug("ignoring class %s because it is disabled by default", className);
+                                continue;
+                            }
+                        }
+
+                        services.add(loadedClass);
                         loadedClassNames.put(className, serviceFile);
                     }
                 }
