@@ -24,6 +24,19 @@ define(['configuration/plugins/registry'], function(registry) {
         }
     });
 
+    registry.registerExtension('org.visallo.dashboard.toolbar.item', {
+        identifier: 'org-visallo-notification-clear-all',
+        canHandle: function(options) {
+            return options.extension.identifier === 'org-visallo-web-notifications'
+        },
+        tooltip: i18n('dashboard.notifications.clearall.hover'),
+        icon: 'img/trash.png',
+        action: {
+            type: 'event',
+            name: 'notificationClearAll'
+        }
+    });
+
     registry.registerExtension('org.visallo.dashboard.item', {
         title: 'Entity Counts',
         description: 'Show total counts for entity types',
