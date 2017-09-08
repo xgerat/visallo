@@ -244,12 +244,10 @@ define([
                 return () => {
                     var currentResolution = view.getResolution();
                     if (currentResolution) {
-                        map.beforeRender(ol.animation.zoom({
-                            resolution: currentResolution,
+                        view.animate({
+                            resolution: view.constrainResolution(currentResolution, delta),
                             duration: ANIMATION_DURATION
-                        }));
-                        const newResolution = view.constrainResolution(currentResolution, delta);
-                        view.setResolution(newResolution);
+                        });
                     }
                 }
             }
@@ -327,46 +325,31 @@ define([
                     }
                 }
 
-                if (animate) {
-                    map.beforeRender(ol.animation.pan({
-                        source: view.getCenter(),
-                        duration: ANIMATION_DURATION
-                    }))
-                    if (changeZoom) {
-                        map.beforeRender(ol.animation.zoom({
-                            resolution: resolution,
-                            duration: ANIMATION_DURATION
-                        }));
-                    }
-                }
+                const newResolution = view.constrainResolution(
+                    Math.min(MAX_FIT_ZOOM_RESOLUTION, Math.max(idealResolution, MIN_FIT_ZOOM_RESOLUTION)), -1
+                );
+                const center = ol.extent.getCenter(extentWithPadding);
+                const offsetX = left - right;
+                const offsetY = top - bottom;
+                const lon = offsetX * view.getResolution() / 2;
+                const lat = offsetY * view.getResolution() / 2;
+                center[0] = center[0] - lon;
+                center[1] = center[1] - lat;
 
+                const options = { center };
                 if (changeZoom) {
-                    view.setResolution(view.constrainResolution(
-                        Math.min(MAX_FIT_ZOOM_RESOLUTION, Math.max(idealResolution, MIN_FIT_ZOOM_RESOLUTION)), -1
-                    ));
+                    options.resolution = newResolution;
                 }
 
-                var center = ol.extent.getCenter(extentWithPadding),
-                    offsetX = left - right,
-                    offsetY = top - bottom,
-                    lon = offsetX * view.getResolution() / 2,
-                    lat = offsetY * view.getResolution() / 2;
-
-                view.setCenter([center[0] - lon, center[1] - lat]);
+                view.animate({
+                    ...options,
+                    duration: animate ? ANIMATION_DURATION : 0
+                })
             } else {
-                if (animate) {
-                    map.beforeRender(ol.animation.zoom({
-                        resolution: view.getResolution(),
-                        duration: ANIMATION_DURATION
-                    }));
-                    map.beforeRender(ol.animation.pan({
-                        source: view.getCenter(),
-                        duration: ANIMATION_DURATION
-                    }))
-                }
-                var params = this.getDefaultViewParameters();
-                view.setZoom(params.zoom);
-                view.setCenter(params.center);
+                view.animate({
+                    ...this.getDefaultViewParameters(),
+                    duration: animate ? ANIMATION_DURATION : 0
+                });
             }
         },
 
@@ -584,7 +567,7 @@ define([
             });
             this.domEvent(viewport, 'mousemove', function(event) {
                 const pixel = map.getEventPixel(event);
-                const hit = map.forEachFeatureAtPixel(pixel, () => true);
+                const hit = map.getFeaturesAtPixel(pixel);
                 if (hit) {
                     map.getTarget().style.cursor = 'pointer';
                 } else {
