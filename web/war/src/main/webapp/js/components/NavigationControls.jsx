@@ -125,17 +125,27 @@ define([
 
         onZoom(event) {
             const e = event.nativeEvent;
-            const zoomType = event.target.dataset.type;
             switch (e.type) {
                 case 'mousedown':
-                    this.zoomTimer = setInterval(() => {
-                        this.props.onZoom(zoomType);
-                    }, PAN_SPEED);
+                    this._handleZoomMouseDown(event);
                     break;
                 case 'mouseup':
-                    clearInterval(this.zoomTimer);
+                    this._handleZoomMouseUp();
                     break;
             }
+        },
+
+        _handleZoomMouseDown(event) {
+            const zoomType = event.target.dataset.type;
+            window.addEventListener('mouseup', this._handleZoomMouseUp, false);
+            this.zoomTimer = setInterval(() => {
+                this.props.onZoom(zoomType);
+            }, PAN_SPEED);
+        },
+
+        _handleZoomMouseUp(event) {
+            clearInterval(this.zoomTimer);
+            window.removeEventListener('mouseup', this._handleZoomMouseUp)
         },
 
         _handlePanMove(event) {
