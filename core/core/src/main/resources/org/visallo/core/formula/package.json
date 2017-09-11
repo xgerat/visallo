@@ -11,6 +11,6 @@
     "babel-preset-es2015": "^6.24.1"
   },
   "scripts": {
-    "postinstall": "node ./node_modules/babel-cli/bin/babel.js --ignore 'libs|node_modules' -d jsc js"
+    "postinstall": "node ./node_modules/babel-cli/bin/babel.js --ignore libs --ignore node_modules -d jsc js"
   }
 }
