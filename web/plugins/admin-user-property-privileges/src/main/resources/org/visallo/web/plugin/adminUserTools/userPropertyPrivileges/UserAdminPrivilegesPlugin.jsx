@@ -6,7 +6,7 @@ define([
     'components/Alert'
 ], function(
     createReactClass,
-    PropTypes
+    PropTypes,
     visallo,
     configProperties,
     Alert) {
