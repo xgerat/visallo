@@ -82,9 +82,7 @@ define([
                 previewMD5: PropTypes.string,
                 extendedData: PropTypes.shape(propTypesElementObjects).isRequired
             }).isRequired,
-            uiPreferences: PropTypes.shape({
-                edgeLabels: PropTypes.bool
-            }).isRequired,
+            edgeLabels: PropTypes.bool,
             productElementIds: PropTypes.shape(propTypesElementObjects).isRequired,
             elements: PropTypes.shape({
                 vertices: PropTypes.object,
@@ -1573,8 +1571,7 @@ define([
     };
 
     const CONFIGURATION = (props) => {
-        const { pixelRatio, uiPreferences, product, registry } = props;
-        const { edgeLabels } = uiPreferences;
+        const { pixelRatio, edgeLabels, product, registry } = props;
         const edgesCount = product.extendedData.edges.length;
         const styleExtensions = registry['org.visallo.graph.style'];
 
