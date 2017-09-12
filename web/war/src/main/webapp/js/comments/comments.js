@@ -5,8 +5,8 @@ define([
     'util/withCollapsibleSections',
     'util/vertex/formatters',
     'util/withDataRequest',
+    'util/requirejs/promise!util/service/propertiesPromise',
     'util/popovers/propertyInfo/withPropertyInfo',
-    'data/web-worker/services/config',
     'd3'
 ], function(
     defineComponent,
@@ -15,8 +15,8 @@ define([
     withCollapsibleSections,
     F,
     withDataRequest,
+    config,
     withPropertyInfo,
-    configurations,
     d3) {
     'use strict';
 
@@ -224,56 +224,53 @@ define([
                     }
                 }
             });
-            this.dataRequest('config', 'properties')
-                .then(function(configProps) {
-                    var displayDateTime = configProps['showDateTime'];
+            var dateDisplay = config['date.default.display'];
 
-                    selection.select('.date')
-                        .attr('style', function(p) {
-                            return p[0].redacted ? 'display:none' : undefined;
-                        })
-                        .text(function(p) {
-                            if (p[0].redacted) {
-                                return '';
-                            }
-                            var modified = p[0].metadata['http://visallo.org#modifiedDate'],
-                                created = getCreated(p[0]) || modified,
-                                relativeString = modified && F.date.relativeToNow(F.date.utc(modified)),
-                                dateTimeString = modified && F.date.dateTimeString(modified);
+            selection.select('.date')
+                .attr('style', function(p) {
+                    return p[0].redacted ? 'display:none' : undefined;
+                })
+                .text(function(p) {
+                    if (p[0].redacted) {
+                        return '';
+                    }
+                    var modified = p[0].metadata['http://visallo.org#modifiedDate'],
+                        created = getCreated(p[0]) || modified,
+                        relativeString = modified && F.date.relativeToNow(F.date.utc(modified)),
+                        dateTimeString = modified && F.date.dateTimeString(modified);
 
-                            if (displayDateTime === 'true' && dateTimeString) {
-                                if (isEdited(created, modified)) {
-                                    return i18n('detail.comments.date.edited', dateTimeString);
-                                }
-                                return dateTimeString;
-                            } else if (relativeString) {
-                                if (isEdited(created, modified)) {
-                                    return i18n('detail.comments.date.edited', relativeString);
-                                }
-                                return relativeString;
-                            }
-                            return '';
-                        })
-                        .attr('title', function(p) {
-                            if (p[0].redacted) {
-                                return '';
-                            }
-                            var modified = p[0].metadata['http://visallo.org#modifiedDate'],
-                                created = getCreated(p[0]) || modified,
-                                modifiedStr = modified && F.date.dateTimeString(modified) || '',
-                                createdStr = created && F.date.dateTimeString(created) || '',
-                                relativeModifiedStr = modified && F.date.relativeToNow(F.date.utc(modified)) || '',
-                                relativeCreatedStr = created && F.date.relativeToNow(F.date.utc(created)) || '';
+                    if (dateDisplay === 'exact' && dateTimeString) {
+                        if (isEdited(created, modified)) {
+                            return i18n('detail.comments.date.edited', dateTimeString);
+                        }
+                        return dateTimeString;
+                    } else if (relativeString) {
+                        if (isEdited(created, modified)) {
+                            return i18n('detail.comments.date.edited', relativeString);
+                        }
+                        return relativeString;
+                    }
+                    return '';
+                })
+                .attr('title', function(p) {
+                    if (p[0].redacted) {
+                        return '';
+                    }
+                    var modified = p[0].metadata['http://visallo.org#modifiedDate'],
+                        created = getCreated(p[0]) || modified,
+                        modifiedStr = modified && F.date.dateTimeString(modified) || '',
+                        createdStr = created && F.date.dateTimeString(created) || '',
+                        relativeModifiedStr = modified && F.date.relativeToNow(F.date.utc(modified)) || '',
+                        relativeCreatedStr = created && F.date.relativeToNow(F.date.utc(created)) || '';
 
-                            if (isEdited(created, modified)) {
-                                if (displayDateTime === 'true') {
-                                    return i18n('detail.comments.date.hover.edited', relativeCreatedStr, relativeModifiedStr);
-                                } else {
-                                    return i18n('detail.comments.date.hover.edited', createdStr, modifiedStr);
-                                }
-                            }
-                            return displayDateTime === 'true' ? relativeModifiedStr : modifiedStr;
-                        });
+                    if (isEdited(created, modified)) {
+                        if (dateDisplay === 'exact') {
+                            return i18n('detail.comments.date.hover.edited', relativeCreatedStr, relativeModifiedStr);
+                        } else {
+                            return i18n('detail.comments.date.hover.edited', createdStr, modifiedStr);
+                        }
+                    }
+                    return dateDisplay === 'exact' ? relativeModifiedStr : modifiedStr;
                 });
             selection.select('.replies')
                 .attr('style', function(p) {
