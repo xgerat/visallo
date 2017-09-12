@@ -39,6 +39,7 @@ public class WebConfiguration {
     public static final String MAP_PROVIDER_OSM_URL = PREFIX + "map.provider.osm.url";
     public static final String LOGIN_SHOW_POWERED_BY = PREFIX + "login.showPoweredBy";
     public static final String SHOW_VERSION_COMMENTS = PREFIX + "showVersionComments";
+    public static final String SHOW_DATE_TIME = PREFIX + "showDateTime";
     public static final PropertyMetadata PROPERTY_METADATA_SOURCE_TIMEZONE = new PropertyMetadata("http://visallo.org#sourceTimezone",
             "properties.metadata.label.source_timezone",
             "timezone");
@@ -58,6 +59,9 @@ public class WebConfiguration {
     public static final Map<String, String> DEFAULTS = new HashMap<>();
 
     static {
+        // To display date time or relative date
+        DEFAULTS.put(SHOW_DATE_TIME, "false");
+
         DEFAULTS.put(LOGIN_SHOW_POWERED_BY, "false");
         DEFAULTS.put(SHOW_VERSION_COMMENTS, "true");
 
