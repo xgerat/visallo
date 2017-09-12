@@ -259,7 +259,7 @@ define([], function() {
                         'font-size': 11 * pixelRatio,
                         'target-arrow-shape': 'triangle',
                         color: '#aaa',
-                        content: edgeLabels !== 'false' ? 'data(label)' : '',
+                        content: edgeLabels ? 'data(label)' : '',
                         'curve-style': edgesCount > MaxEdgesBeforeHayStackOptimization ? 'haystack' : 'bezier',
                         'min-zoomed-font-size': 3,
                         'text-outline-color': 'white',

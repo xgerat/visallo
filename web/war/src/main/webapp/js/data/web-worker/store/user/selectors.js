@@ -5,7 +5,7 @@ define(['reselect'], function(reselect) {
     const getCurrent = (state) => state.user.current;
     const getDisplayName = (state) => state.user.current.displayName;
     const getLongRunningProcesses = (state) => state.user.current.longRunningProcesses;
-    const getPreferences = (state) => state.user.current.uiPreferences;
+    const getPreferences = (state) => state.user.current.uiPreferences || {};
     const getPrivileges = (state) => state.user.current.privileges;
     const getProperties = (state) => state.user.current.properties;
     const getUserName = (state) => state.user.current.userName;

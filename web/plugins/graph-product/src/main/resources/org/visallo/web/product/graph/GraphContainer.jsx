@@ -2,6 +2,7 @@ define([
     'react-redux',
     'react-dom',
     'data/web-worker/store/selection/actions',
+    'data/web-worker/store/user/selectors',
     'data/web-worker/store/product/actions',
     'data/web-worker/store/product/selectors',
     'data/web-worker/store/ontology/selectors',
@@ -9,12 +10,14 @@ define([
     'configuration/plugins/registry',
     'util/retina',
     'util/dnd',
+    'util/parsers',
     './worker/actions',
     './Graph'
 ], function(
     redux,
     ReactDom,
     selectionActions,
+    userSelectors,
     productActions,
     productSelectors,
     ontologySelectors,
@@ -22,6 +25,7 @@ define([
     registry,
     retina,
     dnd,
+    parsers,
     graphActions,
     Graph) {
     'use strict';
@@ -404,8 +408,12 @@ define([
                 relationships = ontologySelectors.getRelationships(state),
                 panelPadding = state.panel.padding,
                 ghosts = state['org-visallo-graph'].animatingGhosts,
-                uiPreferences = state.user.current.uiPreferences,
+                uiPreferences = userSelectors.getPreferences(state),
                 rootId = props.product.localData && props.product.localData.rootId || 'root';
+
+            const prefs = {
+                edgeLabels: parsers.bool.parse(uiPreferences.edgeLabels, true)
+            };
 
             return {
                 ...props,
@@ -414,7 +422,6 @@ define([
                 focusing: productSelectors.getFocusedElementsInProduct(state),
                 ghosts,
                 pixelRatio,
-                uiPreferences,
                 concepts,
                 relationships,
                 panelPadding,
@@ -423,7 +430,8 @@ define([
                 elements: productSelectors.getElementsInProduct(state),
                 workspace: state.workspace.byId[state.workspace.currentId],
                 mimeTypes,
-                style
+                style,
+                ...prefs
             }
         },
 
