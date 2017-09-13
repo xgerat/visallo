@@ -165,7 +165,7 @@ define([
             if (product && product.extendedData) {
                 const { vertices: productVertices, compoundNodes: collapsedNodes } = product.extendedData;
                 if (productVertices && collapsedNodes) {
-                    const authorizedVertices =  _.pick(productVertices, v => vertices[v.id] ? !vertices[v.id]._DELETED : !v.unauthorized);
+                    const authorizedVertices = _.pick(productVertices, v => vertices[v.id] ? !vertices[v.id]._DELETED : !v.unauthorized);
                     const visibleCollapsedNodes = _.mapObject(collapsedNodes, (collapsedNode, id) => {
                         const queue = [...collapsedNode.children];
                         let visible = false;
@@ -183,7 +183,7 @@ define([
                     });
 
                     return u.updateIn(
-                        `extendedData.compoundNodes`,
+                        'extendedData.compoundNodes',
                         collapsedNodes => _.mapObject(collapsedNodes, ({ id, ...rest }) => ({
                             ...rest,
                             id,
@@ -204,3 +204,4 @@ define([
         }, state);
     }
 });
+

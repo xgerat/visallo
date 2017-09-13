@@ -46,7 +46,7 @@ define([
         if (textMeasurements[text]) {
             return textMeasurements[text];
         }
-        return textMeasurements[text] = canvasCtx.measureText(text);
+        return (textMeasurements[text] = canvasCtx.measureText(text));
     };
 
     const drawCount = function(canvas, canvasCtx, count) {

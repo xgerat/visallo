@@ -77,6 +77,13 @@ var baseConfig = {
             use: [
                 { loader: 'babel-loader' }
             ]
+        },
+        {
+            test: /\.jsx?$/,
+            exclude: /(node_modules|__mocks__|__tests__|dist)/,
+            use: [
+                { loader: 'eslint-loader' }
+            ]
         }
     ]
   },

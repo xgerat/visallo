@@ -30,7 +30,9 @@ define([
         const product = state.workspaces[workspaceId].products[productId];
         const vertices = product && product.extendedData && product.extendedData.vertices;
         const newVertices = {};
-        vertexIds.forEach(id => newVertices[id] = { id });
+        vertexIds.forEach(id => {
+            newVertices[id] = { id }
+        });
 
         if (vertices) {
             return u({

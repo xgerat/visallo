@@ -544,7 +544,6 @@ define([
                     }
 
                     if (zoom > cy._private.maxZoom) zoom = cy._private.maxZoom;
-                    
 
                     var position = {
                             x: (w + left - right - zoom * (bb.x1 + bb.x2)) / 2,

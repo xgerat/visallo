@@ -54,7 +54,15 @@ var baseConfig = {
             use: [
                 { loader: 'babel-loader' }
             ]
+        },
+        {
+            test: /\.jsx?$/,
+            exclude: /(node_modules|dist)/,
+            use: [
+                { loader: 'eslint-loader' }
+            ]
         }
+
     ]
   },
   devtool: 'source-map',

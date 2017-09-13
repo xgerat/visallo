@@ -141,7 +141,7 @@ define([
                     let selected = cy.elements().filter(':selected');
 
                     if (selected.length === 0) {
-                        const id = data.collapsedNodeId || data.vertexId || date.edgeIds[0];
+                        const id = data.collapsedNodeId || data.vertexId || data.edgeIds[0];
                         selected = cy.getElementById(id);
 
                         if (selected.length === 0) {
@@ -645,7 +645,7 @@ define([
 
         onSelectCollapsedNodeContents(collapsedNodeIds, select) {
             const { selection, product, elements, onSetSelection, onAddSelection, onRemoveSelection } = this.props;
-            const { compoundNodes: collapsedNodes }= product.extendedData;
+            const { compoundNodes: collapsedNodes } = product.extendedData;
             let vertices = [];
             let edges = [];
 
@@ -1029,7 +1029,7 @@ define([
                 renderedNodeIds[nodeData.id] = true;
 
                 if (ghosts) {
-                    _.mapObject(ghosts, ((ghost, ghostId) => {
+                    _.mapObject(ghosts, (ghost, ghostId) => {
                         if (cyNode.data.vertexIds.includes(ghostId)) {
                             const ghostData = {
                                 ...mapVertexToData(ghostId, vertices, registry['org.visallo.graph.node.transformer'], hovering),
@@ -1050,7 +1050,7 @@ define([
                                 selectable: false
                             });
                         }
-                    }));
+                    });
                 }
 
                 nodes.push(cyNode);
@@ -1514,7 +1514,7 @@ define([
             }
         }
 
-        return  title || i18n('org.visallo.web.product.graph.collapsedNode.entities', children.length);
+        return title || i18n('org.visallo.web.product.graph.collapsedNode.entities', children.length);
     };
 
     const vertexToCyNode = (vertex, transformers, hovering) => {

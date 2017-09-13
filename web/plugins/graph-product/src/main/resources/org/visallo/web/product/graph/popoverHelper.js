@@ -13,7 +13,7 @@ define([], function() {
         this.$node
             .on('registerForPositionChanges', this.onRegisterForPositionChanges)
             .on('unregisterForPositionChanges', this.onUnregisterForPositionChanges);
-    };
+    }
 
     PopoverHelper.prototype.getCyNodeFromAnchor = function(anchorTo) {
         const cy = this.cy;
@@ -50,7 +50,7 @@ define([], function() {
         if (!anchorTo) {
             return console.error('Registering for position events requires an anchorTo config');
         }
-        
+
         const anchorToCyElement = anchorTo.vertexId || anchorTo.edgeId || anchorTo.decorationId;
         const anchorToPage = anchorTo.page
 

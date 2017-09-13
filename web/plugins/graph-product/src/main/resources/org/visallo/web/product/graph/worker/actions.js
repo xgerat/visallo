@@ -14,7 +14,8 @@ define(['data/web-worker/store/actions'], function(actions) {
 
             collapseNodes: (productId, collapseData, { undoable }) => ({ productId, collapseData, undoable }),
             uncollapseNodes: (productId, collapsedNodeId, { undoable }) => ({ productId, collapsedNodeId, undoable }),
-            renameCollapsedNode: (productId, collapsedNodeId, title) => ({ productId, collapsedNodeId,  title })
+            renameCollapsedNode: (productId, collapsedNodeId, title) => ({ productId, collapsedNodeId, title })
         }
     })
 })
+

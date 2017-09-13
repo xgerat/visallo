@@ -23,7 +23,7 @@ define([
                             <g id="Edges" transform="matrix(1,0,0,1,6,5)">
 
                                 // Larger click targets
-                                <path onClick={onChange.bind(null, 2)} className="hops2 clickable" 
+                                <path onClick={onChange.bind(null, 2)} className="hops2 clickable"
                                       d="M0.099,23.69C0.099,23.69 63.613,-27.441 151.005,23.69" />
                                 <path onClick={onChange.bind(null, 3)} className="hops3 clickable"
                                       d="M0.383,23.871C0.383,23.871 59.074,6.084 151.2,23.871" />
@@ -32,7 +32,7 @@ define([
                                 <path onClick={onChange.bind(null, 5)} className="hops5 clickable"
                                       d="M0.77,23.403C0.77,23.403 72.161,79.434 150.625,23.403" />
 
-                                <path onClick={onChange.bind(null, 2)} className="hops2" 
+                                <path onClick={onChange.bind(null, 2)} className="hops2"
                                       d="M0.099,23.69C0.099,23.69 63.613,-27.441 151.005,23.69" />
                                 <path onClick={onChange.bind(null, 3)} className="hops3"
                                       d="M0.383,23.871C0.383,23.871 59.074,6.084 151.2,23.871" />

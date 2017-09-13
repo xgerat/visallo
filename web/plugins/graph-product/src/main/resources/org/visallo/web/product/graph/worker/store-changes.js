@@ -1,10 +1,11 @@
+/* global publicData:0 */
 define([
     'data/web-worker/store/product/selectors'
 ], function(productSelectors) {
 
-     publicData.storePromise.then(store => {
-         checkUpdatedEdgesForProductInclusion(store);
-     })
+    publicData.storePromise.then(store => {
+        checkUpdatedEdgesForProductInclusion(store);
+    })
 
     function checkUpdatedEdgesForProductInclusion(store) {
         var prevEdges;
@@ -23,7 +24,7 @@ define([
                             _.each(newEdges, (edge, id) => {
                                 if (edge !== null && !(id in edges)) {
                                     if (edge.inVertexId in vertices && edge.outVertexId in vertices) {
-                                        addEdges[id]= {
+                                        addEdges[id] = {
                                             edgeId: id,
                                             ..._.pick(edge, 'inVertexId', 'outVertexId', 'label')
                                         };
@@ -47,3 +48,4 @@ define([
         })
     }
 });
+

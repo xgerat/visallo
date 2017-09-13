@@ -79,7 +79,7 @@ define([
         getConfigurationExcludedEdges() {
             let results = [];
             Object.entries(this.props.configuration).forEach(([key, value]) => {
-                if (key.indexOf(CONFIG_EXCLUDED_EDGE_PREFIX) == 0) {
+                if (key.indexOf(CONFIG_EXCLUDED_EDGE_PREFIX) === 0) {
                     results.push(value);
                 }
             });

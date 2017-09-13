@@ -31,7 +31,7 @@ define([
 
         snapToGrid: ({ snap }) => (dispatch, getState) => {
             const state = getState();
-            if (!workspaceEditable(state)) { return };
+            if (!workspaceEditable(state)) { return; }
 
             const workspaceId = state.workspace.currentId;
             const productId = state.product.workspaces[workspaceId].selected;
@@ -61,7 +61,7 @@ define([
 
         setPositions: ({ productId, updateVertices, snapToGrid, undoable }) => (dispatch, getState) => {
             const state = getState();
-            if (!workspaceEditable(state)) { return };
+            if (!workspaceEditable(state)) { return; }
 
             const workspaceId = state.workspace.currentId;
             const product = state.product.workspaces[workspaceId].products[productId];
@@ -159,7 +159,7 @@ define([
 
         updatePositions: ({ productId, updateVertices, existingVertices, undoable }) => (dispatch, getState) => {
             const state = getState();
-            if (!workspaceEditable(state)) { return };
+            if (!workspaceEditable(state)) { return }
 
             if (!_.isEmpty(updateVertices)) {
                 const snapToGrid = state.user.current.uiPreferences.snapToGrid === 'true';
@@ -176,7 +176,7 @@ define([
         dropElements: ({ productId, elements, position }) => (dispatch, getState) => {
             const { vertexIds, edgeIds } = elements;
             const state = getState();
-            if (!workspaceEditable(state)) { return };
+            if (!workspaceEditable(state)) { return }
 
             var edges = (edgeIds && edgeIds.length) ? (
                 ajax('POST', '/edge/multiple', { edgeIds })
@@ -217,7 +217,7 @@ define([
 
         addRelated: ({ productId, vertices }) => (dispatch, getState) => {
             const state = getState();
-            if (!workspaceEditable(state)) { return };
+            if (!workspaceEditable(state)) { return }
 
             const workspaceId = state.workspace.currentId;
             const product = state.product.workspaces[workspaceId].products[productId];
@@ -329,7 +329,7 @@ define([
 
         collapseNodes: ({ productId, collapseData, undoable }) => (dispatch, getState) => {
             const state = getState();
-            if (!workspaceEditable(state)) { return };
+            if (!workspaceEditable(state)) { return }
 
             const workspaceId = state.workspace.currentId;
             const { vertices, compoundNodes: collapsedNodes } = state.product.workspaces[workspaceId].products[productId].extendedData;
@@ -425,7 +425,7 @@ define([
 
         uncollapseNodes: ({ productId, collapsedNodeId, undoable }) => (dispatch, getState) => {
             const state = getState();
-            if (!workspaceEditable(state)) { return };
+            if (!workspaceEditable(state)) { return }
 
             const workspaceId = state.workspace.currentId;
             const product = state.product.workspaces[workspaceId].products[productId];
@@ -486,7 +486,7 @@ define([
 
         renameCollapsedNode: ({ productId, collapsedNodeId, title }) => (dispatch, getState) => {
             const state = getState();
-            if (!workspaceEditable(state)) { return };
+            if (!workspaceEditable(state)) { return }
 
             const workspaceId = state.workspace.currentId;
 
@@ -582,7 +582,7 @@ define([
         if (!position) {
             let vertices = product.extendedData && product.extendedData.vertices || {};
             const graphRoot = product.localData && product.localData.rootId || 'root';
-            vertices = _.values(_.pick(vertices, (vertex => vertex.parent === graphRoot)));
+            vertices = _.values(_.pick(vertices, vertex => vertex.parent === graphRoot));
 
             const maxY = vertices.length ? _.max(vertices, v => v.pos.y).pos.y + yInc : 0;
             const minX = vertices.length ? _.min(vertices, v => v.pos.x).pos.x : 0;
@@ -605,3 +605,4 @@ define([
         }
     }
 })
+
