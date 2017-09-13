@@ -6,8 +6,6 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
@@ -21,12 +19,14 @@ import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
+import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
 import org.visallo.web.product.graph.GraphWorkProductService;
+import org.visallo.web.product.graph.model.RemoveVerticesParams;
 
 @Singleton
 public class RemoveVertices implements ParameterizedHandler {
@@ -56,15 +56,17 @@ public class RemoveVertices implements ParameterizedHandler {
 
     @Handle
     public ClientApiSuccess handle(
-            @Required(name = "vertexIds[]") String[] vertexIds,
+            @Required(name = "vertexIds[]") String[] vertexIdsToRemove,
             @Required(name = "productId") String productId,
             @Optional(name = "params") String paramsStr,
             @ActiveWorkspaceId String workspaceId,
             @SourceGuid String sourceGuid,
             User user
     ) throws Exception {
-        JSONObject params = paramsStr == null ? new JSONObject() : new JSONObject(paramsStr);
-        boolean removeChildren = params.optBoolean("removeChildren");
+        RemoveVerticesParams params = paramsStr == null
+                ? new RemoveVerticesParams()
+                : ClientApiConverter.toClientApi(paramsStr, RemoveVerticesParams.class);
+        boolean removeChildren = params.isRemoveChildren();
 
         if (!workspaceRepository.hasWritePermissions(workspaceId, user)) {
             throw new VisalloAccessDeniedException(
@@ -81,9 +83,15 @@ public class RemoveVertices implements ParameterizedHandler {
         );
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.HIGH, user, authorizations)) {
             Vertex productVertex = graph.getVertex(productId, authorizations);
-            JSONArray removeVertices = new JSONArray(vertexIds);
-
-            graphWorkProductService.removeVertices(ctx, productVertex, removeVertices, removeChildren, user, WorkspaceRepository.VISIBILITY.getVisibility(), authorizations);
+            graphWorkProductService.removeVertices(
+                    ctx,
+                    productVertex,
+                    vertexIdsToRemove,
+                    removeChildren,
+                    user,
+                    WorkspaceRepository.VISIBILITY.getVisibility(),
+                    authorizations
+            );
         } catch (Exception e) {
             throw new VisalloException("Could not remove vertices from product: " + productId);
         }
@@ -92,9 +100,9 @@ public class RemoveVertices implements ParameterizedHandler {
         ClientApiWorkspace clientApiWorkspace = workspaceRepository.toClientApi(workspace, user, authorizations);
 
         String skipSourceGuid = null;
-        if (params.has("broadcastOptions")) {
-            JSONObject broadcastOptions = params.getJSONObject("broadcastOptions");
-            if (broadcastOptions.optBoolean("preventBroadcastToSourceGuid", false)) {
+        if (params.getBroadcastOptions() != null) {
+            RemoveVerticesParams.BroadcastOptions broadcastOptions = params.getBroadcastOptions();
+            if (broadcastOptions.isPreventBroadcastToSourceGuid()) {
                 skipSourceGuid = sourceGuid;
             }
         }

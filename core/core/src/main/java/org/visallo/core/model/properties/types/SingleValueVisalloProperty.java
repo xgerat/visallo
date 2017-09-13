@@ -71,6 +71,14 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
         return value != null ? getRawConverter().apply(value) : null;
     }
 
+    public final TRaw getPropertyValue(Element element, TRaw defaultValue) {
+        TRaw value = getPropertyValue(element);
+        if (value == null) {
+            value = defaultValue;
+        }
+        return value;
+    }
+
     public final TRaw getPropertyValueRequired(Element element) {
         checkNotNull(element, "Element cannot be null");
         Object value = element.getPropertyValue(getPropertyName());

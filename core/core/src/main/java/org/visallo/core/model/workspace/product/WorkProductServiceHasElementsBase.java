@@ -1,7 +1,6 @@
 package org.visallo.core.model.workspace.product;
 
 import com.google.common.collect.Lists;
-import org.json.JSONObject;
 import org.vertexium.*;
 import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.user.AuthorizationRepository;
@@ -10,12 +9,14 @@ import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.User;
 import org.visallo.core.util.StreamUtil;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public abstract class WorkProductServiceHasElementsBase implements WorkProductService, WorkProductServiceHasElements {
+public abstract class WorkProductServiceHasElementsBase<TVertex extends WorkProductVertex, TEdge extends WorkProductEdge>
+        implements WorkProductService, WorkProductServiceHasElements {
     private final AuthorizationRepository authorizationRepository;
 
     protected WorkProductServiceHasElementsBase(
@@ -25,19 +26,19 @@ public abstract class WorkProductServiceHasElementsBase implements WorkProductSe
     }
 
     @Override
-    public JSONObject getExtendedData(
+    public WorkProductExtendedData getExtendedData(
             Graph graph,
             Vertex workspaceVertex,
             Vertex productVertex,
-            JSONObject params,
+            GetExtendedDataParams params,
             User user,
             Authorizations authorizations
     ) {
-        JSONObject extendedData = new JSONObject();
+        WorkProductExtendedData extendedData = new WorkProductExtendedData();
         String id = productVertex.getId();
 
-        if (params.optBoolean("includeVertices")) {
-            JSONObject vertices = new JSONObject();
+        if (params.isIncludeVertices()) {
+            Map<String, TVertex> vertices = new HashMap<>();
             List<Edge> productVertexEdges = Lists.newArrayList(productVertex.getEdges(
                     Direction.OUT,
                     WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
@@ -52,19 +53,19 @@ public abstract class WorkProductServiceHasElementsBase implements WorkProductSe
 
             for (Edge propertyVertexEdge : productVertexEdges) {
                 String otherId = propertyVertexEdge.getOtherVertexId(id);
-                JSONObject vertex = new JSONObject();
-                vertex.put("id", otherId);
+                TVertex vertex = createWorkProductVertex();
+                vertex.setId(otherId);
                 if (!othersById.containsKey(otherId)) {
-                    vertex.put("unauthorized", true);
+                    vertex.setUnauthorized(true);
                 }
-                setEdgeJson(propertyVertexEdge, vertex);
+                populateVertexWithWorkspaceEdge(propertyVertexEdge, vertex);
                 vertices.put(otherId, vertex);
             }
-            extendedData.put("vertices", vertices);
+            extendedData.setVertices(vertices);
         }
 
-        if (params.optBoolean("includeEdges")) {
-            JSONObject edges = new JSONObject();
+        if (params.isIncludeEdges()) {
+            Map<String, TEdge> edges = new HashMap<>();
             Authorizations systemAuthorizations = authorizationRepository.getGraphAuthorizations(
                     user,
                     VisalloVisibility.SUPER_USER_VISIBILITY_STRING
@@ -82,23 +83,27 @@ public abstract class WorkProductServiceHasElementsBase implements WorkProductSe
 
             for (RelatedEdge relatedEdge : productRelatedEdges) {
                 String edgeId = relatedEdge.getEdgeId();
-                JSONObject edge = new JSONObject();
-                edge.put("edgeId", relatedEdge.getEdgeId());
+                TEdge edge = createWorkProductEdge();
+                edge.setEdgeId(relatedEdge.getEdgeId());
 
                 if (relatedEdgesById.get(edgeId)) {
-                    edge.put("label", relatedEdge.getLabel());
-                    edge.put("outVertexId", relatedEdge.getOutVertexId());
-                    edge.put("inVertexId", relatedEdge.getInVertexId());
+                    edge.setLabel(relatedEdge.getLabel());
+                    edge.setOutVertexId(relatedEdge.getOutVertexId());
+                    edge.setInVertexId(relatedEdge.getInVertexId());
                 } else {
-                    edge.put("unauthorized", true);
+                    edge.setUnauthorized(true);
                 }
                 edges.put(edgeId, edge);
             }
-            extendedData.put("edges", edges);
+            extendedData.setEdges(edges);
         }
 
         return extendedData;
     }
+
+    protected abstract TEdge createWorkProductEdge();
+
+    protected abstract TVertex createWorkProductVertex();
 
     @Override
     public void cleanUpElements(Graph graph, Vertex productVertex, Authorizations authorizations) {
@@ -115,9 +120,13 @@ public abstract class WorkProductServiceHasElementsBase implements WorkProductSe
         graph.flush();
     }
 
-    protected abstract void setEdgeJson(Edge propertyVertexEdge, JSONObject vertex);
+    protected abstract void populateVertexWithWorkspaceEdge(Edge propertyVertexEdge, TVertex vertex);
 
-    protected abstract void updateProductEdge(ElementUpdateContext<Edge> elemCtx, JSONObject update, Visibility visibility);
+    protected abstract void updateProductEdge(
+            ElementUpdateContext<Edge> elemCtx,
+            UpdateProductEdgeOptions update,
+            Visibility visibility
+    );
 
     public static String getEdgeId(String productId, String vertexId) {
         return productId + "_hasVertex_" + vertexId;

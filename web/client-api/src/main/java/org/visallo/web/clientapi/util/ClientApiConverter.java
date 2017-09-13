@@ -1,6 +1,8 @@
 package org.visallo.web.clientapi.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.type.MapType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.visallo.web.clientapi.model.DirectoryEntity;
@@ -100,6 +102,15 @@ public class ClientApiConverter {
     public static <T> T toClientApi(String str, Class<T> clazz) {
         try {
             return ObjectMapperFactory.getInstance().readValue(str, clazz);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not parse '" + str + "' to class '" + clazz.getName() + "'", e);
+        }
+    }
+
+    public static <T> Map<String, T> toClientApiMap(String str, Class<T> clazz) {
+        try {
+            MapType typeRef = TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, clazz);
+            return ObjectMapperFactory.getInstance().readValue(str, typeRef);
         } catch (IOException e) {
             throw new RuntimeException("Could not parse '" + str + "' to class '" + clazz.getName() + "'", e);
         }

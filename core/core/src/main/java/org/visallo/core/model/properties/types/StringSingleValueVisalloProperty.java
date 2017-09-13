@@ -1,6 +1,5 @@
 package org.visallo.core.model.properties.types;
 
-import org.vertexium.Element;
 import org.vertexium.Property;
 
 public class StringSingleValueVisalloProperty extends SingleValueVisalloProperty<String, String> {
@@ -24,14 +23,6 @@ public class StringSingleValueVisalloProperty extends SingleValueVisalloProperty
             return null;
         }
         return value.toString();
-    }
-
-    public String getPropertyValue(Element element, String defaultValue) {
-        String value = getPropertyValue(element);
-        if (value == null) {
-            return defaultValue;
-        }
-        return value;
     }
 }
 

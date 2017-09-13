@@ -1,22 +1,22 @@
 package org.visallo.web.product.map;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.vertexium.*;
 import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workspace.WorkspaceProperties;
+import org.visallo.core.model.workspace.product.UpdateProductEdgeOptions;
+import org.visallo.core.model.workspace.product.WorkProductEdge;
 import org.visallo.core.model.workspace.product.WorkProductServiceHasElementsBase;
-import org.visallo.core.util.JSONUtil;
+import org.visallo.core.model.workspace.product.WorkProductVertex;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Singleton
-public class MapWorkProductService extends WorkProductServiceHasElementsBase {
+public class MapWorkProductService extends WorkProductServiceHasElementsBase<WorkProductVertex, WorkProductEdge> {
     public static final String KIND = "org.visallo.web.product.map.MapWorkProduct";
 
     @Inject
@@ -27,23 +27,34 @@ public class MapWorkProductService extends WorkProductServiceHasElementsBase {
     }
 
     @Override
-    protected void updateProductEdge(ElementUpdateContext<Edge> elemCtx, JSONObject update, Visibility visibility) {
+    protected WorkProductEdge createWorkProductEdge() {
+        return new WorkProductEdge();
     }
 
-    protected void setEdgeJson(Edge propertyVertexEdge, JSONObject vertex) {
+    @Override
+    protected WorkProductVertex createWorkProductVertex() {
+        return new WorkProductVertex();
+    }
+
+    @Override
+    protected void updateProductEdge(ElementUpdateContext<Edge> elemCtx, UpdateProductEdgeOptions update, Visibility visibility) {
+    }
+
+    @Override
+    protected void populateVertexWithWorkspaceEdge(Edge propertyVertexEdge, WorkProductVertex vertex) {
     }
 
     public void updateVertices(
             GraphUpdateContext ctx,
             Vertex productVertex,
-            JSONObject updateVertices,
+            Map<String, UpdateProductEdgeOptions> updateVertices,
             Visibility visibility
     ) {
         if (updateVertices != null) {
             @SuppressWarnings("unchecked")
-            List<String> vertexIds = Lists.newArrayList(updateVertices.keys());
+            Set<String> vertexIds = updateVertices.keySet();
             for (String id : vertexIds) {
-                JSONObject updateData = updateVertices.getJSONObject(id);
+                UpdateProductEdgeOptions updateData = updateVertices.get(id);
                 String edgeId = getEdgeId(productVertex.getId(), id);
                 EdgeBuilderByVertexId edgeBuilder = ctx.getGraph().prepareEdge(
                         edgeId,
@@ -60,12 +71,13 @@ public class MapWorkProductService extends WorkProductServiceHasElementsBase {
     public void removeVertices(
             GraphUpdateContext ctx,
             Vertex productVertex,
-            JSONArray removeVertices,
+            String[] removeVertices,
             Authorizations authorizations
     ) {
         if (removeVertices != null) {
-            JSONUtil.toList(removeVertices)
-                    .forEach(id -> ctx.getGraph().softDeleteEdge(getEdgeId(productVertex.getId(), (String) id), authorizations));
+            for (String id : removeVertices) {
+                ctx.getGraph().softDeleteEdge(getEdgeId(productVertex.getId(), id), authorizations);
+            }
         }
     }
 

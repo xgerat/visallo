@@ -118,6 +118,9 @@ public class JSONUtil {
     }
 
     public static List<String> toStringList(JSONArray arr) {
+        if (arr == null) {
+            return null;
+        }
         List<String> result = new ArrayList<String>();
         for (int i = 0; i < arr.length(); i++) {
             result.add(arr.getString(i));
@@ -125,8 +128,15 @@ public class JSONUtil {
         return result;
     }
 
+    public static Set<String> toStringSet(JSONArray arr) {
+        if (arr == null) {
+            return null;
+        }
+        return new HashSet<>(toStringList(arr));
+    }
+
     public static List<Object> toList(JSONArray arr) {
-        List<Object> list = new ArrayList();
+        List<Object> list = new ArrayList<>();
         for (int i = 0; i < arr.length(); i++) {
             list.add(fromJson(arr.get(i)));
         }

@@ -5,7 +5,6 @@ import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
-import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
@@ -20,15 +19,17 @@ import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
-import org.visallo.core.util.JSONUtil;
+import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
 import org.visallo.web.product.graph.GraphWorkProductService;
+import org.visallo.web.product.graph.model.GraphUpdateProductEdgeOptions;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Singleton
@@ -68,7 +69,7 @@ public class UpdateVertices implements ParameterizedHandler {
             @SourceGuid String sourceGuid,
             User user
     ) throws Exception {
-        JSONObject updateVertices = new JSONObject(updates);
+        Map<String, GraphUpdateProductEdgeOptions> updateVertices = ClientApiConverter.toClientApiMap(updates, GraphUpdateProductEdgeOptions.class);
 
         if (!workspaceRepository.hasWritePermissions(workspaceId, user)) {
             throw new VisalloAccessDeniedException(
@@ -84,10 +85,10 @@ public class UpdateVertices implements ParameterizedHandler {
                 workspaceId
         );
 
-        List<String> vertices = JSONUtil.toStringList(updateVertices.names());
+        Set<String> vertices = updateVertices.keySet();
         vertices = vertices.stream()
-                .filter(id -> !((JSONObject) updateVertices.get(id)).has("children"))
-                .collect(Collectors.toList());
+                .filter(id -> updateVertices.get(id).getChildren() == null)
+                .collect(Collectors.toSet());
         workspaceHelper.updateEntitiesOnWorkspace(
                 workspaceId,
                 vertices,

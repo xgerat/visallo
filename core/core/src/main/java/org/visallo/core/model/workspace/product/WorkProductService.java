@@ -13,11 +13,11 @@ public interface WorkProductService {
      * Get custom extended data from the work product. This does not include the extended data stored on the
      * product itself.
      */
-    JSONObject getExtendedData(
+    WorkProductExtendedData getExtendedData(
             Graph graph,
             Vertex workspaceVertex,
             Vertex productVertex,
-            JSONObject params,
+            GetExtendedDataParams params,
             User user,
             Authorizations authorizations
     );
