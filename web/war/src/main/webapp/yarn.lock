@@ -70,7 +70,7 @@ acorn@4.x:
   version "4.0.13"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-4.0.13.tgz#105495ae5361d697bd195c825192e1ad7f253787"
 
-acorn@5.0.3, acorn@^5.0.1:
+acorn@5.0.3:
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.0.3.tgz#c460df08491463f028ccb82eab3730bf01087b3d"
 
@@ -82,7 +82,7 @@ acorn@^3.0.4, acorn@^3.3.0:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-3.3.0.tgz#45e37fb39e8da3f25baee3ff5369e2bb5f22017a"
 
-acorn@^5.1.1:
+acorn@^5.0.1, acorn@^5.1.1:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.1.2.tgz#911cb53e036807cf0fa778dc5d370fbd864246d7"
 
@@ -266,15 +266,9 @@ async@1.x, async@^1.4.0, async@^1.5.0, async@^1.5.2, async@~1.5.0, async@~1.5.2:
   version "1.5.2"
   resolved "https://registry.yarnpkg.com/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
 
-async@2.5.0:
+async@2.5.0, async@^2.0.0:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/async/-/async-2.5.0.tgz#843190fd6b7357a0b9e1c956edddd5ec8462b54d"
-  dependencies:
-    lodash "^4.14.0"
-
-async@^2.0.0:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/async/-/async-2.1.2.tgz#612a4ab45ef42a70cde806bad86ee6db047e8385"
   dependencies:
     lodash "^4.14.0"
 
@@ -286,13 +280,13 @@ asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
 
-atmosphere.js@2.3.1:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/atmosphere.js/-/atmosphere.js-2.3.1.tgz#43f3d374b05d4625d9fbc6020ee5b098f61b1b46"
+atmosphere.js@2.3.3:
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/atmosphere.js/-/atmosphere.js-2.3.3.tgz#64313c21af841835def39e06225f3493b46cce44"
   dependencies:
-    eventsource "0.1.6"
-    ws "0.8.0"
-    xmlhttprequest "1.8.0"
+    eventsource "^0.1.6"
+    ws "^1.0.1"
+    xmlhttprequest "^1.8.0"
 
 aws-sign2@~0.6.0:
   version "0.6.0"
@@ -792,10 +786,6 @@ binary@^0.3.0:
     buffers "~0.1.1"
     chainsaw "~0.1.0"
 
-bindings@1.2.x, bindings@~1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.2.1.tgz#14ad6113812d2d37d72e67b4cacb4bb726505f11"
-
 bl@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/bl/-/bl-1.0.3.tgz#fc5421a28fd4226036c3b3891a66a25bc64d226e"
@@ -912,13 +902,6 @@ buffer-crc32@^0.2.1, buffer-crc32@~0.2.1:
 buffers@~0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/buffers/-/buffers-0.1.1.tgz#b24579c3bed4d6d396aeee6d9a8ae7f5482ab7bb"
-
-bufferutil@1.2.x:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/bufferutil/-/bufferutil-1.2.1.tgz#37be5d36e1e06492221e68d474b1ac58e510cbd7"
-  dependencies:
-    bindings "1.2.x"
-    nan "^2.0.5"
 
 builtin-modules@^1.0.0, builtin-modules@^1.1.0:
   version "1.1.1"
@@ -2043,7 +2026,7 @@ eventemitter3@1.x.x:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-1.2.0.tgz#1c86991d816ad1e504750e73874224ecf3bec508"
 
-eventsource@0.1.6:
+eventsource@^0.1.6:
   version "0.1.6"
   resolved "https://registry.yarnpkg.com/eventsource/-/eventsource-0.1.6.tgz#0acede849ed7dd1ccc32c811bb11b944d4f29232"
   dependencies:
@@ -2466,7 +2449,7 @@ glob-parent@^2.0.0:
   dependencies:
     is-glob "^2.0.0"
 
-glob@7.1.1, glob@^7.0.0, glob@^7.0.5, glob@^7.1.1, glob@~7.1.1:
+glob@7.1.1, glob@^7.1.1:
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.1.1.tgz#805211df04faaf1c63a3600306cdf5ade50b2ec8"
   dependencies:
@@ -2477,7 +2460,7 @@ glob@7.1.1, glob@^7.0.0, glob@^7.0.5, glob@^7.1.1, glob@~7.1.1:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-glob@7.1.2:
+glob@7.1.2, glob@^7.0.0, glob@^7.0.5, glob@~7.1.1:
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.1.2.tgz#c19c9df9a028702d678612384a6552404c636d15"
   dependencies:
@@ -3865,13 +3848,9 @@ mute-stream@0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.5.tgz#8fbfabb0a98a253d3184331f9e8deb7372fac6c0"
 
-nan@^2.0.5, nan@^2.3.0, nan@^2.6.1:
+nan@^2.3.0, nan@^2.6.1:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.6.2.tgz#e4ff34e6c95fdfb5aecc08de6596f43605a7db45"
-
-nan@~2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/nan/-/nan-2.4.0.tgz#fb3c59d45fe4effe215f0b890f8adf6eb32d2232"
 
 natural-compare@^1.4.0:
   version "1.4.0"
@@ -4811,11 +4790,11 @@ resolve-protobuf-schema@^2.0.0:
   dependencies:
     protocol-buffers-schema "^2.0.2"
 
-resolve@1.1.7, resolve@1.1.x, resolve@^1.1.6, resolve@~1.1.0:
+resolve@1.1.7, resolve@1.1.x, resolve@~1.1.0:
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.1.7.tgz#203114d82ad2c5ed9e8e0411b3932875e889e97b"
 
-resolve@^1.4.0:
+resolve@^1.1.6, resolve@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.4.0.tgz#a75be01c53da25d934a98ebd0e4c4a7312f92a86"
   dependencies:
@@ -5663,13 +5642,6 @@ useragent@^2.1.12:
     lru-cache "2.2.x"
     tmp "0.0.x"
 
-utf-8-validate@1.2.x:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/utf-8-validate/-/utf-8-validate-1.2.2.tgz#8bb871a4741e085c70487ca7acdbd7d6d36029eb"
-  dependencies:
-    bindings "~1.2.1"
-    nan "~2.4.0"
-
 util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
@@ -5833,17 +5805,7 @@ write@^0.2.1:
   dependencies:
     mkdirp "^0.5.1"
 
-ws@0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-0.8.0.tgz#ac60ebad312121d01e16cc3383d7ec67ad0f0f1f"
-  dependencies:
-    options ">=0.0.5"
-    ultron "1.0.x"
-  optionalDependencies:
-    bufferutil "1.2.x"
-    utf-8-validate "1.2.x"
-
-ws@1.1.2:
+ws@1.1.2, ws@^1.0.1:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/ws/-/ws-1.1.2.tgz#8a244fa052401e08c9886cf44a85189e1fd4067f"
   dependencies:
@@ -5884,7 +5846,7 @@ xmlhttprequest-ssl@1.5.3:
   version "1.5.3"
   resolved "https://registry.yarnpkg.com/xmlhttprequest-ssl/-/xmlhttprequest-ssl-1.5.3.tgz#185a888c04eca46c3e4070d99f7b49de3528992d"
 
-xmlhttprequest@1.8.0:
+xmlhttprequest@^1.8.0:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/xmlhttprequest/-/xmlhttprequest-1.8.0.tgz#67fe075c5c24fef39f9d65f5f7b7fe75171968fc"
 
