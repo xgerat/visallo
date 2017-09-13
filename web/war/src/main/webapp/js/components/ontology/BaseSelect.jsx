@@ -258,7 +258,7 @@ define([
                         option.glyphIconHref ? (
                             <div className="icon" style={{ ...iconStyles, backgroundImage: `url(${option.glyphIconHref})` }} />
                         ) : (option.domainGlyphIconHref && option.rangeGlyphIconHref) ? (
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center' }}>
                             <div className="icon" style={{ ...iconStyles, margin: '0 0 0 5px', backgroundImage: `url(${option.domainGlyphIconHref})` }} />
                             →
                             <div className="icon" style={{ ...iconStyles, margin: '0 5px 0 0', backgroundImage: `url(${option.rangeGlyphIconHref})` }} />

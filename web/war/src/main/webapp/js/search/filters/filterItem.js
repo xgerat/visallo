@@ -142,7 +142,7 @@ define([
         this.onPredicateClick = function(event) {
             var $anchor = $(event.target);
             this.filter.predicate = $anchor.data('value');
-            $anchor.closest('.dropdown').find('.dropdown-toggle span').text($anchor.text());
+            $anchor.closest('.dropdown').find('.dropdown-toggle').text($anchor.text());
             this.attachFields().done();
         };
 
@@ -203,15 +203,13 @@ define([
                 .end()
                 .find('.dropdown-menu')
                     .html(this.predicateItemsForProperty(property))
-                .end()
-                .find('.dropdown-toggle')
                     .each(function() {
-                        var selected = $(this).next().find('.selected a');
+                        var selected = $(this).find('.selected a');
                         if (!selected.length) {
-                            selected = $(this).next().children('li').first().find('a');
+                            selected = $(this).children('li').first().find('a');
                         }
                         self.filter.predicate = selected.data('value');
-                        $(this).find('span').text(selected.text());
+                        $(this).parent().find('.dropdown-toggle').text(selected.text());
                     })
                 .end()
                 .toggle(hasProperty);

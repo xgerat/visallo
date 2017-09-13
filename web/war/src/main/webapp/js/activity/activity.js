@@ -422,6 +422,25 @@ define([
                                 .append('li')
                                 .call(function() {
                                     this.append('div')
+                                        .attr('class', 'process')
+                                        .call(function() {
+                                            this.append('div')
+                                                .attr('class', 'type-container')
+
+                                            this.append('div')
+                                                .attr('class', 'progress-container')
+                                                .call(function() {
+                                                    this.append('button').attr('class', 'cancel')
+                                                    this.append('div').attr('class', 'progress')
+                                                        .append('div')
+                                                            .attr('class', 'bar')
+                                                })
+                                            this.append('div')
+                                                .attr('class', 'progress-description')
+
+                                        });
+
+                                    this.append('div')
                                         .attr('class', 'actions-container')
                                         .call(function() {
                                             this.append('div')
@@ -430,18 +449,7 @@ define([
                                                 .attr('class', 'btn btn-mini btn-danger delete')
                                                 .text(i18n('activity.process.button.dismiss'))
                                         })
-                                    this.append('div')
-                                        .attr('class', 'type-container')
-                                    this.append('div')
-                                        .attr('class', 'progress-container')
-                                        .call(function() {
-                                            this.append('button').attr('class', 'cancel')
-                                            this.append('div').attr('class', 'progress')
-                                                .append('div')
-                                                    .attr('class', 'bar')
-                                        })
-                                    this.append('div')
-                                        .attr('class', 'progress-description')
+
                                 });
                             this.exit()
                                 .each(function() {

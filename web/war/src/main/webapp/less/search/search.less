@@ -401,9 +401,10 @@ width: 215px;
 
     .header {
       display: flex;
+      flex-direction: column;
 
       & > label { flex: 1 1 auto;  }
-      & > .remove-icon { flex: 0 0 auto;  }
+      & > .remove-icon { flex: 0 0 20px;  }
       & > .dropdown { flex: 0 0 auto;  }
 
       label {
@@ -413,18 +414,38 @@ width: 215px;
         position: relative;
         flex: 1 1 auto;
         display: flex;
-        flex-wrap: wrap;
         margin-left: 0.5em;
+        margin-bottom: 0;
+
+        overflow: hidden;
+
         & > span {
-          flex: 1 0 auto;
+          flex: 0 1 100%;
           margin-right: 0.5em;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
-        .dropdown {
-          position: static;
-          display: inline;
-          margin-right: 0.25em;
+      }
+
+      .dropdown {
+        position: relative;
+        margin: 0 0.25em 0 0.5em;
+
+        .dropdown-toggle {
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+
+          &:after {
+            content: '▾';
+            padding-left: 3px;
+          }
         }
-        .caret { margin-top: 9px; }
+
+        &.open .dropdown-toggle:after {
+          transform: rotate(90deg);
+        }
       }
     }
   }
@@ -546,11 +567,15 @@ width: 215px;
   li.invalid {
     .dropdown-toggle {
       color: @invalid;
-      b.caret {    
+      &:after {
         border-top-color: @invalid;
         border-bottom-color: @invalid;
       }
     }
+  }
+
+  li.newrow  {
+    margin-top: 0.5em;
   }
 
  

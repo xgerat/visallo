@@ -683,28 +683,31 @@ define([
                     });
 
                 this.select('.property-name strong')
-                    .text(function(d) {
-                        if (previousPropertyName === d.name) {
-                            return '';
-                        }
-                        previousPropertyName = d.name;
+                    .attr('title', getDisplayName)
+                    .text(getDisplayName);
 
-                        if (isVisibility(d)) {
-                            return i18n('visibility.label');
-                        }
+                function getDisplayName(property) {
+                    if (previousPropertyName === property.name) {
+                        return '';
+                    }
+                    previousPropertyName = property.name;
 
-                        if (d.property.displayName) {
-                            return d.property.displayName;
-                        }
+                    if (isVisibility(property)) {
+                        return i18n('visibility.label');
+                    }
 
-                        var ontologyProperty = ontologyProperties.byTitle[d.name];
-                        if (ontologyProperty) {
-                            return ontologyProperty.displayName;
-                        }
+                    if (property.property.displayName) {
+                        return property.property.displayName;
+                    }
 
-                        console.warn('No ontology definition for ', d.name);
-                        return d.name;
-                    });
+                    var ontologyProperty = ontologyProperties.byTitle[property.name];
+                    if (ontologyProperty) {
+                        return ontologyProperty.displayName;
+                    }
+
+                    console.warn('No ontology definition for ', property.name);
+                    return property.name;
+                }
 
                 this.select('.property-value .value')
                     .each(function() {

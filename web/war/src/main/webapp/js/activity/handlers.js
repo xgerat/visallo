@@ -1,5 +1,5 @@
 
-define([], function() {
+define(['util/formatters'], function(F) {
     'use strict';
 
     return [
@@ -47,7 +47,7 @@ define([], function() {
                             var source = F.vertex.title(vertices[0]),
                                 dest = F.vertex.title(vertices[1]);
 
-                            el.textContent = source + ' → ' + dest;
+                            el.textContent = F.string.truncate(source, 8) + ' → ' + F.string.truncate(dest, 8);
                             $('<div>')
                                 .css({ fontSize: '90%' })
                                 .text(i18n('popovers.find_path.hops.option', process.hops))
