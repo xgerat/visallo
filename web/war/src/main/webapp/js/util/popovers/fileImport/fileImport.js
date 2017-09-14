@@ -70,6 +70,14 @@ define([
             individualVisibilitySelector: '.individual-visibility'
         });
 
+        this.before('teardown', function() {
+            this.popover
+                .find(this.attr.justificationSelector)
+                .add(this.attr.visibilityInputSelector)
+                .add(this.attr.conceptSelector)
+                .teardownAllComponents();
+        });
+
         this.after('teardown', function() {
             if (this.request && this.request.cancel) {
                 this.request.cancel();

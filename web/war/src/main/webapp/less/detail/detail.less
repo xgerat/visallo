@@ -136,12 +136,14 @@
   .currentTranscript {
       color: white;
       background: black;
-      //padding: 0.5em;
       margin-bottom: 1em;
+      @padding: 0.5em;
 
       .time {
           font-size: 85%;
           .av-time-display;
+          padding: @padding;
+          padding-bottom: 0;
       }
 
       .transcriptText {
@@ -149,6 +151,7 @@
           text-overflow: ellipsis;
           overflow: hidden;
           white-space: nowrap;
+          padding: 0 @padding @padding @padding;
       }
   }
 
@@ -351,9 +354,17 @@
     // When dropdown is opened
     &.dropdown .vertex, &.dropdown .property { 
       color:@fade-color;
-
-      &.focused {
-        color: @normal-color;
+    }
+    &.dropdown {
+      ::selection,
+      &::selection {
+        background: fadeout(@blue-color, 75%);
+        color: @blue-color;
+      }
+      ::-moz-selection,
+      &::-moz-selection {
+        background: fadeout(@blue-color, 75%);
+        color: @blue-color;
       }
     }
   }
@@ -638,17 +649,19 @@
   }
 
   .org-visallo-texts {
-    .vertex, .artifact {
-      cursor: pointer;
-      border-bottom: 1px dotted black;
+    .text {
+      line-height: 1.4;
     }
-    .property.resolved {
+    .jref, .res {
       cursor: pointer;
+    }
+    .jref {
       font-style: italic;
+      font-weight: normal;
     }
-
     .resolved {
       font-weight: bold;
+      font-style: normal;
     }
   }
 }

@@ -16,7 +16,7 @@ define([
                              'with some more words than we\'ll capture</div>').appendTo(document.body);
 
                 expect(r.createSnippetFromNode(node.find('span')[0])).to.equal(
-                    'This is <span class="selection">a</span> sentence with some more...'
+                    'This is <span class="selection">a</span> sentence with some more…'
                 )
             })
 
@@ -37,7 +37,7 @@ define([
                     'This is <span class="selection">a</span> sentence'
                 )
             })
-            
+
             it('should not include text outside of the div', function() {
                 var node = $('<p>More</p><div class="text">This is <span>a</span> sentence</div><div>haha</div>')
                     .appendTo(document.body);
@@ -59,7 +59,7 @@ define([
                     range = selectionUtils.createRange(node, 'This is a [test] of the emergency broadcast system');
 
                 expect(r.createSnippetFromRange(range)).to.equal(
-                    'This is a <span class="selection">test</span> of the emergency broadcast...'
+                    'This is a <span class="selection">test</span> of the emergency broadcast…'
                 )
             })
         })

@@ -10,6 +10,7 @@ requirejs.config({
     }
 });
 
+//For debugging rjs issues in tests
 //requirejs.onResourceLoad = function(c, map) {
     //console.log(map.name)
 //}
@@ -45,6 +46,7 @@ requirejs(['/base/jsc/require.config.js'], function(cfg) {
             'data/web-worker/store/ontology/selectors': '../test/unit/mocks/ontologySelectors',
             'data/web-worker/store': '../test/unit/mocks/store',
             'data/web-worker/util/ajax': '../test/unit/mocks/ajax',
+            'public/v1/api': '../test/unit/mocks/api',
             testutils: '../test/unit/utils'
         },
 

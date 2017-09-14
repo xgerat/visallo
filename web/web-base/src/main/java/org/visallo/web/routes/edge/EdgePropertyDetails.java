@@ -6,18 +6,18 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
-import org.vertexium.Authorizations;
-import org.vertexium.Edge;
-import org.vertexium.Graph;
-import org.vertexium.Visibility;
+import org.vertexium.*;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiEdgePropertyDetails;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
+import org.visallo.web.clientapi.model.VisibilityJson;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.util.VisibilityValidator;
 
 import java.util.ResourceBundle;
@@ -46,6 +46,7 @@ public class EdgePropertyDetails implements ParameterizedHandler {
             @Optional(name = "propertyKey") String propertyKey,
             @Required(name = "propertyName") String propertyName,
             @Required(name = "visibilitySource") String visibilitySource,
+            @ActiveWorkspaceId String workspaceId,
             ResourceBundle resourceBundle,
             User user,
             Authorizations authorizations
@@ -64,7 +65,19 @@ public class EdgePropertyDetails implements ParameterizedHandler {
             throw new VisalloResourceNotFoundException("Could not find edge with id: " + edgeId, edgeId);
         }
 
-        ClientApiSourceInfo sourceInfo = termMentionRepository.getSourceInfoForEdgeProperty(edge, propertyKey, propertyName, visibility, authorizations);
+        Property property = edge.getProperty(propertyKey, propertyName, visibility);
+        if (property == null) {
+            VisibilityJson visibilityJson = new VisibilityJson();
+            visibilityJson.setSource(visibilitySource);
+            visibilityJson.addWorkspace(workspaceId);
+            VisalloVisibility v2 = visibilityTranslator.toVisibility(visibilityJson);
+            property = edge.getProperty(propertyKey, propertyName, v2.getVisibility());
+            if (property == null) {
+                throw new VisalloResourceNotFoundException("Could not find property " + propertyKey + ":" + propertyName + ":" + visibility + " on edge with id: " + edgeId, edgeId);
+            }
+        }
+
+        ClientApiSourceInfo sourceInfo = termMentionRepository.getSourceInfoForEdgeProperty(edge, property, authorizations);
 
         ClientApiEdgePropertyDetails result = new ClientApiEdgePropertyDetails();
         result.sourceInfo = sourceInfo;

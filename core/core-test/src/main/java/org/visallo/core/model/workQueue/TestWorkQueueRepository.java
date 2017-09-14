@@ -40,7 +40,13 @@ public class TestWorkQueueRepository extends WorkQueueRepository {
     }
 
     public void clearQueue() {
+        broadcastJsonValues.clear();
         queues.clear();
+    }
+
+    public JSONObject getLastBroadcastedJson() {
+        int size = broadcastJsonValues.size();
+        return size > 0 ? broadcastJsonValues.get(size - 1) : null;
     }
 
     @Override

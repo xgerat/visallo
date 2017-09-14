@@ -35,21 +35,24 @@ define([
             this.$node.html(template({}));
             this.updateTitle();
 
-            this.on('selectObjects', function(e, d) {
-                e.stopPropagation();
-                e.preventDefault();
-
-                var vertexIds = _.compact(_.isArray(d.vertexIds) ? d.vertexIds : [d.vertexIds]);
-                var edgeIds = _.compact(_.isArray(d.edgeIds) ? d.edgeIds : [d.edgeIds]);
-
-                self.updateItems({
-                    add: {
-                        vertexIds: vertexIds,
-                        edgeIds: edgeIds
+            visalloData.storePromise.then(store => {
+                let p;
+                store.subscribe(() => {
+                    const s = store.getState();
+                    if (s.selection) {
+                        if (!p || s.selection !== p) {
+                            const elements = s.selection.idsByType
+                            const { vertices: vertexIds, edges: edgeIds } = elements;
+                            this.updateItems({
+                                add: { vertexIds, edgeIds }
+                            });
+                        }
+                        p = s.selection;
                     }
-                });
-            });
+                })
+            })
             this._windowIsHidden = false;
+            this.on(document, 'openFullscreen', this.onOpenFullscreen);
             this.on(document, 'window-visibility-change', this.onVisibilityChange);
             this.on(document, 'vertexUrlChanged', this.onVertexUrlChange);
             this.on('click', {
@@ -67,6 +70,27 @@ define([
 
             this.switchWorkspace(this.attr.workspaceId);
         });
+
+        this.onOpenFullscreen = function(event, data) {
+            if (!data) return;
+
+            let F;
+            Promise.require('util/vertex/formatters')
+                .then(function(_F) {
+                    F = _F;
+                    return F.vertex.getVertexAndEdgeIdsFromDataEventOrCurrentSelection(data, { async: true });
+                })
+                .then(function({ vertexIds, edgeIds }) {
+                    var url = F.vertexUrl.url(
+                        [
+                            ...vertexIds.map(v => `v${v}`),
+                            ...edgeIds.map(e => `e${e}`)
+                        ],
+                        visalloData.currentWorkspaceId
+                    );
+                    window.open(url);
+                })
+        };
 
         this.clearFlashing = function() {
             clearTimeout(this.timer);
@@ -260,7 +284,7 @@ define([
 
                 this.on('finishedLoadingTypeContent', function handler() {
                     this.off('finishedLoadingTypeContent', handler);
-                    this.$node.find('.org-visallo-layout-body').css('flex', 'none');
+                    this.$node.find('.org-visallo-layout-body').css({ flex: 'none', overflow: 'visible' });
                     this.$node.find('.org-visallo-layout-root').css('overflow', 'visible');
                 });
 

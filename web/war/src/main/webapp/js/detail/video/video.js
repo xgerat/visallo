@@ -132,7 +132,7 @@ define([
                     (_.isUndefined(entry.end) ? '' : formatTimeOffset(entry.end));
                 html = transcriptEntryTemplate({
                     time: timeLabel,
-                    text: entry.text
+                    text: formatTranscript(entry.text)
                 });
             }
             this.select('currentTranscriptSelector').html(html);
@@ -172,6 +172,12 @@ define([
             }
         }
         return null;
+    }
+
+    function formatTranscript(text) {
+        var div = document.createElement('div')
+        div.innerHTML = text;
+        return div.textContent;
     }
 
     function formatTimeOffset(time) {

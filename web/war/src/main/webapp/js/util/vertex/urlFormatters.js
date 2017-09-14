@@ -10,6 +10,9 @@ define([], function() {
         },
         V = {
             url: function(vertices, workspaceId) {
+                if (!workspaceId) {
+                    workspaceId = visalloData.currentWorkspaceId;
+                }
                 return window.location.href.replace(/#.*$/, '') +
                     '#v=' + _.map(vertices, function(v) {
                         if (_.isObject(v) && 'type' in v) {
@@ -20,8 +23,9 @@ define([], function() {
                             }
                         }
                         return encodeURIComponent(_.isString(v) ? v : v.id);
-                    }).join(',') +
-                    '&w=' + encodeURIComponent(workspaceId);
+                    }).join(',') + (
+                        workspaceId ? ('&w=' + encodeURIComponent(workspaceId)) : ''
+                    )
             },
 
             fragmentUrl: function(vertices, workspaceId) {

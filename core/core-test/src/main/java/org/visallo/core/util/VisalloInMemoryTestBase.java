@@ -215,7 +215,12 @@ public abstract class VisalloInMemoryTestBase {
                 getGraph(),
                 workQueueNames,
                 getConfiguration()
-        );
+        ) {
+            @Override
+            protected UserRepository getUserRepository() {
+                return VisalloInMemoryTestBase.this.getUserRepository();
+            }
+        };
         return workQueueRepository;
     }
 

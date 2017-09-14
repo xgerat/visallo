@@ -107,7 +107,7 @@ define([
                     });
 
                     self.on('open.actionbar', function() {
-                        self.trigger('selectObjects', { vertexIds: property.value.resolvedVertexId });
+                        self.trigger('selectObjects', { vertexIds: [property.value.resolvedVertexId] });
                     });
                     self.on('unresolve.actionbar', function() {
                         self.dataRequest('vertex', 'store', { vertexIds: property.value.resolvedVertexId })
@@ -308,7 +308,6 @@ define([
                         const elements = { vertexIds: [vertexId] };
                         const dt = event.originalEvent.dataTransfer;
 
-                        dt.effectAllowed = 'all';
                         dnd.setDataTransferWithElements(dt, elements);
                     });
             })

@@ -3,9 +3,17 @@ define([
 ], function(withDataRequest) {
     'use strict';
 
+    var _PropertyInfo;
+
     return withPropertyInfo;
 
     function withPropertyInfo() {
+
+        this.after('initialize', function() {
+            this.on(document, 'objectsSelected', function() {
+                if (_PropertyInfo) _PropertyInfo.teardownAll();
+            })
+        })
 
         this.showPropertyInfo = function(button, data, property) {
             var $target = $(button),
@@ -19,11 +27,13 @@ define([
                     ontologyProperties = results.shift(),
                     ontologyProperty = ontologyProperties && property && property.name && ontologyProperties.byTitle[property.name];
 
+                _PropertyInfo = PropertyInfo;
                 if (shouldOpen) {
                     PropertyInfo.teardownAll();
                     PropertyInfo.attachTo($target, {
                         data: data,
                         property: property,
+                        preferredPosition: 'below',
                         ontologyProperty: ontologyProperty
                     });
                 } else {

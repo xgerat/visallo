@@ -32,6 +32,13 @@ define([
             justificationValueSelector: 'a'
         });
 
+        this.before('teardown', function() {
+            this.$node
+                .find('.property-value')
+                .add('.justificationValue')
+                .teardownAllComponents();
+        });
+
         this.before('initialize', function(node, config) {
             config.manualSetup = true;
         });

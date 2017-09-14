@@ -40,7 +40,9 @@ define([
             vertexContainerSelector: '.vertex-select-container',
             visibilitySelector: '.visibility',
             justificationSelector: '.justification',
-            visibilityInputSelector: '.visibility input'
+            visibilityInputSelector: '.visibility input',
+            allowDeleteProperty: true,
+            allowEditProperty: true
         });
 
         this.before('initialize', function(n, c) {
@@ -59,7 +61,7 @@ define([
                 deleteButtonSelector: this.onDelete,
                 previousValuesSelector: this.onPreviousValuesButtons
             });
-            this.on('keyup', {
+            this.on('keyup keydown', {
                 configurationFieldSelector: this.onKeyup,
                 justificationSelector: this.onKeyup,
                 visibilityInputSelector: this.onKeyup
@@ -79,7 +81,8 @@ define([
             });
             this.$node.html(template({
                 property: property,
-                vertex: vertex
+                vertex: vertex,
+                loading: this.attr.loading
             }));
 
             this.select('saveButtonSelector').attr('disabled', true);
@@ -98,7 +101,9 @@ define([
             } else if (!vertex) {
                 this.on('vertexSelected', this.onVertexSelected);
                 VertexSelector.attachTo(this.select('vertexContainerSelector'), {
-                    value: ''
+                    value: '',
+                    focus: true,
+                    defaultText: i18n('vertex.field.placeholder')
                 });
                 this.manualOpen();
             } else {
@@ -115,7 +120,7 @@ define([
                 filter.conceptId = conceptType;
             }
 
-            const propertyNode = this.select('propertyListSelector');
+            const propertyNode = this.select('propertyListSelector').show();
             propertyNode.one('rendered', () => {
                 this.on('opened', () => {
                     propertyNode.find('input').focus()
@@ -137,14 +142,18 @@ define([
         this.onVertexSelected = function(event, data) {
             event.stopPropagation();
 
-            if (data.item && data.item.properties) {
-                this.attr.data = data.item;
+            if (data.vertex) {
+                this.attr.data = data.vertex;
                 this.setupPropertySelectionField();
+            } else {
+                this.select('propertyListSelector').hide();
             }
+            this.trigger('propFormVertexChanged', data);
         };
 
         this.after('teardown', function() {
             this.select('visibilitySelector').teardownAllComponents();
+            this.select('vertexContainerSelector').teardownComponent(VertexSelector);
 
             if (this.$node.closest('.buttons').length === 0) {
                 this.$node.closest('tr').remove();
@@ -238,6 +247,8 @@ define([
                 visibility = self.select('visibilitySelector'),
                 justification = self.select('justificationSelector');
 
+            this.trigger('propFormPropertyChanged', data);
+
             if (!property) {
                 config.hide();
                 visibility.hide();
@@ -290,7 +301,7 @@ define([
                 previousValuesUniquedByKey = null;
             }
 
-            if (data.fromPreviousValuePrompt !== true) {
+            if (data.fromPreviousValuePrompt !== true && this.attr.allowEditProperty) {
                 if (previousValuesUniquedByKeyUpdateable && previousValuesUniquedByKeyUpdateable.length) {
                     this.previousValues = previousValuesUniquedByKeyUpdateable;
                     this.previousValuesPropertyName = propertyName;
@@ -319,7 +330,8 @@ define([
             var deleteButton = this.select('deleteButtonSelector')
                 .toggle(
                     !!isExistingProperty &&
-                    !isEditingVisibility
+                    !isEditingVisibility &&
+                    this.attr.allowDeleteProperty
                 );
 
             var button = this.select('saveButtonSelector')
@@ -469,21 +481,7 @@ define([
             var self = this;
 
             this.justification = data;
-            const metadata = this.currentProperty.metadata;
-            this.modified.justification = metadata && 'http://visallo.org#visibilityJson' in metadata ? justificationModified() : !!this.justification.justificationText;
             this.checkValid();
-
-            function justificationModified() {
-                var previousJustification = self.currentProperty.metadata['http://visallo.org#justification'],
-                    currentJustificationText = self.justification && self.justification.hasOwnProperty('justificationText') ?
-                        self.justification.justificationText : undefined;
-
-                if (previousJustification !== undefined) {
-                    return currentJustificationText !== previousJustification.justificationText;
-                } else {
-                    return !!currentJustificationText;
-                }
-            }
         };
 
         this.onPropertyInvalid = function(event, data) {
@@ -580,7 +578,13 @@ define([
         };
 
         this.onKeyup = function(evt) {
-            if (evt.which === $.ui.keyCode.ENTER) {
+            const valid = evt.which === $.ui.keyCode.ENTER &&
+                $(evt.target).is('.configuration *,.visibility *,.justification *');
+
+            if (evt.type === 'keydown') {
+                this._keydownValid = valid;
+            } else if (this._keydownValid && valid) {
+                this._keydownValid = false;
                 this.onSave();
             }
         };
@@ -603,11 +607,13 @@ define([
                 propertyKey = this.currentProperty.key,
                 propertyName = this.currentProperty.title,
                 value = this.currentValue,
-                justification = _.pick(this.justification || {}, 'sourceInfo', 'justificationText'),
                 oldMetadata = this.currentProperty.metadata,
+                { sourceInfo, justificationText } = this.justification,
+                justification = sourceInfo ? { sourceInfo } : justificationText ? { justificationText } : {},
                 oldVisibilitySource = oldMetadata && oldMetadata['http://visallo.org#visibilityJson']
                     ? oldMetadata['http://visallo.org#visibilityJson'].source
                     : undefined;
+
 
             _.defer(this.buttonLoading.bind(this, this.attr.saveButtonSelector));
 
@@ -627,14 +633,16 @@ define([
                 this.trigger('addProperty', {
                     isEdge: F.vertex.isEdge(this.attr.data),
                     vertexId: this.attr.data.id,
-                    property: $.extend({
-                            key: propertyKey,
-                            name: propertyName,
-                            value: value,
-                            visibilitySource: this.visibilitySource.value,
-                            oldVisibilitySource: oldVisibilitySource,
-                            metadata: this.currentMetadata
-                        }, justification),
+                    element: this.attr.data,
+                    property: {
+                        key: propertyKey,
+                        name: propertyName,
+                        value: value,
+                        visibilitySource: this.visibilitySource.value,
+                        oldVisibilitySource: oldVisibilitySource,
+                        metadata: this.currentMetadata,
+                        ...justification
+                    },
                     node: this.node
                 });
             }

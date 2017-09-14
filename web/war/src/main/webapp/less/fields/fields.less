@@ -82,6 +82,7 @@ input.invalid:focus, textarea.invalid:focus, select.invalid:focus {
 }
 
 .justification {
+
   .animationwrap {
     .clearfix;
     &:after, &:before {
@@ -90,21 +91,48 @@ input.invalid:focus, textarea.invalid:focus, select.invalid:focus {
   }
   .viewing {
     margin-bottom: 0.5em;
+    font-size: 90%;
 
     .text {
-      display:block;
-      font-style: italic;
-      .selection {
-        .justification-selection;
+      max-height: 5.1em;
+      overflow: auto;
+      .text-inner {
+        font-style: italic;
+        padding: 0 0.5em 0.5em 0.5em;
+        .selection {
+          .justification-selection;
+        }
+        &:before { content: '\201C'; }
+        &:after { content: '\201D'; }
       }
-      &:before { content: '\201C'; }
-      &:after { content: '\201D'; }
     }
     .source {
+      margin: 0.5em;
+      margin-top: 0;
+      display: flex;
+      white-space: nowrap;
+      font-style: italic;
       strong {
         font-weight: normal;
+        margin-right: 0.25em;
       }
-      font-weight: bold;
+      .ref-title {
+        flex: 1 1 auto;
+        text-overflow: ellipsis;
+        font-weight: bold;
+        overflow: hidden;
+        width: 0;
+        text-align: left;
+      }
+      .btn-link {
+        border: 0;
+        font-size: inherit;
+        font-weight: bold;
+        line-height: inherit;
+        margin: 0;
+        padding: 0;
+        vertical-align: inherit;
+      }
     }
     .offsets {
       font-size: 80%;
@@ -116,12 +144,12 @@ input.invalid:focus, textarea.invalid:focus, select.invalid:focus {
       text-transform: lowercase;
       text-shadow: none;
       font-size: 100%;
-      margin: 0 0 1em;
+      margin: 0;
+      margin-left: 0.25em;
       padding: 0;
       background: none;
       border: 0;
       vertical-align: baseline;
-      float: right;
       width: auto;
     }
   }

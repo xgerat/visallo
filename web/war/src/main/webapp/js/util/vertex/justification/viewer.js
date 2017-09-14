@@ -37,70 +37,41 @@
  */
 define([
     'flight/lib/component',
-    './viewerTpl.hbs',
-    'util/withDataRequest',
-    'util/vertex/formatters'
-], function(defineComponent, template, withDataRequest, F) {
-    'use strict';
+    'util/component/attacher',
+    'components/justification/JustificationViewer'
+], function(defineComponent, Attacher, JustificationViewerReact) {
 
-    return defineComponent(JustificationViewer, withDataRequest);
+    return defineComponent(JustificationViewer);
 
     function JustificationViewer() {
 
-        this.defaultAttrs({
-            sourceInfoTitleSelector: '.sourceInfoTitle'
+        this.before('teardown', function() {
+            if (this.attacher) {
+                this.attacher.teardown();
+                this.attacher = null;
+            }
         })
 
         this.after('initialize', function() {
-            var self = this;
 
-            if (this.attr.linkToSource === undefined) {
-                this.attr.linkToSource = this.$node.closest('a').length === 0;
+            const { linkToSource = true, sourceMetadata: sourceInfo, justificationMetadata } = this.attr;
+            const params = {
+                linkToSource,
+                value: {}
             }
 
-            this.$node.html(
-                template(_.pick(this.attr, 'justificationMetadata', 'sourceMetadata', 'linkToSource'))
-            );
-
-            this.on('click', {
-                sourceInfoTitleSelector: this.onSourceInfo
-            });
-
-            if (this.attr.sourceMetadata) {
-                this.dataRequest('vertex', 'store', { vertexIds: this.attr.sourceMetadata.vertexId })
-                    .then(function(vertex) {
-                        var title = vertex && F.vertex.title(vertex) || i18n('popovers.property_info.title_unknown');
-                        self.select('sourceInfoTitleSelector')
-                            .text(title)
-                            .attr('title', title);
-
-                        self.trigger('positionDialog');
-                    });
-            } else {
-                this.$node.css({ maxHeight: '6em', overflowY: 'auto'})
+            if (sourceInfo) {
+                params.value.sourceInfo = sourceInfo;
+            } else if (justificationMetadata) {
+                params.value.justificationText = justificationMetadata.justificationText;
             }
+
+            this.attacher = Attacher()
+                .component(JustificationViewerReact)
+                .node(this.node)
+                .params(params)
+            this.attacher.attach();
         });
 
-        this.onSourceInfo = function(e) {
-            e.preventDefault();
-
-            var metadata = this.attr.sourceMetadata,
-                vertexId = metadata.vertexId,
-                textPropertyKey = metadata.textPropertyKey,
-                textPropertyName = metadata.textPropertyName,
-                offsets = [metadata.startOffset, metadata.endOffset];
-
-            this.trigger(document, 'selectObjects', {
-                vertexIds: [vertexId],
-                options: {
-                    focus: {
-                        vertexId: vertexId,
-                        textPropertyKey: textPropertyKey,
-                        textPropertyName: textPropertyName,
-                        offsets: offsets
-                    }
-                }
-            })
-        };
     }
 });

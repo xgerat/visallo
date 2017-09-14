@@ -81,9 +81,11 @@ define([
                     return ajax('POST', query.url, query.parameters);
                 })
                 .tap(function({ elements, referencedElements }) {
-                    storeHelper.putSearchResults(elements)
-                    if (referencedElements) {
+                    if (options.disableResultCache !== true) {
                         storeHelper.putSearchResults(elements)
+                        if (referencedElements) {
+                            storeHelper.putSearchResults(referencedElements)
+                        }
                     }
                 })
         },
@@ -401,11 +403,12 @@ define([
                  propertyName: property.name,
                  value: property.value,
                  visibilitySource: property.visibilitySource,
-                 oldVisibilitySource: property.oldVisibilitySource,
-                 justificationText: property.justificationText
+                 oldVisibilitySource: property.oldVisibilitySource
             }, function(params) {
                 if (property.sourceInfo) {
                     params.sourceInfo = JSON.stringify(property.sourceInfo);
+                } else if (property.justificationText) {
+                    params.justificationText = property.justificationText;
                 }
                 if (!_.isUndefined(property.key)) {
                     params.propertyKey = property.key;

@@ -65,8 +65,13 @@ define([
         };
 
         this.onVertexSelected = function(event, data) {
-            this.sign = data.sign;
-            this.graphVertexChanged(data.vertexId, data.item);
+            if (data && data.vertex) {
+                this.sign = F.vertex.title(data.vertex);
+                this.graphVertexChanged(data.vertex.id, data.vertex);
+            } else {
+                this.sign = data.sign;
+                this.graphVertexChanged(null, null);
+            }
         };
 
         this.graphVertexChanged = function(newGraphVertexId, item, initial) {
@@ -249,6 +254,10 @@ define([
                     visibilitySource: this.visibilitySource ? this.visibilitySource.value : ''
                 };
 
+            if (!parameters.graphVertexId) {
+                delete parameters.graphVertexId;
+            }
+
             if (this.justification && this.justification.justificationText) {
                 parameters.justificationText = this.justification.justificationText;
             }
@@ -378,9 +387,7 @@ define([
             VertexSelector.attachTo(this.select('vertexContainerSelector'), {
                 value: objectSign || '',
                 filterResultsToTitleField: true,
-                allowNew: true,
-                defaultText: i18n('detail.resolve.form.entity_search.placeholder'),
-                allowNewText: i18n('detail.resolve.form.entity_search.resolve_as_new')
+                defaultText: i18n('detail.resolve.form.entity_search.placeholder')
             });
 
             this.graphVertexChanged(graphVertexId, data, true);

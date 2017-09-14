@@ -4,6 +4,19 @@
     color: white;
   }
 
+  .buttons {
+    clear: both;
+    text-align: right;
+
+    .btn-danger { float: left; }
+
+    .badge.loading {
+      float: none;
+      position: relative;
+      top: 1ex;
+    }
+  }
+
   .previous-values-container {
     position: relative;
 
@@ -50,85 +63,6 @@
     }
   }
 
-  .relationship-info {
-    display: flex;
-    margin-bottom: 1em;
-  }
-  .src-term, .dest-term {
-    flex: 0 1 auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 30%;
-    white-space: nowrap;
-
-    span {
-      text-shadow: 0 1px 0 rgba(255,255,255,0.8);
-      word-wrap: normal;
-    }
-    background-repeat: no-repeat;
-    background-size: auto 20px;
-  }
-  .src-term {
-    text-align: left;
-    padding-left: 40px;    
-    background-position: center left;
-    order: 1;
-  }
-  .dest-term {
-    text-align: right;
-    padding-right: 40px;
-    background-position: center right;
-    order: 3;
-  }
-  &.invert {
-    .src-term {
-      order: 3;
-      text-align: right;
-      padding-right: 40px;
-      padding-left: 0;
-      background-position: center right;
-    }
-    .dest-term {
-      order: 1;
-      text-align: left;
-      padding-left: 40px;    
-      padding-right: 0;
-      background-position: center left;
-    }
-  }
-  .arrow-wrap {
-    flex: 1 0 auto;
-    order: 2;
-    margin: 0 1em;
-    text-align: center;
-
-    a {
-      text-align: center;
-      position: relative;
-      top: -1ex;
-    }
-    .arrow {
-      height: 1px;
-      width: 100%;
-      background: #999;
-      position: relative;
-      top: 50%;
-      &:after {
-        content: '';
-        display:block;
-        position:absolute;
-        left:100%;
-        width:0;
-        height:0;
-        border-width:5px 0 5px 10px;
-        border-color: transparent transparent transparent #999; 
-        border-style: solid;
-        top:-4px;
-        margin-left:-9px
-      }
-    }
-  }
-
   .vertex-selection {
     position: relative;
     .preview {
@@ -159,6 +93,9 @@
 
       &.loading {
         left: auto;
+        right: 5px;
+        top: 50%;
+        transform: translate(0, -50%);
       }
     }
   }
@@ -174,6 +111,9 @@
     .concept-type { 
       color: #999;
       font-size: 80%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .existing {
@@ -233,9 +173,7 @@
   .justification {
     clear: both;
     .viewing .text {
-      margin: 0.25em 0;
-      max-height: 6em;
-      overflow-y: auto;
+      margin-top: 0.25em;
     }
   }
 }

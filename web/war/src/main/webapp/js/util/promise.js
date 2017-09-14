@@ -130,7 +130,9 @@
                 // See Promise.onPossiblyUnhandledRejection for parameter documentation
                 e.preventDefault();
                 // Causes better stack traces (source map support) over console.log
-                throw e.detail.reason;
+                if (e && e.detail && e.detail.reason) throw e.detail.reason;
+                else if (e && e.reason) throw e.reason;
+                else throw e;
             });
         }
 

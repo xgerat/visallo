@@ -1,6 +1,7 @@
 package org.visallo.core.model.user;
 
 import com.google.common.collect.Sets;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,12 +9,16 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.HashMapConfigurationLoader;
+import org.visallo.core.model.WorkQueueNames;
+import org.visallo.core.model.workQueue.TestWorkQueueRepository;
 import org.visallo.core.user.User;
+import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloInMemoryTestBase;
 
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -49,9 +54,12 @@ public class UserPropertyAuthorizationRepositoryTest extends VisalloInMemoryTest
             }
         };
 
+        ((TestWorkQueueRepository) getWorkQueueRepository()).clearQueue();
+
         user2 = getUserRepository().findOrAddUser("user2", "User 2", "user2@visallo.com", "password");
         userPropertyAuthorizationRepository.setAuthorizations(user2, Collections.emptySet(), user1);
     }
+
 
     @Test
     public void testGetAuthorizationsForNewUser() {
@@ -77,9 +85,19 @@ public class UserPropertyAuthorizationRepositoryTest extends VisalloInMemoryTest
         String authorization = "newAuth";
 
         userPropertyAuthorizationRepository.addAuthorization(user2, authorization, user1);
-        Set<String> privileges = userPropertyAuthorizationRepository.getAuthorizations(user2);
+        Set<String> authorizations = userPropertyAuthorizationRepository.getAuthorizations(user2);
 
-        assertEquals(Sets.newHashSet(authorizationsArray), privileges);
+        JSONObject broadcast = ((TestWorkQueueRepository) getWorkQueueRepository()).getLastBroadcastedJson();
+
+        assertNotNull("Should have broadcasted change", broadcast);
+        assertEquals("userAccessChange", broadcast.optString("type", null));
+        assertEquals(user2.getUserId(), broadcast.getJSONObject("permissions").getJSONArray("users").get(0));
+
+        Set expected = Sets.newHashSet(authorizationsArray);
+        Set broadcastedAuths = new HashSet(JSONUtil.toStringList(broadcast.getJSONObject("data").getJSONArray("authorizations")));
+
+        assertEquals(expected, broadcastedAuths);
+        assertEquals(Sets.newHashSet(authorizationsArray), authorizations);
     }
 
     @Test
@@ -87,9 +105,23 @@ public class UserPropertyAuthorizationRepositoryTest extends VisalloInMemoryTest
         String[] authorizationsArray = {"newAuth", "userRepositoryAuthorization1", "userRepositoryAuthorization2"};
         String authorization = "  newAuth  \n";
 
-        userPropertyAuthorizationRepository.addAuthorization(user2, authorization, user1);
-        Set<String> privileges = userPropertyAuthorizationRepository.getAuthorizations(user2);
+        WorkQueueNames workQueueNames = new WorkQueueNames(getConfiguration());
 
-        assertEquals(Sets.newHashSet(authorizationsArray), privileges);
+        userPropertyAuthorizationRepository.addAuthorization(user2, authorization, user1);
+        Set<String> authorizations = userPropertyAuthorizationRepository.getAuthorizations(user2);
+
+        JSONObject broadcast = ((TestWorkQueueRepository) getWorkQueueRepository()).getLastBroadcastedJson();
+
+        assertNotNull("Should have broadcasted change", broadcast);
+        assertEquals("userAccessChange", broadcast.optString("type", null));
+        assertEquals(user2.getUserId(), broadcast.getJSONObject("permissions").getJSONArray("users").get(0));
+
+
+        Set expected = Sets.newHashSet(authorizationsArray);
+        Set broadcastedAuths = new HashSet(JSONUtil.toStringList(broadcast.getJSONObject("data").getJSONArray("authorizations")));
+
+        assertEquals(expected, broadcastedAuths);
+        assertEquals(expected, authorizations);
     }
+
 }

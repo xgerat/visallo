@@ -10,15 +10,22 @@ function(defineComponent) {
     function MouseOverlay() {
 
         this.after('initialize', function() {
-            this.overlayNode = $('<div class="tooltip fade right in">' +
-                                 '<div class="tooltip-arrow"></div>' +
-                                 '<div class="tooltip-inner"></div></div>')
+            this.overlayNode = $(`
+                <div class="tooltip fade right in">
+                    <div class="tooltip-arrow"></div>
+                    <div class="tooltip-inner">
+                        <div class="message"></div>
+                        <div class="subtitle"></div>
+                    </div>
+                </div>`)
                 .css('transform', '')
                 .hide()
                 .appendTo(document.body);
 
             this.transformProperty = $.cssProps.transform;
             this.textNode = this.overlayNode.find('.tooltip-inner');
+            this.textNodeMessage = this.overlayNode.find('.message');
+            this.textNodeSubtitle = this.overlayNode.find('.subtitle');
 
             var $win = $(window);
             this.position = [$win.width() / 2, $win.height() / 2];
@@ -58,7 +65,15 @@ function(defineComponent) {
             if (!this.position) return;
 
             this.tracking = true;
-            this.textNode.text(data.message);
+            this.textNode.css('text-align', data.subtitle ? 'left' : 'center');
+            this.textNodeMessage
+                .css('font-weight', data.subtitle ? 'bold' : 'normal')
+                .text(data.message);
+            if (data.subtitle) {
+                this.textNodeSubtitle.text(data.subtitle);
+            } else {
+                this.textNodeSubtitle.empty();
+            }
             this.overlayNode
                 .css('transform',
                     'translate(' + this.position[0] + 'px,' + this.position[1] + 'px)'

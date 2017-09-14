@@ -1,6 +1,7 @@
 define([
     'react',
-    'create-react-class', 'prop-types',
+    'create-react-class',
+    'prop-types',
     'util/component/attacher'
 ], function(React, createReactClass, PropTypes, attacher) {
     'use strict';

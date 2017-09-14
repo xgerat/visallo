@@ -325,7 +325,6 @@ define([
                     .then(this.closePropertyForm.bind(this, data.node))
                     .catch(function(error) { self.requestFailure.call(self, error, data.node) });
             }
-
         };
 
         this.isStreamingPropertyVisibilityUpdate = function(data) {

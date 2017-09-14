@@ -8,7 +8,10 @@ define(['util/vertex/urlFormatters'], function(f) {
                 .should.equal(location.href + '#v=1%2C,2&w=work%20space')
 
             f.vertexUrl.url(['1,', '2'], '')
-                .should.equal(location.href + '#v=1%2C,2&w=')
+                .should.equal(location.href + '#v=1%2C,2&w=w1')
+
+            f.vertexUrl.url(['1,', '2'])
+                .should.equal(location.href + '#v=1%2C,2&w=w1')
         })
 
         it('should have be able to create fragments from vertices', function() {

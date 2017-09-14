@@ -58,6 +58,15 @@ define([
             });
         },
 
+        propertyDetails: function(edgeId, propertyName, propertyKey, visibilitySource = '') {
+            return ajax('GET', '/edge/property/details', {
+                edgeId,
+                propertyName,
+                propertyKey,
+                visibilitySource
+            });
+        },
+
         /**
          * Set visibility on a property
          *
@@ -99,11 +108,12 @@ define([
                  propertyName: property.name,
                  value: property.value,
                  visibilitySource: property.visibilitySource,
-                 oldVisibilitySource: property.oldVisibilitySource,
-                 justificationText: property.justificationText
+                 oldVisibilitySource: property.oldVisibilitySource
             }, function(params) {
                 if (property.sourceInfo) {
                     params.sourceInfo = JSON.stringify(property.sourceInfo);
+                } else if (property.justificationText) {
+                    params.justificationText = property.justificationText;
                 }
                 if (!_.isUndefined(property.key)) {
                     params.propertyKey = property.key;

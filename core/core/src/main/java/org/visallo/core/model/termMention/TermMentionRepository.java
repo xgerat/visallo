@@ -5,17 +5,20 @@ import com.google.inject.Singleton;
 import org.vertexium.*;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.util.FilterIterable;
+import org.vertexium.util.IterableUtils;
 import org.vertexium.util.JoinIterable;
 import org.visallo.core.model.PropertyJustificationMetadata;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.util.ClientApiConverter;
+import org.visallo.core.util.SourceInfoSnippetSanitizer;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.ClientApiTermMentionsResponse;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -577,26 +580,8 @@ public class TermMentionRepository {
             Authorizations authorizations
     ) {
         Vertex inVertex = edge.getVertex(Direction.IN, authorizations);
-        Vertex outVertex = edge.getVertex(Direction.OUT, authorizations);
         addSourceInfoToVertex(
                 inVertex,
-                forElementId,
-                forType,
-                propertyKey,
-                propertyName,
-                propertyVisibility,
-                edge.getId(),
-                snippet,
-                textPropertyKey,
-                textPropertyName,
-                startOffset,
-                endOffset,
-                originalVertex,
-                visibility,
-                authorizations
-        );
-        addSourceInfoToVertex(
-                outVertex,
                 forElementId,
                 forType,
                 propertyKey,
@@ -664,17 +649,8 @@ public class TermMentionRepository {
             Authorizations authorizations
     ) {
         String inVertexId = edge.getVertexId(Direction.IN);
-        String outVertexId = edge.getVertexId(Direction.OUT);
         removeSourceInfoEdgeFromVertex(
                 inVertexId,
-                edge.getId(),
-                propertyKey,
-                propertyName,
-                visalloVisibility,
-                authorizations
-        );
-        removeSourceInfoEdgeFromVertex(
-                outVertexId,
                 edge.getId(),
                 propertyKey,
                 propertyName,
@@ -698,11 +674,11 @@ public class TermMentionRepository {
             return null;
         }
 
-        Iterable<Vertex> termMentions = vertex.getVertices(
+        List<Vertex> termMentions = IterableUtils.toList(vertex.getVertices(
                 Direction.IN,
                 VisalloProperties.TERM_MENTION_LABEL_RESOLVED_TO,
                 authorizationsWithTermMentions
-        );
+        ));
         for (Vertex termMention : termMentions) {
             if (forElementId != null && !forElementId.equals(
                     VisalloProperties.TERM_MENTION_FOR_ELEMENT_ID.getPropertyValue(termMention))) {
@@ -738,18 +714,16 @@ public class TermMentionRepository {
 
     public ClientApiSourceInfo getSourceInfoForEdgeProperty(
             Edge edge,
-            String propertyKey,
-            String propertyName,
-            Visibility visibility,
+            Property property,
             Authorizations authorizations
     ) {
         String inVertexId = edge.getVertexId(Direction.IN);
         Vertex termMention = findTermMention(
                 inVertexId,
                 edge.getId(),
-                propertyKey,
-                propertyName,
-                visibility,
+                property.getKey(),
+                property.getName(),
+                property.getVisibility(),
                 authorizations
         );
         return getSourceInfoFromTermMention(termMention, authorizations);
@@ -786,7 +760,9 @@ public class TermMentionRepository {
         result.textPropertyName = VisalloProperties.TERM_MENTION_PROPERTY_NAME.getPropertyValue(termMention);
         result.startOffset = VisalloProperties.TERM_MENTION_START_OFFSET.getPropertyValue(termMention);
         result.endOffset = VisalloProperties.TERM_MENTION_END_OFFSET.getPropertyValue(termMention);
-        result.snippet = VisalloProperties.TERM_MENTION_SNIPPET.getPropertyValue(termMention);
+        result.snippet = SourceInfoSnippetSanitizer.sanitizeSnippet(
+                VisalloProperties.TERM_MENTION_SNIPPET.getPropertyValue(termMention)
+        );
         return result;
     }
 
