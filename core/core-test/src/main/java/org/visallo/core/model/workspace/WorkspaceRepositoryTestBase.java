@@ -5,9 +5,13 @@ import org.json.JSONObject;
 import org.junit.Test;
 import org.vertexium.*;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
-import org.visallo.core.model.ontology.*;
+import org.visallo.core.model.ontology.Concept;
+import org.visallo.core.model.ontology.OntologyProperty;
+import org.visallo.core.model.ontology.OntologyPropertyDefinition;
+import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.user.UserPropertyPrivilegeRepository;
 import org.visallo.core.model.workQueue.Priority;
+import org.visallo.core.model.workspace.product.GetExtendedDataParams;
 import org.visallo.core.model.workspace.product.Product;
 import org.visallo.core.user.User;
 import org.visallo.core.util.SandboxStatusUtil;
@@ -90,7 +94,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         );
         String productId = product.getId();
 
-        product = getWorkspaceRepository().findProductById(workspace.getWorkspaceId(), productId, new JSONObject(), true, user);
+        product = getWorkspaceRepository().findProductById(workspace.getWorkspaceId(), productId, new GetExtendedDataParams(), true, user);
         assertEquals("value1", product.getExtendedData().get("key1"));
         assertEquals("value2", product.getExtendedData().get("key2"));
         Object value3 = product.getExtendedData().get("key3");
@@ -106,7 +110,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         params.put("extendedData", extendedData);
         getWorkspaceRepository().addOrUpdateProduct(workspace.getWorkspaceId(), productId, null, null, params, user);
 
-        product = getWorkspaceRepository().findProductById(workspace.getWorkspaceId(), productId, new JSONObject(), true, user);
+        product = getWorkspaceRepository().findProductById(workspace.getWorkspaceId(), productId, new GetExtendedDataParams(), true, user);
         assertEquals(null, product.getExtendedData().get("key1"));
         assertEquals("value2b", product.getExtendedData().get("key2"));
         value3 = product.getExtendedData().get("key3");
@@ -456,7 +460,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         assertTrue(response.getFailures().isEmpty());
 
         if (vertexiumObject instanceof Element) {
-            assertEquals(SandboxStatus.PUBLIC, SandboxStatusUtil.getSandboxStatus((Element)vertexiumObject, workspace.getWorkspaceId()));
+            assertEquals(SandboxStatus.PUBLIC, SandboxStatusUtil.getSandboxStatus((Element) vertexiumObject, workspace.getWorkspaceId()));
         } else {
             SandboxStatus[] propertySandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(Collections.singletonList((Property) vertexiumObject), workspace.getWorkspaceId());
             assertEquals(1, propertySandboxStatuses.length);
@@ -480,7 +484,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         assertEquals(expectedError, failures.get(0).getErrorMessage());
 
         if (vertexiumObject instanceof Element) {
-            assertEquals(SandboxStatus.PRIVATE, SandboxStatusUtil.getSandboxStatus((Element)vertexiumObject, workspace.getWorkspaceId()));
+            assertEquals(SandboxStatus.PRIVATE, SandboxStatusUtil.getSandboxStatus((Element) vertexiumObject, workspace.getWorkspaceId()));
         } else {
             SandboxStatus[] propertySandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(Collections.singletonList((Property) vertexiumObject), workspace.getWorkspaceId());
             assertEquals(1, propertySandboxStatuses.length);

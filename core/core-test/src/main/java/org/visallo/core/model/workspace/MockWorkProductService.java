@@ -1,9 +1,10 @@
 package org.visallo.core.model.workspace;
 
-import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
+import org.visallo.core.model.workspace.product.GetExtendedDataParams;
+import org.visallo.core.model.workspace.product.WorkProductExtendedData;
 import org.visallo.core.model.workspace.product.WorkProductService;
 import org.visallo.core.user.User;
 
@@ -11,15 +12,15 @@ public class MockWorkProductService implements WorkProductService {
     public static final String KIND = "org.visallo.core.model.workspace.MockWorkProduct";
 
     @Override
-    public JSONObject getExtendedData(
+    public WorkProductExtendedData getExtendedData(
             Graph graph,
             Vertex workspaceVertex,
             Vertex productVertex,
-            JSONObject params,
+            GetExtendedDataParams params,
             User user,
             Authorizations authorizations
     ) {
-        return new JSONObject();
+        return new WorkProductExtendedData();
     }
 
     @Override

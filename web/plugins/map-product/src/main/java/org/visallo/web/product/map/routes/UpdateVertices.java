@@ -5,7 +5,6 @@ import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
-import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
@@ -18,15 +17,18 @@ import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.model.workspace.product.UpdateProductEdgeOptions;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
-import org.visallo.core.util.JSONUtil;
+import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
 import org.visallo.web.product.map.MapWorkProductService;
+
+import java.util.Map;
 
 @Singleton
 public class UpdateVertices implements ParameterizedHandler {
@@ -68,7 +70,7 @@ public class UpdateVertices implements ParameterizedHandler {
             @SourceGuid String sourceGuid,
             User user
     ) throws Exception {
-        JSONObject updateVertices = new JSONObject(updates);
+        Map<String, UpdateProductEdgeOptions> updateVertices = ClientApiConverter.toClientApiMap(updates, UpdateProductEdgeOptions.class);
         Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
                 user,
                 WorkspaceRepository.VISIBILITY_STRING,
@@ -77,7 +79,7 @@ public class UpdateVertices implements ParameterizedHandler {
 
         workspaceHelper.updateEntitiesOnWorkspace(
                 workspaceId,
-                JSONUtil.toStringList(updateVertices.names()),
+                updateVertices.keySet(),
                 user
         );
 

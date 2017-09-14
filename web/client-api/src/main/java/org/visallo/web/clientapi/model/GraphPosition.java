@@ -1,10 +1,16 @@
 package org.visallo.web.clientapi.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import org.json.JSONObject;
 
 public class GraphPosition {
     private int x;
     private int y;
+
+    @JsonCreator
+    protected GraphPosition() {
+
+    }
 
     public GraphPosition(JSONObject position) {
         this(position.optInt("x", 0), position.optInt("y", 0));
@@ -82,5 +88,12 @@ public class GraphPosition {
         json.put("x", x);
         json.put("y", y);
         return json;
+    }
+
+    public static GraphPosition fromJSONObject(JSONObject json) {
+        if (json == null) {
+            return null;
+        }
+        return new GraphPosition(json);
     }
 }

@@ -6,8 +6,8 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
-import org.json.JSONObject;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.model.workspace.product.GetExtendedDataParams;
 import org.visallo.core.model.workspace.product.Product;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
@@ -32,7 +32,9 @@ public class ProductGet implements ParameterizedHandler {
             @ActiveWorkspaceId String workspaceId,
             User user
     ) throws Exception {
-        JSONObject params = paramsStr == null ? new JSONObject() : new JSONObject(paramsStr);
+        GetExtendedDataParams params = paramsStr == null
+                ? new GetExtendedDataParams()
+                : ClientApiConverter.toClientApi(paramsStr, GetExtendedDataParams.class);
         Product product = workspaceRepository.findProductById(workspaceId, productId, params, includeExtended, user);
         return ClientApiConverter.toClientApiProduct(product);
     }

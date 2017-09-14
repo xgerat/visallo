@@ -6,7 +6,6 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
-import org.json.JSONObject;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
@@ -20,10 +19,13 @@ import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
+import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
 import org.visallo.web.product.graph.GraphWorkProductService;
+import org.visallo.core.model.workspace.product.WorkProductVertex;
+import org.visallo.web.product.graph.model.GraphUpdateProductEdgeOptions;
 
 @Singleton
 public class CollapseVertices implements ParameterizedHandler {
@@ -52,7 +54,7 @@ public class CollapseVertices implements ParameterizedHandler {
     }
 
     @Handle
-    public JSONObject handle(
+    public WorkProductVertex handle(
             @Optional(name = "vertexId") String vertexId,
             @Required(name = "params") String paramsStr,
             @Required(name = "productId") String productId,
@@ -60,8 +62,8 @@ public class CollapseVertices implements ParameterizedHandler {
             @SourceGuid String sourceGuid,
             User user
     ) throws Exception {
-        JSONObject params = new JSONObject(paramsStr);
-        JSONObject nodeJson;
+        GraphUpdateProductEdgeOptions params = ClientApiConverter.toClientApi(paramsStr, GraphUpdateProductEdgeOptions.class);
+        WorkProductVertex results;
 
         if (!workspaceRepository.hasWritePermissions(workspaceId, user)) {
             throw new VisalloAccessDeniedException(
@@ -80,9 +82,11 @@ public class CollapseVertices implements ParameterizedHandler {
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.HIGH, user, authorizations)) {
             Vertex productVertex = graph.getVertex(productId, authorizations);
 
-            params.putOpt("id", vertexId);
+            if (params.getId() == null) {
+                params.setId(vertexId);
+            }
 
-            nodeJson = graphWorkProductService.addCompoundNode(ctx, productVertex, params, user, WorkspaceRepository.VISIBILITY.getVisibility(), authorizations);
+            results = graphWorkProductService.addCompoundNode(ctx, productVertex, params, user, WorkspaceRepository.VISIBILITY.getVisibility(), authorizations);
         } catch (Exception e) {
             throw new VisalloException("Could not collapse vertices in product: " + productId);
         }
@@ -92,6 +96,6 @@ public class CollapseVertices implements ParameterizedHandler {
 
         workQueueRepository.broadcastWorkProductChange(productId, clientApiWorkspace, user, sourceGuid);
 
-        return nodeJson;
+        return results;
     }
 }

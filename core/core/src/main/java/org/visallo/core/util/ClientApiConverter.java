@@ -1,6 +1,7 @@
 package org.visallo.core.util;
 
 import com.google.common.collect.Lists;
+import org.json.JSONObject;
 import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.type.GeoPoint;
@@ -599,5 +600,9 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
                 id.getTableName(),
                 id.getRowId()
         );
+    }
+
+    public static JSONObject clientApiToJSONObject(Object obj) {
+        return new JSONObject(clientApiToString(obj));
     }
 }

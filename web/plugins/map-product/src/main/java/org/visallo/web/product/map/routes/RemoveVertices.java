@@ -5,7 +5,6 @@ import com.google.inject.Singleton;
 import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
-import org.json.JSONArray;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
@@ -53,7 +52,7 @@ public class RemoveVertices implements ParameterizedHandler {
 
     @Handle
     public ClientApiSuccess handle(
-            @Required(name = "vertexIds[]") String[] vertexIds,
+            @Required(name = "vertexIds[]") String[] vertexIdsToRemove,
             @Required(name = "productId") String productId,
             @ActiveWorkspaceId String workspaceId,
             @SourceGuid String sourceGuid,
@@ -66,9 +65,7 @@ public class RemoveVertices implements ParameterizedHandler {
         );
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.HIGH, user, authorizations)) {
             Vertex productVertex = graph.getVertex(productId, authorizations);
-            JSONArray removeVertices = new JSONArray(vertexIds);
-
-            mapWorkProductService.removeVertices(ctx, productVertex, removeVertices, authorizations);
+            mapWorkProductService.removeVertices(ctx, productVertex, vertexIdsToRemove, authorizations);
         } catch (Exception e) {
             throw new VisalloException("Could not remove vertices from product: " + productId);
         }

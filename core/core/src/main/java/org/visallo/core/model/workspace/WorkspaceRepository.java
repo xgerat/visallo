@@ -28,6 +28,7 @@ import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.product.GetExtendedDataParams;
 import org.visallo.core.model.workspace.product.Product;
 import org.visallo.core.model.workspace.product.WorkProductService;
 import org.visallo.core.security.VisalloVisibility;
@@ -1091,7 +1092,7 @@ public abstract class WorkspaceRepository {
 
     public abstract void deleteProduct(String workspaceId, String productId, User user);
 
-    public abstract Product findProductById(String workspaceId, String productId, JSONObject params, boolean includeExtended, User user);
+    public abstract Product findProductById(String workspaceId, String productId, GetExtendedDataParams params, boolean includeExtended, User user);
 
     public abstract InputStream getProductPreviewById(String workspaceId, String productId, User user);
 

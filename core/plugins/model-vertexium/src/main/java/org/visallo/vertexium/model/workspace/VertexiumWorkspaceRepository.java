@@ -36,14 +36,13 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.*;
-import org.visallo.core.model.workspace.product.Product;
-import org.visallo.core.model.workspace.product.WorkProductService;
-import org.visallo.core.model.workspace.product.WorkProductServiceHasElements;
+import org.visallo.core.model.workspace.product.*;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.trace.Traced;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
+import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -850,7 +849,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             String workspaceId,
             Vertex productVertex,
             boolean includeExtended,
-            JSONObject workProductExtendedData,
+            WorkProductExtendedData workProductExtendedData,
             Authorizations authorizations,
             User user
     ) {
@@ -890,15 +889,18 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         return data;
     }
 
-    private JSONObject getProductExtendedDataJson(Vertex productVertex, JSONObject extendedData) {
+    private JSONObject getProductExtendedDataJson(Vertex productVertex, WorkProductExtendedData extendedData) {
+        JSONObject extendedDataJson;
         if (extendedData == null) {
-            extendedData = new JSONObject();
+            extendedDataJson = new JSONObject();
+        } else {
+            extendedDataJson = ClientApiConverter.clientApiToJSONObject(extendedData);
         }
         Iterable<Property> extendedDataProperties = WorkspaceProperties.PRODUCT_EXTENDED_DATA.getProperties(productVertex);
         for (Property extendedDataProperty : extendedDataProperties) {
-            extendedData.put(extendedDataProperty.getKey(), JSONUtil.parseObject(extendedDataProperty.getValue()));
+            extendedDataJson.put(extendedDataProperty.getKey(), JSONUtil.parseObject(extendedDataProperty.getValue()));
         }
-        return extendedData;
+        return extendedDataJson;
     }
 
     @Override
@@ -1185,7 +1187,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Override
-    public Product findProductById(String workspaceId, String productId, JSONObject params, boolean includeExtended, User user) {
+    public Product findProductById(String workspaceId, String productId, GetExtendedDataParams params, boolean includeExtended, User user) {
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
                 user,
                 VISIBILITY_STRING,
@@ -1198,7 +1200,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
 
         String kind = WorkspaceProperties.PRODUCT_KIND.getPropertyValue(productVertex);
         WorkProductService workProductService = getWorkProductServiceByKind(kind);
-        JSONObject extendedData = null;
+        WorkProductExtendedData extendedData = null;
         if (includeExtended) {
             checkNotNull(params, "params is required when getting extended data");
             extendedData = workProductService.getExtendedData(getGraph(), getVertex(workspaceId, user), productVertex, params, user, authorizations);
