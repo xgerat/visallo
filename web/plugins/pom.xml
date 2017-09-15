@@ -22,6 +22,5 @@
         <module>auth-username-password</module>
         <module>change-email</module>
         <module>change-password</module>
-        <module>notifications-clear-all</module>
     </modules>
 </project>

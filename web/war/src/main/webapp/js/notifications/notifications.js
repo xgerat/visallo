@@ -38,7 +38,7 @@ define([
             this.on(document, 'postLocalNotification', this.onPostLocalNotification);
             this.on(document, 'notificationActive', this.onNotificationActive);
             this.on(document, 'notificationDeleted', this.onNotificationDeleted);
-            this.on(document, 'dismissNotifications', this.onDismissNotifications);
+            this.on(document, 'notificationClearAll', this.onDismissAllNotifications);
 
             this.on('mouseover', {
                 notificationSelector: this.onMouseOver
@@ -163,8 +163,19 @@ define([
             } catch(e) { /*eslint no-empty:0*/ }
         };
 
-        this.onDismissNotifications = function(event, data) {
-            this.dismissNotification(data.notifications, data.options);
+        this.onDismissAllNotifications = function(event, data) {
+            var self = this;
+            this.dataRequest('notification', 'list')
+                .done(function (notifications) {
+                    var allNotifications = notifications.system.active.concat(notifications.user);
+                    var options = {
+                        markRead: true,
+                        userDismissed: false,
+                        immediate: true,
+                        animate: false
+                    };
+                    self.dismissNotification(allNotifications, options);
+                });
         }
 
         this.dismissNotification = function(notifications, options) {
