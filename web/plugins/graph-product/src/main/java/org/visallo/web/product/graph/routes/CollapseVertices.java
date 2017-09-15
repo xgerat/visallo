@@ -18,13 +18,13 @@ import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.model.workspace.product.WorkProductVertex;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
 import org.visallo.web.product.graph.GraphWorkProductService;
-import org.visallo.core.model.workspace.product.WorkProductVertex;
 import org.visallo.web.product.graph.model.GraphUpdateProductEdgeOptions;
 
 @Singleton
@@ -88,7 +88,7 @@ public class CollapseVertices implements ParameterizedHandler {
 
             results = graphWorkProductService.addCompoundNode(ctx, productVertex, params, user, WorkspaceRepository.VISIBILITY.getVisibility(), authorizations);
         } catch (Exception e) {
-            throw new VisalloException("Could not collapse vertices in product: " + productId);
+            throw new VisalloException("Could not collapse vertices in product: " + productId, e);
         }
 
         Workspace workspace = workspaceRepository.findById(workspaceId, user);

@@ -332,7 +332,7 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
         for (String id : removeVertices) {
             String edgeId = getEdgeId(productVertex.getId(), id);
             Edge productVertexEdge = ctx.getGraph().getEdge(edgeId, authorizations);
-            String parentId = GraphProductOntology.PARENT_NODE.getPropertyValue(productVertexEdge);
+            String parentId = GraphProductOntology.PARENT_NODE.getPropertyValue(productVertexEdge, ROOT_NODE_ID);
             List<String> children = GraphProductOntology.NODE_CHILDREN.getPropertyValue(productVertexEdge);
 
             if (children != null && children.size() > 0) {
@@ -435,8 +435,8 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
             if (children.size() == 0) {
                 ctx.getGraph().softDeleteVertex(parentId, authorizations);
 
-                String ancestorId = GraphProductOntology.PARENT_NODE.getPropertyValue(productVertexEdge);
-                if (ancestorId != null && ancestorId.equals(productVertex.getId())) {
+                String ancestorId = GraphProductOntology.PARENT_NODE.getPropertyValue(productVertexEdge, ROOT_NODE_ID);
+                if (ancestorId.equals(productVertex.getId())) {
                     removeChild(ctx, productVertex, parentId, ancestorId, visibility, authorizations);
                 }
             } else {
@@ -465,7 +465,7 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
         GraphUpdateProductEdgeOptions updateData = new GraphUpdateProductEdgeOptions();
         GraphPosition graphPosition;
 
-        String oldParentId = GraphProductOntology.PARENT_NODE.getPropertyValue(productVertexEdge);
+        String oldParentId = GraphProductOntology.PARENT_NODE.getPropertyValue(productVertexEdge, ROOT_NODE_ID);
         graphPosition = calculatePositionFromParents(ctx, productVertex, childId, oldParentId, parentId, authorizations);
 
         updateData.setPos(graphPosition);
@@ -494,8 +494,8 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
         boolean newParentIsDescendant = false;
         if (!newParentId.equals(ROOT_NODE_ID)) {
             Edge newParentEdge = ctx.getGraph().getEdge(getEdgeId(productVertex.getId(), newParentId), authorizations);
-            String parentNode = GraphProductOntology.PARENT_NODE.getPropertyValue(newParentEdge);
-            newParentIsDescendant = parentNode != null && parentNode.equals(oldParentId);
+            String parentNode = GraphProductOntology.PARENT_NODE.getPropertyValue(newParentEdge, ROOT_NODE_ID);
+            newParentIsDescendant = parentNode.equals(oldParentId);
         }
 
         GraphPosition parentOffset;
