@@ -38,6 +38,7 @@ define([
             this.on(document, 'postLocalNotification', this.onPostLocalNotification);
             this.on(document, 'notificationActive', this.onNotificationActive);
             this.on(document, 'notificationDeleted', this.onNotificationDeleted);
+            this.on(document, 'dismissNotifications', this.onDismissNotifications);
 
             this.on('mouseover', {
                 notificationSelector: this.onMouseOver
@@ -140,7 +141,7 @@ define([
                         var autoDismiss = self.autoDismissSeconds[updated.type];
                         if (autoDismiss > 0) {
                             _.delay(function() {
-                                self.dismissNotification(updated, {
+                                self.dismissNotification([updated], {
                                     markRead: false,
                                     userDismissed: true
                                 });
@@ -162,39 +163,47 @@ define([
             } catch(e) { /*eslint no-empty:0*/ }
         };
 
-        this.dismissNotification = function(notification, options) {
+        this.onDismissNotifications = function(event, data) {
+            this.dismissNotification(data.notifications, data.options);
+        }
+
+        this.dismissNotification = function(notifications, options) {
             var self = this,
                 immediate = options && options.immediate,
                 animate = options && options.animate,
                 markRead = options && !_.isUndefined(options.markRead) ? options.markRead : true,
                 userDismissed = options && !_.isUndefined(options.userDismissed) ? options.userDismissed : false;
 
-            this.stack = _.reject(this.stack, function(n) {
-                if (n.collapsedIds) {
-                    return _.contains(n.collapsedIds, notification.id);
+            notifications.forEach(function(notification) {
+                self.stack = _.reject(self.stack, function(n) {
+                    if (n.collapsedIds) {
+                        return _.contains(n.collapsedIds, notification.id);
+                    }
+                    return n.id === notification.id;
+                });
+
+                if (markRead) {
+                    if (notification.type === 'user') {
+                        if (notification.collapsedIds) {
+                            notification.collapsedIds.forEach(function(nId) {
+                                self.markRead.push(nId);
+                            })
+                        } else {
+                            self.markRead.push(notification.id);
+                        }
+                    } else if (notification.hash) {
+                        self.setUserDismissed(notification.id, notification.hash);
+                    } else {
+                        console.warn('Notification missing hash', notification);
+                    }
                 }
-                return n.id === notification.id;
+                if (userDismissed && notification.type === 'user' && notification.hash) {
+                    self.setUserDismissed(notification.id, notification.hash);
+                }
             });
 
-            if (markRead) {
-                if (notification.type === 'user') {
-                    if (notification.collapsedIds) {
-                        notification.collapsedIds.forEach(function(nId) {
-                            self.markRead.push(nId);
-                        })
-                    } else {
-                        this.markRead.push(notification.id);
-                    }
-                    this.sendMarkRead();
-                } else if (notification.hash) {
-                    this.setUserDismissed(notification.id, notification.hash);
-                } else {
-                    console.warn('Notification missing hash', notification);
-                }
-            }
-
-            if (userDismissed && notification.type === 'user' && notification.hash) {
-                this.setUserDismissed(notification.id, notification.hash);
+            if (this.markRead.length > 0) {
+                this.sendMarkRead();
             }
 
             if (immediate) {
@@ -266,7 +275,7 @@ define([
 
                         if (clickedButton) {
                             if (self.canDismissNotification(clicked)) {
-                                self.dismissNotification(clicked, {
+                                self.dismissNotification([clicked], {
                                     immediate: true,
                                     animate: true
                                 });
