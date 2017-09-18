@@ -1275,7 +1275,7 @@ public abstract class OntologyRepositoryTestBase extends VisalloInMemoryTestBase
         Relationship relationship = getOntologyRepository().getRelationshipByIRI(TEST_IRI + "#personKnowsPerson", PUBLIC);
         assertEquals("Person Knows Person", relationship.getDisplayName());
         assertNull(relationship.getTimeFormula());
-        assertFalse(relationship.getRangeConceptIRIs().contains("http://visallo.org/test#person2"));
+        assertTrue(relationship.getRangeConceptIRIs().contains("http://visallo.org/test#person2"));
         assertTrue(relationship.getRangeConceptIRIs().contains("http://visallo.org/test#person"));
         assertTrue(relationship.getDomainConceptIRIs().contains("http://visallo.org/test#person"));
 

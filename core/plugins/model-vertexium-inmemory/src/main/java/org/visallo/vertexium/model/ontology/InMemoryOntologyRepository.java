@@ -681,6 +681,19 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             if (deleteChangeableProperties) {
                 deleteChangeableProperties(relationship, null);
             }
+
+            for (Concept domainConcept : domainConcepts) {
+                if (!relationship.getDomainConceptIRIs().contains(domainConcept.getIRI())) {
+                    relationship.getDomainConceptIRIs().add(domainConcept.getIRI());
+                }
+            }
+
+            for (Concept rangeConcept : rangeConcepts) {
+                if (!relationship.getRangeConceptIRIs().contains(rangeConcept.getIRI())) {
+                    relationship.getRangeConceptIRIs().add(rangeConcept.getIRI());
+                }
+            }
+
             return relationship;
         }
 
