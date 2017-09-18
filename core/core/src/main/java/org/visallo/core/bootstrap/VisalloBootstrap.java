@@ -7,6 +7,7 @@ import com.google.inject.Scopes;
 import com.google.inject.matcher.Matchers;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.vertexium.Graph;
+import org.visallo.core.cache.CacheService;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.email.EmailRepository;
 import org.visallo.core.exception.VisalloException;
@@ -176,6 +177,9 @@ public class VisalloBootstrap extends AbstractModule {
                 .in(Scopes.SINGLETON);
         bind(PrivilegeRepository.class)
                 .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.PRIVILEGE_REPOSITORY))
+                .in(Scopes.SINGLETON);
+        bind(CacheService.class)
+                .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.CACHE_SERVICE))
                 .in(Scopes.SINGLETON);
         bind(TimeRepository.class)
                 .toInstance(new TimeRepository());

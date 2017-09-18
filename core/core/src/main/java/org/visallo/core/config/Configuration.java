@@ -57,6 +57,7 @@ public class Configuration {
     public static final String FILE_SYSTEM_REPOSITORY = "repository.fileSystem";
     public static final String AUTHORIZATION_REPOSITORY = "repository.authorization";
     public static final String PRIVILEGE_REPOSITORY = "repository.privilege";
+    public static final String CACHE_SERVICE = "service.cache";
     public static final String GRAPH_PROVIDER = "graph";
     public static final String VISIBILITY_TRANSLATOR = "security.visibilityTranslator";
     public static final String WEB_CONFIGURATION_PREFIX = "web.ui.";
@@ -68,6 +69,8 @@ public class Configuration {
     public static final String DEFAULT_SEARCH_RESULT_COUNT = "search.defaultSearchCount";
     public static final String LOCK_REPOSITORY_PATH_PREFIX = "lockRepository.pathPrefix";
     public static final String DEFAULT_LOCK_REPOSITORY_PATH_PREFIX = "/visallo/locks";
+    public static final String CACHE_REPOSITORY_PATH_PREFIX = "cacheService.pathPrefix";
+    public static final String DEFAULT_CACHE_REPOSITORY_PATH_PREFIX = "/visallo/cache";
     public static final String USER_SESSION_COUNTER_PATH_PREFIX = "userSessionCounter.pathPrefix";
     public static final String DEFAULT_TIME_ZONE = "default.timeZone";
     public static final String RABBITMQ_PREFETCH_COUNT = "rabbitmq.prefetch.count";

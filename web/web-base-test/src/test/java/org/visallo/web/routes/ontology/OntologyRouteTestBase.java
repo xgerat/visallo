@@ -3,6 +3,7 @@ package org.visallo.web.routes.ontology;
 import org.junit.Before;
 import org.mockito.Mock;
 import org.vertexium.Authorizations;
+import org.visallo.core.cache.NopCacheService;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.lock.NonLockingLockRepository;
@@ -46,7 +47,15 @@ public abstract class OntologyRouteTestBase extends RouteTestBase {
         NonLockingLockRepository nonLockingLockRepository = new NonLockingLockRepository();
         InMemoryGraphAuthorizationRepository graphAuthorizationRepository = new InMemoryGraphAuthorizationRepository();
         try {
-            ontologyRepository = new VertexiumOntologyRepository(graph, graphRepository, visibilityTranslator, configuration, graphAuthorizationRepository, nonLockingLockRepository) {
+            ontologyRepository = new VertexiumOntologyRepository(
+                    graph,
+                    graphRepository,
+                    visibilityTranslator,
+                    configuration,
+                    graphAuthorizationRepository,
+                    nonLockingLockRepository,
+                    new NopCacheService()
+            ) {
                 @Override
                 public void loadOntologies(Configuration config, Authorizations authorizations) throws Exception {
                     SystemUser systemUser = new SystemUser();

@@ -24,6 +24,7 @@ import org.vertexium.util.CloseableUtils;
 import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.IterableUtils;
 import org.vertexium.util.StreamUtils;
+import org.visallo.core.cache.CacheService;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
@@ -73,9 +74,10 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             VisibilityTranslator visibilityTranslator,
             Configuration config,
             GraphAuthorizationRepository graphAuthorizationRepository,
-            LockRepository lockRepository
+            LockRepository lockRepository,
+            CacheService cacheService
     ) throws Exception {
-        super(config, lockRepository);
+        super(config, lockRepository, cacheService);
         try {
             this.graph = graph;
             this.graphRepository = graphRepository;
@@ -147,6 +149,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     @Override
     public void clearCache() {
         LOGGER.info("clearing ontology cache");
+        super.clearCache();
         graph.flush();
     }
 
@@ -154,6 +157,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     public void clearCache(String workspaceId) {
         checkNotNull(workspaceId, "Workspace should not be null");
         LOGGER.info("clearing ontology cache for workspace %s", workspaceId);
+        super.clearCache(workspaceId);
         graph.flush();
     }
 

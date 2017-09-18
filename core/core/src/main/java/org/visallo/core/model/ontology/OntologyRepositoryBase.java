@@ -32,6 +32,8 @@ import org.vertexium.query.Query;
 import org.vertexium.util.CloseableUtils;
 import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.bootstrap.InjectHelper;
+import org.visallo.core.cache.CacheOptions;
+import org.visallo.core.cache.CacheService;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
@@ -72,18 +74,27 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     public static final String TOP_OBJECT_PROPERTY_IRI = "http://www.w3.org/2002/07/owl#topObjectProperty";
     public static final int MAX_DISPLAY_NAME = 50;
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(OntologyRepositoryBase.class);
+    private static final String ONTOLOGY_CACHE_NAME = OntologyRepository.class.getName() + ".ontology";
+    private static final String CONFIG_ONTOLOGY_CACHE_MAX_SIZE = OntologyRepository.class.getName() + "ontologyCache.maxSize";
+    private static final long CONFIG_ONTOLOGY_CACHE_MAX_SIZE_DEFAULT = 100L;
     private final Configuration configuration;
     private final LockRepository lockRepository;
+    private final CacheService cacheService;
+    private final CacheOptions ontologyCacheOptions;
     private WorkspaceRepository workspaceRepository;
     private PrivilegeRepository privilegeRepository;
 
     @Inject
     protected OntologyRepositoryBase(
             Configuration configuration,
-            LockRepository lockRepository
+            LockRepository lockRepository,
+            CacheService cacheService
     ) {
         this.configuration = configuration;
         this.lockRepository = lockRepository;
+        this.cacheService = cacheService;
+        this.ontologyCacheOptions = new CacheOptions()
+                .setMaximumSize(configuration.getLong(CONFIG_ONTOLOGY_CACHE_MAX_SIZE, CONFIG_ONTOLOGY_CACHE_MAX_SIZE_DEFAULT));
     }
 
     public void loadOntologies(Configuration config, Authorizations authorizations) throws Exception {
@@ -1670,11 +1681,33 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Override
     @SuppressWarnings("unchecked")
     public Ontology getOntology(String workspaceId) {
+        Ontology ontology = cacheService.getIfPresent(ONTOLOGY_CACHE_NAME, workspaceId);
+        if (ontology != null) {
+            return ontology;
+        }
         Object[] results = ExecutorServiceUtil.runAllAndWait(
                 () -> getConceptsWithProperties(workspaceId),
                 () -> getRelationships(workspaceId)
         );
-        return new Ontology((Iterable<Concept>) results[0], (Iterable<Relationship>) results[1], workspaceId);
+        ontology = new Ontology((Iterable<Concept>) results[0], (Iterable<Relationship>) results[1], workspaceId);
+
+        // to avoid caching multiple unchanged ontologies
+        if (!PUBLIC.equals(workspaceId) && ontology.getSandboxStatus() == SandboxStatus.PUBLIC) {
+            ontology = getOntology(PUBLIC);
+        }
+
+        cacheService.put(ONTOLOGY_CACHE_NAME, workspaceId, ontology, ontologyCacheOptions);
+        return ontology;
+    }
+
+    @Override
+    public void clearCache() {
+        cacheService.invalidate(ONTOLOGY_CACHE_NAME);
+    }
+
+    @Override
+    public void clearCache(String workspaceId) {
+        cacheService.invalidate(ONTOLOGY_CACHE_NAME, workspaceId);
     }
 
     public final Configuration getConfiguration() {

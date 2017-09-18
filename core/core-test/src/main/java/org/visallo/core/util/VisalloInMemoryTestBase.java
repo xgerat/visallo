@@ -5,6 +5,8 @@ import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.junit.Before;
 import org.vertexium.Graph;
 import org.vertexium.inmemory.InMemoryGraph;
+import org.visallo.core.cache.CacheService;
+import org.visallo.core.cache.NopCacheService;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
@@ -62,6 +64,7 @@ public abstract class VisalloInMemoryTestBase {
     private LongRunningProcessRepository longRunningProcessRepository;
     private WorkQueueNames workQueueNames;
     private WorkspaceHelper workspaceHelper;
+    private CacheService cacheService;
     private Map configurationMap;
 
     @Before
@@ -90,6 +93,7 @@ public abstract class VisalloInMemoryTestBase {
         workQueueNames = null;
         workspaceHelper = null;
         configurationMap = null;
+        cacheService = null;
     }
 
     protected WorkspaceRepository getWorkspaceRepository() {
@@ -252,7 +256,8 @@ public abstract class VisalloInMemoryTestBase {
             ontologyRepository = new InMemoryOntologyRepository(
                     getGraph(),
                     getConfiguration(),
-                    getLockRepository()
+                    getLockRepository(),
+                    getCacheService()
             ) {
                 @Override
                 protected PrivilegeRepository getPrivilegeRepository() {
@@ -472,5 +477,13 @@ public abstract class VisalloInMemoryTestBase {
                 getAuthorizationRepository()
         );
         return workspaceHelper;
+    }
+
+    public CacheService getCacheService() {
+        if (cacheService != null) {
+            return cacheService;
+        }
+        cacheService = new NopCacheService();
+        return cacheService;
     }
 }

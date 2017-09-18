@@ -1,5 +1,7 @@
 package org.visallo.core.model.ontology;
 
+import org.visallo.web.clientapi.model.SandboxStatus;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -76,5 +78,30 @@ public class Ontology {
 
     public OntologyProperty getPropertyByIri(String iri) {
         return propertiesByIri.get(iri);
+    }
+
+    public SandboxStatus getSandboxStatus() {
+        for (Concept concept : getConcepts()) {
+            SandboxStatus sandboxStatus = concept.getSandboxStatus();
+            if (sandboxStatus != SandboxStatus.PUBLIC) {
+                return sandboxStatus;
+            }
+        }
+
+        for (Relationship relationship : getRelationships()) {
+            SandboxStatus sandboxStatus = relationship.getSandboxStatus();
+            if (sandboxStatus != SandboxStatus.PUBLIC) {
+                return sandboxStatus;
+            }
+        }
+
+        for (OntologyProperty property : getProperties()) {
+            SandboxStatus sandboxStatus = property.getSandboxStatus();
+            if (sandboxStatus != SandboxStatus.PUBLIC) {
+                return sandboxStatus;
+            }
+        }
+
+        return SandboxStatus.PUBLIC;
     }
 }

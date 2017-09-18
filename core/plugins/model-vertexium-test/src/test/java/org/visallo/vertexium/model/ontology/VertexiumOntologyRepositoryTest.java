@@ -28,7 +28,8 @@ public class VertexiumOntologyRepositoryTest extends OntologyRepositoryTestBase 
                     getVisibilityTranslator(),
                     getConfiguration(),
                     getGraphAuthorizationRepository(),
-                    getLockRepository()
+                    getLockRepository(),
+                    getCacheService()
             ) {
                 @Override
                 public void loadOntologies(Configuration config, Authorizations authorizations) throws Exception {

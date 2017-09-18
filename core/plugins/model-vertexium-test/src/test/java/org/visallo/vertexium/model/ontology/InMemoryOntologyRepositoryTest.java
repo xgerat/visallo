@@ -24,7 +24,8 @@ public class InMemoryOntologyRepositoryTest extends OntologyRepositoryTestBase {
             ontologyRepository = new InMemoryOntologyRepository(
                     getGraph(),
                     getConfiguration(),
-                    getLockRepository()
+                    getLockRepository(),
+                    getCacheService()
             ) {
                 @Override
                 public void loadOntologies(Configuration config, Authorizations authorizations) throws Exception {
