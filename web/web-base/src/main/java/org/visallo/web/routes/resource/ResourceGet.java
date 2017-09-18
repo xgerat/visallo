@@ -7,6 +7,7 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.apache.commons.lang.StringUtils;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.ontology.Concept;
@@ -34,13 +35,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Singleton
 public class ResourceGet implements ParameterizedHandler {
     private final OntologyRepository ontologyRepository;
+    private final boolean disableTint;
 
     private static Pattern hexPattern = Pattern.compile("^#.*$");
     private static Pattern rgbPattern = Pattern.compile("^\\s*rgb\\((\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)\\s*$");
 
     @Inject
-    public ResourceGet(final OntologyRepository ontologyRepository) {
+    public ResourceGet(
+            OntologyRepository ontologyRepository,
+            Configuration configuration
+    ) {
         this.ontologyRepository = ontologyRepository;
+        this.disableTint = configuration.getBoolean(ResourceGet.class.getName() + ".disableTint", false);
     }
 
     @Handle
@@ -52,6 +58,10 @@ public class ResourceGet implements ParameterizedHandler {
             HttpServletRequest request,
             VisalloResponse response
     ) throws Exception {
+        if (disableTint) {
+            tint = null;
+        }
+
         Glyph glyph = getConceptImage(id, state, user.getCurrentWorkspaceId());
         if (glyph == null || !glyph.isValid()) {
             throw new VisalloResourceNotFoundException("Could not find resource with id: " + id);
@@ -106,6 +116,7 @@ public class ResourceGet implements ParameterizedHandler {
 
     interface Glyph {
         boolean isValid();
+
         void write(String tint, HttpServletRequest request, VisalloResponse response) throws IOException;
     }
 
@@ -124,9 +135,9 @@ public class ResourceGet implements ParameterizedHandler {
                 Matcher m = rgbPattern.matcher(tint);
                 if (m.matches()) {
                     return new int[]{
-                        Integer.parseInt(m.group(1)),
-                        Integer.parseInt(m.group(2)),
-                        Integer.parseInt(m.group(3))
+                            Integer.parseInt(m.group(1)),
+                            Integer.parseInt(m.group(2)),
+                            Integer.parseInt(m.group(3))
                     };
                 }
             }
@@ -166,15 +177,18 @@ public class ResourceGet implements ParameterizedHandler {
 
     class Image extends AbstractGlyph {
         private byte[] img;
+
         public Image(byte[] img) {
             this.img = img;
         }
+
         public boolean isValid() {
             if (img == null || img.length <= 0) {
                 return false;
             }
             return true;
         }
+
         public void write(String tint, HttpServletRequest request, VisalloResponse response) throws IOException {
             try (ByteArrayInputStream is = new ByteArrayInputStream(img)) {
                 BufferedImage bufferedImage = ImageIO.read(is);
@@ -185,15 +199,18 @@ public class ResourceGet implements ParameterizedHandler {
 
     class Path extends AbstractGlyph {
         private String path;
+
         public Path(String path) {
             this.path = path;
         }
+
         public boolean isValid() {
             if (StringUtils.isEmpty(path)) {
                 return false;
             }
             return true;
         }
+
         public void write(String tint, HttpServletRequest request, VisalloResponse response) throws IOException {
             ServletContext servletContext = request.getServletContext();
             try (InputStream in = servletContext.getResourceAsStream(path)) {
