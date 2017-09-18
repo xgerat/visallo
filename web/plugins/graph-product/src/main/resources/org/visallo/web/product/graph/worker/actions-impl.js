@@ -237,7 +237,7 @@ define([
                 const parent = product.localData && product.localData.rootId || 'root';
                 dispatch(api.updatePositions({
                     productId,
-                    updateVertices: _.mapObject(updateVertices, id => ({ id, parent, pos: nextPosition()}))
+                    updateVertices: _.mapObject(updateVertices, o => ({ id: o.id, parent, pos: nextPosition()}))
                 }));
             }
 
