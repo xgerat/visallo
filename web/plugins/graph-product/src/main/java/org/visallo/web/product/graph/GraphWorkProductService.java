@@ -1,6 +1,5 @@
 package org.visallo.web.product.graph;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -11,7 +10,6 @@ import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.WorkspaceProperties;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.product.*;
@@ -88,15 +86,12 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
         Map<String, GraphWorkProductVertex> vertices = new HashMap<>();
         Map<String, GraphWorkProductVertex> compoundNodes = new HashMap<>();
 
-        trimCompoundNodes(graph, productVertex);
-
-        List<Edge> productVertexEdges = Lists.newArrayList(productVertex.getEdges(
+        Iterable<Edge> productVertexEdges = productVertex.getEdges(
                 Direction.OUT,
                 WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
                 authorizations
-        ));
-
-        List<String> ids = productVertexEdges.stream()
+        );
+        List<String> ids = StreamUtil.stream(productVertexEdges)
                 .map(edge -> edge.getOtherVertexId(productVertex.getId()))
                 .collect(Collectors.toList());
         Map<String, Boolean> othersById = graph.doVerticesExist(ids, authorizations);
@@ -164,12 +159,12 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
                 user,
                 VisalloVisibility.SUPER_USER_VISIBILITY_STRING
         );
-        Iterable<Vertex> productVertices = Lists.newArrayList(productVertex.getVertices(
+        Iterable<String> productVertexIds = productVertex.getVertexIds(
                 Direction.OUT,
                 WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
                 systemAuthorizations
-        ));
-        Iterable<RelatedEdge> productRelatedEdges = graph.findRelatedEdgeSummaryForVertices(productVertices, authorizations);
+        );
+        Iterable<RelatedEdge> productRelatedEdges = graph.findRelatedEdgeSummary(productVertexIds, authorizations);
         List<String> ids = StreamUtil.stream(productRelatedEdges)
                 .map(RelatedEdge::getEdgeId)
                 .collect(Collectors.toList());
@@ -191,36 +186,6 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
         }
 
         return edges;
-    }
-
-    private void trimCompoundNodes(Graph graph, Vertex productVertex) {
-        String id = productVertex.getId();
-        User systemUser = userRepository.getSystemUser();
-        Visibility visibility = VISIBILITY.getVisibility();
-        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(systemUser);
-
-        List<Edge> productVertexEdges = Lists.newArrayList(productVertex.getEdges(
-                Direction.OUT,
-                WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                authorizations
-        ));
-
-        List<String> ids = productVertexEdges.stream()
-                .map(edge -> edge.getOtherVertexId(id))
-                .collect(Collectors.toList());
-        Map<String, Boolean> othersById = graph.doVerticesExist(ids, authorizations);
-
-        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.HIGH, systemUser, authorizations)) {
-            for (Edge propertyVertexEdge : productVertexEdges) {
-                String otherId = propertyVertexEdge.getOtherVertexId(id);
-                if (!othersById.getOrDefault(otherId, false)) {
-                    removeChild(ctx, productVertex, otherId, id, visibility, authorizations);
-                }
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException("Could not clean compound Nodes", ex);
-        }
-
     }
 
     @Override
