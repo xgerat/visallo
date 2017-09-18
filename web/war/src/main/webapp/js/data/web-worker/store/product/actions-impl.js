@@ -9,33 +9,40 @@ define([
     actions.protectFromMain();
 
     const api = {
-        get: ({productId, invalidate }) => (dispatch, getState) => {
+        get: ({productId, invalidate, includeExtended = true }) => (dispatch, getState) => {
             const state = getState();
             const workspaceId = state.workspace.currentId;
             const { products } = state.product.workspaces[workspaceId];
             const product = products[productId];
             let request;
 
-            if (invalidate || !product || !product.extendedData) {
-                request = ajax('GET', '/product', {
-                    productId,
-                    includeExtended: true,
-                    params: {
-                        includeVertices: true,
-                        includeEdges: true
-                    }
-                })
+            const options = { productId, includeExtended };
+            if (includeExtended) {
+                options.params = {
+                    includeVertices: true,
+                    includeEdges: true
+                }
+            }
+
+            if (!invalidate && product) {
+                if (!product.extendedData && includeExtended) {
+                    request = ajax('GET', '/product', options);
+                }
+            } else if (invalidate || !product) {
+                request = ajax('GET', '/product', options);
             }
 
             if (request) {
                 request.then(function(product) {
                     dispatch(api.update(product));
 
-                    const { vertices, edges } = product.extendedData;
-                    const vertexIds = Object.keys(vertices);
-                    const edgeIds = Object.keys(edges);
+                    if (includeExtended) {
+                        const { vertices, edges } = product.extendedData;
+                        const vertexIds = Object.keys(vertices);
+                        const edgeIds = Object.keys(edges);
 
-                    dispatch(elementActions.get({ workspaceId, vertexIds, edgeIds }));
+                        dispatch(elementActions.get({ workspaceId, vertexIds, edgeIds }));
+                    }
                 })
             }
         },
@@ -46,7 +53,17 @@ define([
         }),
 
         changedOnServer: (productId) => (dispatch, getState) => {
-            dispatch(api.get({ productId, invalidate: true }));
+            const state = getState();
+            const productWorkspaceId = _.findKey(state.product.workspaces, workspace => productId in workspace.products);
+
+            if (productWorkspaceId) {
+                dispatch(api.get({
+                    productId,
+                    invalidate: true,
+                    includeExtended: selectors.getSelectedId(state) === productId
+                }));
+            }
+
         },
 
         update: (product) => ({
