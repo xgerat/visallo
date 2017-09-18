@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Singleton
+// Unlike many other injected classes, this is not a singleton
 public class LongRunningProcessRunner extends WorkerBase<LongRunningProcessWorkerItem> {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LongRunningProcessRunner.class);
     private UserRepository userRepository;

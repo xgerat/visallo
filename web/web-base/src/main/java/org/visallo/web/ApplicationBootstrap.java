@@ -17,7 +17,10 @@ import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.process.VisalloProcess;
+import org.visallo.core.process.VisalloProcessOptions;
 import org.visallo.core.security.VisalloVisibility;
+import org.visallo.core.user.User;
 import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.ShutdownService;
 import org.visallo.core.util.VisalloLogger;
@@ -26,7 +29,10 @@ import org.visallo.web.initializers.ApplicationBootstrapInitializer;
 
 import javax.servlet.*;
 import javax.servlet.annotation.ServletSecurity;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ApplicationBootstrap implements ServletContextListener {
     private static VisalloLogger LOGGER;
@@ -38,8 +44,6 @@ public class ApplicationBootstrap implements ServletContextListener {
     public static final String DEBUG_FILTER_NAME = "debug";
     public static final String CACHE_FILTER_NAME = "cache";
     private volatile boolean isStopped = false;
-    private Configuration config;
-    private List<ApplicationBootstrapInitializer> applicationBootstrapInitializers = new ArrayList<>();
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -53,7 +57,7 @@ public class ApplicationBootstrap implements ServletContextListener {
 
             Map<String, String> initParameters = new HashMap<>(getInitParametersAsMap(context));
             initParameters.putAll(WebConfiguration.DEFAULTS);
-            config = ConfigurationLoader.load(context.getInitParameter(APP_CONFIG_LOADER), initParameters);
+            Configuration config = ConfigurationLoader.load(context.getInitParameter(APP_CONFIG_LOADER), initParameters);
             LOGGER = VisalloLoggerFactory.getLogger(ApplicationBootstrap.class);
             LOGGER.info("Running application with configuration:\n%s", config);
 
@@ -61,26 +65,41 @@ public class ApplicationBootstrap implements ServletContextListener {
             verifyGraphVersion();
             setupGraphAuthorizations();
 
-            Iterable<ApplicationBootstrapInitializer> initializers =
-                    ServiceLoaderUtil.load(ApplicationBootstrapInitializer.class, config);
-            for (ApplicationBootstrapInitializer initializer : initializers) {
-                initializer.initialize(context);
-                applicationBootstrapInitializers.add(initializer);
-            }
+            startApplicationBootstrapInitializers(context, config);
+            startVisalloProcesses(config);
 
             setupWebApp(context, config);
 
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    contextDestroyed(null);
-                }
-            });
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> contextDestroyed(null)));
         } catch (Throwable ex) {
             if (LOGGER != null) {
                 LOGGER.error("Could not startup context", ex);
             }
             throw new VisalloException("Could not startup context", ex);
+        }
+    }
+
+    private void startVisalloProcesses(Configuration config) {
+        boolean enableWebContainerProcesses = config.getBoolean("org.visallo.web.ApplicationBootstrap.enableWebContainerProcesses", true);
+        if (!enableWebContainerProcesses) {
+            return;
+        }
+
+        Iterable<VisalloProcess> processes = ServiceLoaderUtil.load(VisalloProcess.class, config);
+        User user = InjectHelper.getInstance(UserRepository.class).getSystemUser();
+        VisalloProcessOptions options = new VisalloProcessOptions(user);
+        for (VisalloProcess process : processes) {
+            LOGGER.info("starting %s", process.getClass().getName());
+            process.startProcess(options);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void startApplicationBootstrapInitializers(ServletContext context, Configuration config) {
+        Iterable<ApplicationBootstrapInitializer> initializers =
+                ServiceLoaderUtil.load(ApplicationBootstrapInitializer.class, config);
+        for (ApplicationBootstrapInitializer initializer : initializers) {
+            initializer.initialize(context);
         }
     }
 

@@ -59,14 +59,14 @@ Graph Property Workers are deployed inside of the web server by default.  Having
 
 ```bash
 #Set number of graph property worker threads to 4
-org.visallo.web.initializers.GraphPropertyWorkerRunnerInitializer.threadcount=4
+org.visallo.core.process.GraphPropertyRunnerProcess.threadcount=4
 ```
 
 If you do not want the graph property workers running inside of the web server, add the following to your configuration.
 
 ```bash
 #disable the graph property workers running inside of the web server
-disable.org.visallo.web.initializers.GraphPropertyWorkerRunnerInitializer=true
+disable.org.visallo.core.process.GraphPropertyRunnerProcess=true
 
 ```
 

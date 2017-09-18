@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.vertexium.util.IterableUtils.toList;
 
-@Singleton
+// Unlike many other injected classes, this is not a singleton
 public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphPropertyRunner.class);
     private final AuthorizationRepository authorizationRepository;

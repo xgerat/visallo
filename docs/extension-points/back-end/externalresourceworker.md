@@ -22,5 +22,5 @@ If you do not want to run ExternalResourceWorkers inside of the server, add the 
 
 ```bash
 #disable the External Resource Workers from running inside of the web server
-disable.org.visallo.web.initializers.ExternalResourceWorkersInitializer=true
+disable.org.visallo.core.process.ExternalResourceRunnerProcess=true
 ```

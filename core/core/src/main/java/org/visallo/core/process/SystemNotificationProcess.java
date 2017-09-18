@@ -1,22 +1,20 @@
-package org.visallo.web.initializers;
+package org.visallo.core.process;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.visallo.core.model.notification.SystemNotificationService;
 
-import javax.servlet.ServletContext;
-
 @Singleton
-public class SystemNotificationInitializer extends ApplicationBootstrapInitializer {
+public class SystemNotificationProcess implements VisalloProcess {
     private final SystemNotificationService systemNotificationService;
 
     @Inject
-    public SystemNotificationInitializer(SystemNotificationService systemNotificationService) {
+    public SystemNotificationProcess(SystemNotificationService systemNotificationService) {
         this.systemNotificationService = systemNotificationService;
     }
 
     @Override
-    public void initialize(ServletContext context) {
+    public void startProcess(VisalloProcessOptions options) {
         this.systemNotificationService.start();
     }
 }

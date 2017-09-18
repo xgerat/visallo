@@ -35,13 +35,13 @@ To add more instances of each Long Running Process Worker, simply add/change the
 
 ```bash
 #Set number of long running process threads to 2
-org.visallo.web.initializers.LongRunningProcessRunnerInitializer.threadCount=2
+org.visallo.core.process.LongRunningProcessRunnerProcess.threadCount=2
 ```
 
 If you do not want Long Running Processes to run inside of the web server, add the following to your configuration:
 
 ```bash
 #disable the long running processes running inside of the web server
-disable.org.visallo.web.initializers.LongRunningProcessRunnerInitializer=true
+disable.org.visallo.core.process.LongRunningProcessRunnerProcess=true
 ```
 
