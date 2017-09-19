@@ -149,7 +149,14 @@ define([
                         }
                     }
                 })
+
+                if (!self.attr.animated) {
+                    self.stack = _.sortBy(self.stack, function(notification) {
+                        return notification.startDate || new Date(notification.sentDate).getTime();
+                    }).reverse();
+                }
             }
+
             this.update();
             this.trigger('notificationCountUpdated', { count: this.stack.length });
         };
@@ -260,7 +267,7 @@ define([
                     return n.id;
                 })
                 .call(function() {
-                    var newOnes = this.enter().append('li')
+                    var newOnes = this.enter().insert('li')
                         .attr('class', 'notification')
                         .style('opacity', 0)
                         .style('left', '-50px')

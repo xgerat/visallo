@@ -90,9 +90,13 @@ define([
                     .appendTo(this.node);
             }
 
+            var sortedNotifications = _.sortBy(this.notifications, function(notification) {
+                return notification.startDate || new Date(notification.sentDate).getTime();
+            }).reverse();
+
             d3.select(this.node)
                 .selectAll('section.collapsible')
-                .data(_.chain(this.notifications)
+                .data(_.chain(sortedNotifications)
                       .groupBy(function(n) {
                           return n.active || n.startDate <= now ? 'Active' : 'Future';
                       })
