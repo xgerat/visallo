@@ -11,6 +11,7 @@ define([
 
     function FindPathPopoverShim() {
         this.before('teardown', function() {
+            this.attacher.teardown();
             this.trigger('finishedVertexConnection');
         });
 
@@ -24,7 +25,7 @@ define([
             this.trigger('defocusPaths');
             this.$findPathWrapper = this.$node.find('.popover-content');
 
-            attacher()
+            this.attacher = attacher()
                 .node(this.$findPathWrapper)
                 .path('org/visallo/web/product/graph/dist/FindPathPopoverContainer')
                 .params({
@@ -34,8 +35,9 @@ define([
                         self.teardown();
                         self.trigger('showActivityDisplay');
                     }
-                })
-                .attach()
+                });
+
+            this.attacher.attach()
                 .then(() => {
                     this.positionDialog();
                 });

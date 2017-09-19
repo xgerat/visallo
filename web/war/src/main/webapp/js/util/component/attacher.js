@@ -48,7 +48,11 @@ define([
     };
 
     Attacher.prototype.teardown = function(options = {}) {
-        const { flight = this._flightComponent, react = this._reactElement } = options;
+        const hasInstance = this._flightComponent || this._reactElement;
+        const {
+            flight = hasInstance ? this._flightComponent : true,
+            react = hasInstance ? this._reactElement : true } = options;
+
         if (!this._node) throw new Error('No node specified');
         if (!this._options.preferDirectReactChildren) {
             if (react) ReactDOM.unmountComponentAtNode(this._node);

@@ -20,9 +20,7 @@ define([
     function ConfigPopover() {
 
         this.before('teardown', function() {
-            this.popover.find('.popover-content').children().each(function() {
-                Attacher().node(this).teardown();
-            })
+            this.components.forEach(attacher => { attacher.teardown() });
             this.$node.closest('.card-toolbar').removeClass('active');
         })
 

@@ -16,7 +16,7 @@ define([
             this.$node.append('<div class="vertex-menu-wrapper"></div>');
             this.$menu = this.$node.find('.vertex-menu-wrapper');
 
-            attacher()
+            this.attacher = attacher()
                 .node(this.$menu)
                 .path('components/ElementContextMenu')
                 .params({
@@ -25,8 +25,9 @@ define([
                     vertexId: this.attr.vertexId,
                     collapsedItemId: this.attr.collapsedItemId,
                     position: this.attr.position
-                })
-                .attach();
+                });
+
+                this.attacher.attach();
 
             _.defer(function() {
                 $(document).off('.vertexMenu').on('click.vertexMenu', function() {
@@ -39,7 +40,7 @@ define([
         });
 
         this.before('teardown', function() {
-            attacher().node(this.$menu).teardown();
+            this.attacher.node(this.$menu).teardown();
         });
 
         this.after('teardown', function() {
