@@ -296,7 +296,7 @@ define([
                             id: report.endpointParameters.id,
                             filter: JSON.stringify([{
                                 propertyId: aggregation.field,
-                                predicate: 'hasNot'
+                                predicate: 'hasNotAny'
                             }])
                         })
                     }

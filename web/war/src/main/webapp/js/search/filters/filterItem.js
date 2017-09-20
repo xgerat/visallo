@@ -10,7 +10,7 @@ define([
 
     var PREDICATES = {
             HAS: 'has',
-            HAS_NOT: 'hasNot',
+            HAS_NOT_ANY: 'hasNotAny',
             CONTAINS: '~',
             EQUALS: '=',
             IN: 'in',
@@ -59,7 +59,7 @@ define([
         });
 
         this.predicateNeedsValues = function() {
-            return (this.filter.predicate !== PREDICATES.HAS && this.filter.predicate !== PREDICATES.HAS_NOT);
+            return (this.filter.predicate !== PREDICATES.HAS && this.filter.predicate !== PREDICATES.HAS_NOT_ANY);
         };
 
         this.isValid = function() {
@@ -310,7 +310,7 @@ define([
             });
         };
         this.predicatesForProperty = function(property) {
-            var standardPredicates = [PREDICATES.HAS, PREDICATES.HAS_NOT];
+            var standardPredicates = [PREDICATES.HAS, PREDICATES.HAS_NOT_ANY];
 
             if (property.possibleValues) {
                 return [PREDICATES.IN].concat(standardPredicates);

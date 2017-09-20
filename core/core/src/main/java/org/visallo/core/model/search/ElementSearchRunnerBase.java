@@ -257,7 +257,7 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
             String propertyName = obj.getString("propertyName");
             if ("has".equals(predicateString)) {
                 graphQuery.has(propertyName);
-            } else if ("hasNot".equals(predicateString)) {
+            } else if ("hasNotAny".equals(predicateString)) {
                 graphQuery.hasNot(propertyName);
             } else if ("in".equals(predicateString)) {
                 graphQuery.has(propertyName, Contains.IN, JSONUtil.toList(obj.getJSONArray("values")));

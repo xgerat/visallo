@@ -133,7 +133,7 @@ define(['require', 'underscore'], function(require, _) {
 
             if (predicate === 'has') {
                 return vertexProperties.length !== 0;
-            } else if (predicate === 'hasNot') {
+            } else if (predicate === 'hasNotAny') {
                 return vertexProperties.length === 0;
             } else if (vertexProperties.length === 0) {
                 return false;

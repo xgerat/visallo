@@ -399,7 +399,7 @@ define([
                                         };
 
                                     if (isOtherCategory(d)) {
-                                        thisFilter.predicate = 'hasNot';
+                                        thisFilter.predicate = 'hasNotAny';
                                     } else if (self.isHistogram) {
                                         thisFilter.values = [nameFn(d), String(nameAsFloat(d) + self.interval)];
                                         thisFilter.predicate = 'range';
