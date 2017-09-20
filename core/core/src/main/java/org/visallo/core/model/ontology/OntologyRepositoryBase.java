@@ -1681,6 +1681,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Override
     @SuppressWarnings("unchecked")
     public Ontology getOntology(String workspaceId) {
+        if (workspaceId == null) {
+            return getOntology(PUBLIC);
+        }
+
         Ontology ontology = cacheService.getIfPresent(ONTOLOGY_CACHE_NAME, workspaceId);
         if (ontology != null) {
             return ontology;
