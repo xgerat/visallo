@@ -12,6 +12,7 @@ define([
             HAS: 'has',
             HAS_NOT_ANY: 'hasNotAny',
             CONTAINS: '~',
+            NOT_CONTAINS: '!~',
             EQUALS: '=',
             IN: 'in',
             LESS_THAN: '<',
@@ -319,6 +320,7 @@ define([
             switch (property.dataType) {
                 case 'string': return [
                         PREDICATES.CONTAINS,
+                        PREDICATES.NOT_CONTAINS,
                         PREDICATES.EQUALS
                     ].concat(standardPredicates);
 

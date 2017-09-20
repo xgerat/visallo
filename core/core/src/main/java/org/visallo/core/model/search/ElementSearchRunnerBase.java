@@ -268,6 +268,8 @@ public abstract class ElementSearchRunnerBase extends SearchRunner {
 
                 if (PropertyType.STRING.equals(propertyDataType) && (predicateString == null || "~".equals(predicateString) || "".equals(predicateString))) {
                     graphQuery.has(propertyName, TextPredicate.CONTAINS, value0);
+                } else if (PropertyType.STRING.equals(propertyDataType) && "!~".equals(predicateString)) {
+                    graphQuery.has(propertyName, TextPredicate.DOES_NOT_CONTAIN, value0);
                 } else if (PropertyType.DATE.equals(propertyDataType)) {
                     applyDateToQuery(graphQuery, obj, predicateString, values);
                 } else if (PropertyType.BOOLEAN.equals(propertyDataType)) {
