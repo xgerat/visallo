@@ -15,6 +15,7 @@ define([
             NOT_CONTAINS: '!~',
             EQUALS: '=',
             IN: 'in',
+            NOT_IN: '!in',
             LESS_THAN: '<',
             GREATER_THAN: '>',
             BETWEEN: 'range',
@@ -102,14 +103,14 @@ define([
                 } else if (this.filter.predicate === PREDICATES.WITHIN) {
                     var geo = _.first(this.filter.values);
                     filter.values = geo ? [geo.latitude, geo.longitude, geo.radius] : new Array(3);
-                } else if (this.filter.predicate === PREDICATES.IN) {
+                } else if (this.filter.predicate === PREDICATES.IN || this.filter.predicate === PREDICATES.NOT_IN) {
                     filter.values = this.filter.values.slice(0);
                 } else {
                     filter.values = this.filter.values.slice(0, 1);
                 }
 
                 valid = valid && _.every(filter.values, function(v) {
-                    return !_.isUndefined(v);
+                    return !_.isUndefined(v) && !_.isEmpty(v);
                 });
             }
 
@@ -276,7 +277,7 @@ define([
                 } else if (self.predicateNeedsValues()) {
                     node.eq(0).show();
                     node.eq(1).hide();
-                    if (self.filter.predicate === PREDICATES.IN) {
+                    if (self.filter.predicate === PREDICATES.IN || self.filter.predicate === PREDICATES.NOT_IN) {
                         self.filter.values = [self.filter.values];
                     }
                 } else {
@@ -314,7 +315,7 @@ define([
             var standardPredicates = [PREDICATES.HAS, PREDICATES.HAS_NOT_ANY];
 
             if (property.possibleValues) {
-                return [PREDICATES.IN].concat(standardPredicates);
+                return [PREDICATES.IN, PREDICATES.NOT_IN].concat(standardPredicates);
             }
 
             switch (property.dataType) {
