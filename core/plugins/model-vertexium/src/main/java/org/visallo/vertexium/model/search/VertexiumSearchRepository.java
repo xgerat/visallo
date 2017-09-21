@@ -21,6 +21,7 @@ import org.visallo.web.clientapi.model.ClientApiSearch;
 import org.visallo.web.clientapi.model.ClientApiSearchListResponse;
 import org.visallo.web.clientapi.model.Privilege;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -205,7 +206,7 @@ public class VertexiumSearchRepository extends SearchRepository {
         );
 
         ClientApiSearchListResponse result = new ClientApiSearchListResponse();
-        Iterables.addAll(result.searches, getGlobalSavedSearches(authorizations));
+        Iterables.addAll(result.searches, getGlobalSavedSearches(user, authorizations));
         Iterables.addAll(result.searches, getUserSavedSearches(user, authorizations));
         return result;
     }
@@ -220,7 +221,7 @@ public class VertexiumSearchRepository extends SearchRepository {
         );
 
         ClientApiSearchListResponse result = new ClientApiSearchListResponse();
-        Iterables.addAll(result.searches, getGlobalSavedSearches(authorizations));
+        Iterables.addAll(result.searches, getGlobalSavedSearches(user, authorizations));
         return result;
     }
 
@@ -246,20 +247,38 @@ public class VertexiumSearchRepository extends SearchRepository {
                 SearchProperties.HAS_SAVED_SEARCH,
                 authorizations
         );
+        List<String> userFavoritedSearchIds = getUserFavoritedSearchIds(userVertex, authorizations);
         return stream(userSearchVertices)
-                .map(searchVertex -> toClientApiSearch(searchVertex, ClientApiSearch.Scope.User))
+                .map(searchVertex -> {
+                    boolean favorited = userFavoritedSearchIds.contains(searchVertex.getId());
+                    return toClientApiSearch(searchVertex, favorited, ClientApiSearch.Scope.User);
+                })
                 .collect(Collectors.toList());
     }
 
-    private Iterable<ClientApiSearch> getGlobalSavedSearches(Authorizations authorizations) {
+    private List<String> getUserFavoritedSearchIds(Vertex userVertex, Authorizations authorizations) {
+        Iterable<EdgeInfo> edgeInfos = userVertex.getEdgeInfos(Direction.OUT, SearchProperties.HAS_FAVORITED, authorizations);
+        return stream(edgeInfos)
+                .map(EdgeInfo::getVertexId)
+                .collect(Collectors.toList());
+    }
+
+    private Iterable<ClientApiSearch> getGlobalSavedSearches(User user, Authorizations authorizations) {
         Vertex globalSavedSearchesRootVertex = getGlobalSavedSearchesRootVertex();
         Iterable<Vertex> globalSearchVertices = globalSavedSearchesRootVertex.getVertices(
                 Direction.OUT,
                 SearchProperties.HAS_SAVED_SEARCH,
                 authorizations
         );
+
+        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        checkNotNull(userVertex, "Could not find user vertex with id " + user.getUserId());
+        List<String> userFavoritedSearchIds = getUserFavoritedSearchIds(userVertex, authorizations);
         return stream(globalSearchVertices)
-                .map(searchVertex -> toClientApiSearch(searchVertex, ClientApiSearch.Scope.Global))
+                .map(searchVertex -> {
+                    boolean favorited = userFavoritedSearchIds.contains(searchVertex.getId());
+                    return toClientApiSearch(searchVertex, favorited, ClientApiSearch.Scope.Global);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -285,11 +304,16 @@ public class VertexiumSearchRepository extends SearchRepository {
     }
 
     public static ClientApiSearch toClientApiSearch(Vertex searchVertex, ClientApiSearch.Scope scope) {
+        return toClientApiSearch(searchVertex, false, scope);
+    }
+
+    public static ClientApiSearch toClientApiSearch(Vertex searchVertex, boolean favorited, ClientApiSearch.Scope scope) {
         ClientApiSearch result = new ClientApiSearch();
         result.id = searchVertex.getId();
         result.name = SearchProperties.NAME.getPropertyValue(searchVertex);
         result.url = SearchProperties.URL.getPropertyValue(searchVertex);
         result.scope = scope;
+        result.favorited = favorited;
         result.parameters = ClientApiConverter.toClientApiValue(SearchProperties.PARAMETERS.getPropertyValue(
                 searchVertex));
         return result;
