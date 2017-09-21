@@ -96,6 +96,18 @@ define(['../util/ajax'], function(ajax) {
             return ajax('GET', '/search/run', _.extend({}, otherParams || {}, {
                 id: queryId
             }));
+        },
+
+        favorite: function(searchId) {
+            return ajax('POST', '/search/favorite', {
+                id: searchId
+            });
+        },
+
+        unfavorite: function(searchId) {
+            return ajax('DELETE->HTML', '/search/unfavorite', {
+                id: searchId
+            })
         }
 
     };

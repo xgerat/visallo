@@ -7,6 +7,7 @@ public class SearchProperties {
     public static final String IRI = "http://visallo.org/search";
 
     public static final String HAS_SAVED_SEARCH = "http://visallo.org/search#hasSavedSearch";
+    public static final String HAS_FAVORITED = "http://visallo.org/search#hasFavorited";
 
     public static final String CONCEPT_TYPE_SAVED_SEARCH = "http://visallo.org/search#savedSearch";
 

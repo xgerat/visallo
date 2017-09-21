@@ -41,6 +41,7 @@ define([
     function SavedSearches() {
 
         this.defaultAttrs({
+            favoriteSelector: '.favorite-search',
             listSelector: 'li a',
             saveSelector: '.form button',
             nameInputSelector: '.form input.name',
@@ -91,6 +92,7 @@ define([
 
             this.after('setupWithTemplate', function() {
                 this.on(this.popover, 'click', {
+                    favoriteSelector: this.onFavoriteClick,
                     listSelector: this.onClick,
                     saveSelector: this.onSave,
                     deleteSelector: this.onDelete,
@@ -232,6 +234,33 @@ define([
             this.teardown();
         };
 
+        this.onFavoriteClick = function(event) {
+            event.stopPropagation();
+
+            var $target = $(event.target),
+                isFavorited = $target.hasClass('favorited'),
+                isChecked = $target.is(':checked'),
+                index = $target.closest('li').index(),
+                searchId = list[index].id;
+
+                // user wants to favorite search
+                if (!isFavorited && isChecked) {
+                    $target.addClass('favorited');
+                    this.dataRequest('search', 'favorite', searchId)
+                        .done(function() {
+                            list[index].favorite = true;
+                        })
+                } else if (isFavorited && isChecked) {
+                    // user wants to unfavorite search
+                    $target.removeClass('favorited');
+                    $target.attr('checked', false);
+                    this.dataRequest('search', 'unfavorite', searchId)
+                        .done(function() {
+                            list[index].favorite = false;
+                        })
+                }
+        }
+
         this.onSavedSearchListTypeClick = function(event, data) {
             event.stopPropagation();
             this.switchListType($(event.target).blur().data('type'));
@@ -243,7 +272,7 @@ define([
                 .empty();
             this.popover.find('.saved-search-type.active').removeClass('active');
             this.popover.find('.saved-search-' + listType).addClass('active');
-            this.dataRequest('search', listType.toLowerCase(), '').done(function(searches) {
+            this.dataRequest('search', listType.toLowerCase()).done(function(searches) {
                 list = _.groupBy(searches, 'scope')[listType]
                     .map(function(item) {
                         var isGlobal = item.scope === SCOPES.GLOBAL,

@@ -38,6 +38,16 @@ public abstract class SearchRepository {
 
     public abstract ClientApiSearchListResponse getUserSavedSearches(User user);
 
+    public abstract void favoriteSearch(
+            String id,
+            User user
+    );
+
+    public abstract void unfavoriteSearch(
+            String id,
+            User user
+    );
+
     public abstract ClientApiSearch getSavedSearch(String id, User user);
 
     public abstract void deleteSearch(String id, User user);

@@ -1,6 +1,12 @@
 <ul class="nav nav-list">
   {{#each list}}
-    <li><a><h1>{{name}}</h1></a>
+    <li>
+        <a>
+            <span class="rating">
+                <input type="radio" class="favorite-search {{#if favorite}}favorited{{/if}}">
+            </span>
+            <h1>{{name}}</h1>
+        </a>
         {{#if canDelete}}
           <button class="btn btn-mini btn-danger">{{i18n 'search.savedsearches.button.delete'}}</button>
         {{/if}}
