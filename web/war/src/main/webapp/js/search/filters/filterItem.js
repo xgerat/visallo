@@ -108,7 +108,7 @@ define([
                 }
 
                 valid = valid && _.every(filter.values, function(v) {
-                    return !_.isUndefined(v);
+                    return !_.isUndefined(v) && !_.isEmpty(v);
                 });
             }
 
@@ -274,7 +274,7 @@ define([
                     node.eq(0).show();
                     node.eq(1).hide();
                     if (self.filter.predicate === PREDICATES.IN) {
-                        self.filter.values = [self.filter.values];
+                        self.filter.values = _.isArray(self.filter.values) ? self.filter.values : [self.filter.values];
                     }
                 } else {
                     node.hide();
@@ -299,7 +299,7 @@ define([
                             onlySearchable: true,
                             focus: false,
                             property: property,
-                            value: self.filter.values[i]
+                            value: !self.filter.values[i] ? [] : self.filter.values[i]
                         });
                     })
                 }
