@@ -1,0 +1,11 @@
+<ul class="nav nav-list">
+  {{#each list}}
+    <li><a><h1>{{name}}</h1></a>
+        {{#if canDelete}}
+          <button class="btn btn-mini btn-danger">{{i18n 'search.savedsearches.button.delete'}}</button>
+        {{/if}}
+    </li>
+  {{else}}
+  <li class="empty">{{i18n 'search.savedsearches.none'}}</li>
+  {{/each}}
+</ul>

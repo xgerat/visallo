@@ -24,6 +24,48 @@ define(['../util/ajax'], function(ajax) {
                 })
         },
 
+        global: function(urlFilter) {
+            var visalloFilter = /^\/(?:vertex|element|edge)\/search$/;
+            return ajax('GET', '/search/global')
+                .then(function(result) {
+                    return _.chain(result.searches)
+                        .filter(function(search) {
+                            if (urlFilter) {
+                                if (visalloFilter.test(urlFilter)) {
+                                    return visalloFilter.test(search.url);
+                                }
+                                return search.url === urlFilter;
+                            }
+                            return true;
+                        })
+                        .sortBy(function(search) {
+                            return search.name.toLowerCase();
+                        })
+                        .value();
+                })
+        },
+
+        user: function(urlFilter) {
+            var visalloFilter = /^\/(?:vertex|element|edge)\/search$/;
+            return ajax('GET', '/search/user')
+                .then(function(result) {
+                    return _.chain(result.searches)
+                        .filter(function(search) {
+                            if (urlFilter) {
+                                if (visalloFilter.test(urlFilter)) {
+                                    return visalloFilter.test(search.url);
+                                }
+                                return search.url === urlFilter;
+                            }
+                            return true;
+                        })
+                        .sortBy(function(search) {
+                            return search.name.toLowerCase();
+                        })
+                        .value();
+                })
+        },
+
         save: function(query) {
             var toFix = [],
                 params = query.parameters;

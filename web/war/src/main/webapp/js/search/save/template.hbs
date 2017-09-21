@@ -14,17 +14,11 @@
         </label>
       {{/if}}
     </div>
-    <ul class="nav nav-list">
-      {{#each list}}
-        <li><a><h1>{{name}}</h1></a>
-            <span class="badge">{{scope}}</span>
-            {{#if canDelete}}
-              <button class="btn btn-mini btn-danger">{{i18n 'search.savedsearches.button.delete'}}</button>
-            {{/if}}
-        </li>
-      {{else}}
-      <li class="empty">{{i18n 'search.savedsearches.none'}}</li>
+    <div class="saved-search segmented-control">
+      {{#each types}}
+        <button data-type="{{name}}" class="saved-search-type saved-search-{{name}} {{#if selected}}active{{/if}}">{{displayName}}</button>
       {{/each}}
-    </ul>
+    </div>
+    <div class="saved-search-list"/>
   </div>
 </div>

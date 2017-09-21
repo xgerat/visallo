@@ -163,7 +163,7 @@ public class VertexiumSearchRepository extends SearchRepository {
     }
 
     @Override
-    public ClientApiSearchListResponse getSavedSearches(User user) {
+    public ClientApiSearchListResponse getAllSavedSearches(User user) {
         checkNotNull(user, "User is required");
         Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
                 user,
@@ -173,6 +173,34 @@ public class VertexiumSearchRepository extends SearchRepository {
 
         ClientApiSearchListResponse result = new ClientApiSearchListResponse();
         Iterables.addAll(result.searches, getGlobalSavedSearches(authorizations));
+        Iterables.addAll(result.searches, getUserSavedSearches(user, authorizations));
+        return result;
+    }
+
+    @Override
+    public ClientApiSearchListResponse getGlobalSavedSearches(User user) {
+        checkNotNull(user, "User is required");
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                UserRepository.VISIBILITY_STRING
+        );
+
+        ClientApiSearchListResponse result = new ClientApiSearchListResponse();
+        Iterables.addAll(result.searches, getGlobalSavedSearches(authorizations));
+        return result;
+    }
+
+    @Override
+    public ClientApiSearchListResponse getUserSavedSearches(User user) {
+        checkNotNull(user, "User is required");
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                UserRepository.VISIBILITY_STRING
+        );
+
+        ClientApiSearchListResponse result = new ClientApiSearchListResponse();
         Iterables.addAll(result.searches, getUserSavedSearches(user, authorizations));
         return result;
     }

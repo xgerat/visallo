@@ -2,16 +2,20 @@
 define([
     'flight/lib/component',
     'util/popovers/withPopover',
-    'util/withDataRequest'
+    'util/withDataRequest',
+    'hbs!./list'
 ], function(
     defineComponent,
     withPopover,
-    withDataRequest) {
+    withDataRequest,
+    template) {
     'use strict';
 
     var SCOPES = {
         GLOBAL: 'Global'
     };
+
+    var SEARCH_TYPES = ['User', 'Global'];
 
     return defineComponent(SavedSearches, withPopover, withDataRequest);
 
@@ -42,8 +46,13 @@ define([
             nameInputSelector: '.form input.name',
             globalSearchSelector: '.form .global-search',
             globalInputSelector: '.form .global-search input',
-            deleteSelector: 'ul .btn-danger'
+            deleteSelector: 'ul .btn-danger',
+            savedSearchListTypeSelector: '.saved-search',
+            savedSearchTypeSelector: '.saved-search-type',
+            savedSearchListSelector: '.saved-search-list'
         });
+
+        var list = [];
 
         this.before('initialize', function(node, config) {
             config.template = '/search/save/template';
@@ -55,24 +64,41 @@ define([
             config.teardownOnTap = true;
             config.canAddOrUpdate = _.isUndefined(config.update) || !config.updatingGlobal ||
                 (config.updatingGlobal && config.canSaveGlobal);
-            config.list = config.list.map(function(item) {
-                var isGlobal = item.scope === SCOPES.GLOBAL,
-                    canDelete = true;
-                if (isGlobal) {
-                    canDelete = config.canSaveGlobal;
+            config.types = SEARCH_TYPES.map(function(type, i) {
+                return {
+                    name: type,
+                    displayName: {
+                        User: i18n('search.savedsearches.button.user'),
+                        Global: i18n('search.savedsearches.button.global')
+                    }[type],
+                    selected: i === 0
                 }
-                return _.extend({}, item, {
-                    isGlobal: isGlobal,
-                    canDelete: canDelete
-                })
             });
+            config.currentSearchType = _.findWhere(config.types, { selected: true });
+
+            list = _.groupBy(config.list, 'scope')[config.currentSearchType.name]
+                    .map(function(item) {
+                    var isGlobal = item.scope === SCOPES.GLOBAL,
+                        canDelete = true;
+                    if (isGlobal) {
+                        canDelete = config.canSaveGlobal;
+                    }
+                    return _.extend({}, item, {
+                        isGlobal: isGlobal,
+                        canDelete: canDelete
+                    })
+                });
 
             this.after('setupWithTemplate', function() {
                 this.on(this.popover, 'click', {
                     listSelector: this.onClick,
                     saveSelector: this.onSave,
-                    deleteSelector: this.onDelete
+                    deleteSelector: this.onDelete,
+                    savedSearchListTypeSelector: this.onSavedSearchListTypeClick
                 });
+
+                var $savedSearchList = this.popover.find(this.attr.savedSearchListSelector);
+                $savedSearchList.append(template({list: list}));
 
                 this.on(this.popover, 'keyup change', {
                     nameInputSelector: this.onChange,
@@ -168,7 +194,7 @@ define([
             var self = this,
                 $li = $(event.target).closest('li'),
                 index = $li.index(),
-                query = this.attr.list[index],
+                query = list[index],
                 $button = $(event.target).addClass('loading');
 
             $li.addClass('loading');
@@ -197,7 +223,7 @@ define([
         };
 
         this.onClick = function(event) {
-            var query = this.attr.list[$(event.target).closest('li').index()];
+            var query = list[$(event.target).closest('li').index()];
 
             this.trigger('savedQuerySelected', {
                 query: query
@@ -205,5 +231,36 @@ define([
 
             this.teardown();
         };
+
+        this.onSavedSearchListTypeClick = function(event, data) {
+            event.stopPropagation();
+            this.switchListType($(event.target).blur().data('type'));
+        }
+
+        this.switchListType = function(listType) {
+            var $field = this.popover.find(this.attr.savedSearchListSelector);
+            $field.addClass('loading')
+                .empty();
+            this.popover.find('.saved-search-type.active').removeClass('active');
+            this.popover.find('.saved-search-' + listType).addClass('active');
+            this.dataRequest('search', listType.toLowerCase(), '').done(function(searches) {
+                list = _.groupBy(searches, 'scope')[listType]
+                    .map(function(item) {
+                        var isGlobal = item.scope === SCOPES.GLOBAL,
+                            canDelete = true;
+                        if (isGlobal) {
+                            canDelete = true;
+                        }
+                        return _.extend({}, item, {
+                            isGlobal: isGlobal,
+                            canDelete: canDelete
+                        })
+                    });
+
+                $field.append(template({
+                    list: list
+                }));
+            });
+        }
     }
 });

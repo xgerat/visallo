@@ -225,7 +225,7 @@ public class VertexiumSearchRepositoryTest {
         graph.addEdge(USER_ID, ID, SearchProperties.HAS_SAVED_SEARCH, VISIBILITY, authorizations);
         graph.flush();
 
-        ClientApiSearchListResponse response = searchRepository.getSavedSearches(user);
+        ClientApiSearchListResponse response = searchRepository.getAllSavedSearches(user);
 
         assertEquals(1, response.searches.size());
         for (ClientApiSearch search : response.searches) {
@@ -293,7 +293,7 @@ public class VertexiumSearchRepositoryTest {
     }
 
     private void assertSavedSearchState(boolean expectGlobal) {
-        ClientApiSearchListResponse response = searchRepository.getSavedSearches(user);
+        ClientApiSearchListResponse response = searchRepository.getAllSavedSearches(user);
         assertEquals(1, response.searches.size());
         assertEquals(searchRepository.isSearchGlobal(ID, authorizations), expectGlobal);
         assertEquals(searchRepository.isSearchPrivateToUser(ID, user, authorizations), !expectGlobal);

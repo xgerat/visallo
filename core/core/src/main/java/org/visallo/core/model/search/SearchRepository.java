@@ -32,7 +32,11 @@ public abstract class SearchRepository {
             User user
     );
 
-    public abstract ClientApiSearchListResponse getSavedSearches(User user);
+    public abstract ClientApiSearchListResponse getAllSavedSearches(User user);
+
+    public abstract ClientApiSearchListResponse getGlobalSavedSearches(User user);
+
+    public abstract ClientApiSearchListResponse getUserSavedSearches(User user);
 
     public abstract ClientApiSearch getSavedSearch(String id, User user);
 
