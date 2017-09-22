@@ -232,10 +232,10 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
 
             String edgeId = getEdgeId(productVertex.getId(), vertexId);
             ctx.getOrCreateEdgeAndUpdate(edgeId, productVertex.getId(),
-                                         vertexId,
-                                         WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                                         visibility,
-                                         elemCtx -> updateProductEdge(elemCtx, params, visibility)
+                    vertexId,
+                    WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
+                    visibility,
+                    elemCtx -> updateProductEdge(elemCtx, params, visibility)
             );
 
             ctx.flush();
@@ -270,7 +270,7 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
             String edgeId = getEdgeId(productVertex.getId(), id);
 
             //undoing compound node removal
-            if (updateData.getChildren() != null && !ctx.getGraph().doesVertexExist(id, authorizations)) {
+            if (updateData.hasChildren() && !ctx.getGraph().doesVertexExist(id, authorizations)) {
                 addCompoundNode(ctx, productVertex, updateData, user, visibility, authorizations);
             }
 
@@ -509,9 +509,8 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
                 GraphProductOntology.PARENT_NODE.updateProperty(elemCtx, parent, visibility);
             }
 
-            List<String> children = update.getChildren();
-            if (children != null) {
-                GraphProductOntology.NODE_CHILDREN.updateProperty(elemCtx, children, visibility);
+            if (update.hasChildren()) {
+                GraphProductOntology.NODE_CHILDREN.updateProperty(elemCtx, update.getChildren(), visibility);
             }
         }
     }
