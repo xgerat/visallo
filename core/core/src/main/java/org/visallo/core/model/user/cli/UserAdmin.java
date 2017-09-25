@@ -241,13 +241,6 @@ public class UserAdmin extends CommandLineTool {
         List<User> activeUsers = loadUsers(UserStatus.ACTIVE);
         System.out.println(activeUsers.size() + " " + UserStatus.ACTIVE + " user" + (activeUsers.size() == 1 ? "" : "s"));
         printUsers(activeUsers);
-
-        if (args.showIdle) {
-            List<User> idleUsers = loadUsers(UserStatus.IDLE);
-            System.out.println(idleUsers.size() + " " + UserStatus.IDLE + " user" + (idleUsers.size() == 1 ? "" : "s"));
-            printUsers(idleUsers);
-        }
-
         return 0;
     }
 

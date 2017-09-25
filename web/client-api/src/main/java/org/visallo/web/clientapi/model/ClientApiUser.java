@@ -15,6 +15,7 @@ public class ClientApiUser implements ClientApiObject {
     private String email;
     private String currentWorkspaceName;
     private String csrfToken;
+    private Date currentLoginDate;
     private Set<String> privileges = new HashSet<String>();
     private JsonNode uiPreferences;
     private List<String> authorizations = new ArrayList<String>();
@@ -68,6 +69,14 @@ public class ClientApiUser implements ClientApiObject {
 
     public void setStatus(UserStatus status) {
         this.status = status;
+    }
+
+    public Date getCurrentLoginDate() {
+        return currentLoginDate;
+    }
+
+    public void setCurrentLoginDate(Date currentLoginDate) {
+        this.currentLoginDate = currentLoginDate;
     }
 
     public void setEmail(String email) {

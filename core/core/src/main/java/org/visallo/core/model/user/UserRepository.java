@@ -180,6 +180,7 @@ public abstract class UserRepository {
         u.setStatus(user.getUserStatus());
         u.setUserType(user.getUserType());
         u.setEmail(user.getEmailAddress());
+        u.setCurrentLoginDate(user.getCurrentLoginDate());
         u.setCurrentWorkspaceId(user.getCurrentWorkspaceId());
         u.getProperties().putAll(user.getCustomProperties());
         if (workspaceNames != null) {

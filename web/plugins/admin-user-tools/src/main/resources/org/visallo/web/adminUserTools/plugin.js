@@ -4,7 +4,7 @@ define([
 ], function(registry, i18n) {
     'use strict';
 
-    var adminExtensionPoint = 'org.visallo.admin';
+    const adminExtensionPoint = 'org.visallo.admin';
 
     /**
      * @undocumented
@@ -33,5 +33,12 @@ define([
         section: i18n('admin.user.section'),
         name: i18n('admin.user.editor'),
         subtitle: i18n('admin.user.editor.subtitle')
+    });
+
+    registry.registerExtension(adminExtensionPoint, {
+        componentPath: 'org/visallo/web/adminUserTools/ActiveUserList',
+        section: i18n('admin.user.section'),
+        name: i18n('admin.user.activeList'),
+        subtitle: i18n('admin.user.activeList.subtitle')
     });
 });

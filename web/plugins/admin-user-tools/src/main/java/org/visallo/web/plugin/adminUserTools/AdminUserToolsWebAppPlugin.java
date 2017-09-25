@@ -24,7 +24,8 @@ public class AdminUserToolsWebAppPlugin implements WebAppPlugin {
         app.registerJavaScriptComponent("/org/visallo/web/adminUserTools/WorkspaceList.jsx");
         app.registerJavaScriptComponent("/org/visallo/web/adminUserTools/LoadUser.jsx");
         app.registerJavaScriptComponent("/org/visallo/web/adminUserTools/UserTypeaheadInput.jsx");
-        app.registerCss("/org/visallo/web/adminUserTools/userAdmin.css");
+        app.registerJavaScriptComponent("/org/visallo/web/adminUserTools/ActiveUserList.jsx");
+        app.registerLess("/org/visallo/web/adminUserTools/userAdmin.less");
         app.registerCss("/org/visallo/web/adminUserTools/workspaceList.css");
 
         app.registerResourceBundle("/org/visallo/web/adminUserTools/messages.properties");
