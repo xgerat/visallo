@@ -122,7 +122,8 @@ public class Router extends HttpServlet {
             app.post("/search/run", authenticator, csrfProtector, SearchRun.class);
             app.delete("/search", authenticator, csrfProtector, SearchDelete.class);
 
-            app.post("/search/favorite", authenticator, csrfProtector, FavoriteSearch.class);
+            app.post("/search/favorite/save", authenticator, csrfProtector, FavoriteSearch.class);
+            app.get("/search/favorite", authenticator, csrfProtector, FavoriteList.class);
             app.delete("/search/unfavorite", authenticator, csrfProtector, FavoriteSearchDelete.class);
 
             app.get("/element/search", authenticator, csrfProtector, ReadPrivilegeFilter.class, ElementSearch.class);
