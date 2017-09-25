@@ -1,12 +1,8 @@
 <ul class="nav nav-list">
   {{#each list}}
     <li>
-        <a>
-            <span class="rating">
-                <input type="radio" class="favorite-search {{#if favorited}}favorited{{/if}}" {{#if favorited}}checked{{/if}}>
-            </span>
-            <h1>{{name}}</h1>
-        </a>
+        <div class="rating {{#if favorited}}favorited{{else}}not-favorited{{/if}}" title="{{tooltip}}"><span/></div>
+        {{name}}
         {{#if canDelete}}
           <button class="btn btn-mini btn-danger">{{i18n 'search.savedsearches.button.delete'}}</button>
         {{/if}}

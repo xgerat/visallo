@@ -6,6 +6,7 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Required;
 import org.visallo.core.model.search.SearchRepository;
 import org.visallo.core.user.User;
+import org.visallo.web.clientapi.model.ClientApiSuccess;
 
 public class FavoriteSearch implements ParameterizedHandler {
     private final SearchRepository searchRepository;
@@ -16,10 +17,11 @@ public class FavoriteSearch implements ParameterizedHandler {
     }
 
     @Handle
-    public void handle(
+    public ClientApiSuccess handle(
             @Required(name = "id") String id,
             User user
     ) throws Exception {
         this.searchRepository.favoriteSearch(id, user);
+        return new ClientApiSuccess();
     }
 }

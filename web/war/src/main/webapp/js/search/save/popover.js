@@ -41,8 +41,8 @@ define([
     function SavedSearches() {
 
         this.defaultAttrs({
-            favoriteSelector: '.favorite-search',
-            listSelector: 'li a',
+            favoriteSelector: '.rating',
+            listSelector: 'li',
             saveSelector: '.form button',
             nameInputSelector: '.form input.name',
             globalSearchSelector: '.form .global-search',
@@ -75,29 +75,39 @@ define([
             });
             config.currentSearchType = _.findWhere(config.types, { selected: true });
 
-            config.list = _.groupBy(config.list, 'scope')[config.currentSearchType.name]
-                    .map(function(item) {
-                    var isGlobal = item.scope === SCOPES.GLOBAL,
-                        canDelete = true;
-                    if (isGlobal) {
-                        canDelete = config.canSaveGlobal;
-                    }
-                    return _.extend({}, item, {
-                        isGlobal: isGlobal,
-                        canDelete: canDelete
-                    })
-                });
+            if (config.list.length > 0) {
+                var groupedSearches = _.groupBy(config.list, 'scope')[config.currentSearchType.name];
+                if (groupedSearches) {
+                    config.list = groupedSearches
+                        .map(function(item) {
+                        var isGlobal = item.scope === SCOPES.GLOBAL,
+                            canDelete = true;
+                        if (isGlobal) {
+                            canDelete = config.canSaveGlobal;
+                        }
+                        var tooltip = i18n('search.savedsearches.' + (item.favorited ? 'delete' : 'add') + '.favorite');
+                        return _.extend({}, item, {
+                            isGlobal: isGlobal,
+                            canDelete: canDelete,
+                            tooltip: tooltip
+                        })
+                    });
+                } else {
+                    config.list = groupedSearches;
+                }
+            }
 
             this.after('setupWithTemplate', function() {
                 this.on(this.popover, 'click', {
                     favoriteSelector: this.onFavoriteClick,
+                    deleteSelector: this.onDelete,
                     listSelector: this.onClick,
                     saveSelector: this.onSave,
-                    deleteSelector: this.onDelete,
                     savedSearchListTypeSelector: this.onSavedSearchListTypeClick
                 });
 
                 this.attr.list = config.list;
+
                 var $savedSearchList = this.popover.find(this.attr.savedSearchListSelector);
                 $savedSearchList.append(template({list: this.attr.list}));
 
@@ -199,6 +209,7 @@ define([
                 $button = $(event.target).addClass('loading');
 
             $li.addClass('loading');
+            event.stopPropagation();
 
             this.dataRequest('search', 'delete', query.id)
                 .then(function() {
@@ -237,27 +248,32 @@ define([
             event.stopPropagation();
 
             var self = this,
-                $target = $(event.target),
+                $target = $(event.currentTarget),
                 isFavorited = $target.hasClass('favorited'),
-                isChecked = $target.is(':checked'),
                 index = $target.closest('li').index(),
                 searchId = this.attr.list[index].id;
 
                 // user wants to favorite search
-                if (!isFavorited && isChecked) {
-                    $target.addClass('favorited');
+                if (!isFavorited) {
                     this.dataRequest('search', 'favorite', searchId)
-                        .done(function() {
+                        .then(function() {
                             self.attr.list[index].favorite = true;
+                        }).finally(function() {
+                            $target.addClass('favorited')
+                                .removeClass('not-favorited')
+                                .attr('title', i18n('search.savedsearches.delete.favorite'));
                         })
-                } else if (isFavorited && isChecked) {
+                } else if (isFavorited) {
                     // user wants to unfavorite search
-                    $target.removeClass('favorited');
-                    $target.attr('checked', false);
+
                     this.dataRequest('search', 'unfavorite', searchId)
-                        .done(function() {
+                        .then(function() {
                             self.attr.list[index].favorite = false;
-                        })
+                        }).finally(function() {
+                            $target.removeClass('favorited')
+                                .addClass('not-favorited')
+                                .attr('title', i18n('search.savedsearches.add.favorite'));
+                        });
                 }
         }
 
@@ -274,18 +290,24 @@ define([
             this.popover.find('.saved-search-type.active').removeClass('active');
             this.popover.find('.saved-search-' + listType).addClass('active');
             this.dataRequest('search', listType.toLowerCase()).done(function(searches) {
-                self.attr.list = _.groupBy(searches, 'scope')[listType]
-                    .map(function(item) {
-                        var isGlobal = item.scope === SCOPES.GLOBAL,
-                            canDelete = true;
-                        if (isGlobal) {
-                            canDelete = true;
-                        }
-                        return _.extend({}, item, {
-                            isGlobal: isGlobal,
-                            canDelete: canDelete
-                        })
-                    });
+                if (searches.length > 0) {
+                    self.attr.list = _.groupBy(searches, 'scope')[listType]
+                        .map(function(item) {
+                            var isGlobal = item.scope === SCOPES.GLOBAL,
+                                canDelete = true;
+                            if (isGlobal) {
+                                canDelete = true;
+                            }
+                            var tooltip = i18n('search.savedsearches.' + (item.favorited ? 'delete' : 'add') + '.favorite');
+                            return _.extend({}, item, {
+                                isGlobal: isGlobal,
+                                canDelete: canDelete,
+                                tooltip: tooltip
+                            })
+                        });
+                } else {
+                    self.attr.list = searches;
+                }
 
                 $field.append(template({
                     list: self.attr.list
