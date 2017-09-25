@@ -53,8 +53,6 @@ define([
             savedSearchListSelector: '.saved-search-list'
         });
 
-        var list = [];
-
         this.before('initialize', function(node, config) {
             config.template = '/search/save/template';
             config.canSaveGlobal = visalloData.currentUser.privileges.indexOf('SEARCH_SAVE_GLOBAL') > -1;
@@ -77,7 +75,7 @@ define([
             });
             config.currentSearchType = _.findWhere(config.types, { selected: true });
 
-            list = _.groupBy(config.list, 'scope')[config.currentSearchType.name]
+            config.list = _.groupBy(config.list, 'scope')[config.currentSearchType.name]
                     .map(function(item) {
                     var isGlobal = item.scope === SCOPES.GLOBAL,
                         canDelete = true;
@@ -99,8 +97,9 @@ define([
                     savedSearchListTypeSelector: this.onSavedSearchListTypeClick
                 });
 
+                this.attr.list = config.list;
                 var $savedSearchList = this.popover.find(this.attr.savedSearchListSelector);
-                $savedSearchList.append(template({list: list}));
+                $savedSearchList.append(template({list: this.attr.list}));
 
                 this.on(this.popover, 'keyup change', {
                     nameInputSelector: this.onChange,
@@ -196,7 +195,7 @@ define([
             var self = this,
                 $li = $(event.target).closest('li'),
                 index = $li.index(),
-                query = list[index],
+                query = this.attr.list[index],
                 $button = $(event.target).addClass('loading');
 
             $li.addClass('loading');
@@ -225,7 +224,7 @@ define([
         };
 
         this.onClick = function(event) {
-            var query = list[$(event.target).closest('li').index()];
+            var query = this.attr.list[$(event.target).closest('li').index()];
 
             this.trigger('savedQuerySelected', {
                 query: query
@@ -237,18 +236,19 @@ define([
         this.onFavoriteClick = function(event) {
             event.stopPropagation();
 
-            var $target = $(event.target),
+            var self = this,
+                $target = $(event.target),
                 isFavorited = $target.hasClass('favorited'),
                 isChecked = $target.is(':checked'),
                 index = $target.closest('li').index(),
-                searchId = list[index].id;
+                searchId = this.attr.list[index].id;
 
                 // user wants to favorite search
                 if (!isFavorited && isChecked) {
                     $target.addClass('favorited');
                     this.dataRequest('search', 'favorite', searchId)
                         .done(function() {
-                            list[index].favorite = true;
+                            self.attr.list[index].favorite = true;
                         })
                 } else if (isFavorited && isChecked) {
                     // user wants to unfavorite search
@@ -256,7 +256,7 @@ define([
                     $target.attr('checked', false);
                     this.dataRequest('search', 'unfavorite', searchId)
                         .done(function() {
-                            list[index].favorite = false;
+                            self.attr.list[index].favorite = false;
                         })
                 }
         }
@@ -267,13 +267,14 @@ define([
         }
 
         this.switchListType = function(listType) {
-            var $field = this.popover.find(this.attr.savedSearchListSelector);
+            var self = this,
+                $field = this.popover.find(this.attr.savedSearchListSelector);
             $field.addClass('loading')
                 .empty();
             this.popover.find('.saved-search-type.active').removeClass('active');
             this.popover.find('.saved-search-' + listType).addClass('active');
             this.dataRequest('search', listType.toLowerCase()).done(function(searches) {
-                list = _.groupBy(searches, 'scope')[listType]
+                self.attr.list = _.groupBy(searches, 'scope')[listType]
                     .map(function(item) {
                         var isGlobal = item.scope === SCOPES.GLOBAL,
                             canDelete = true;
@@ -287,7 +288,7 @@ define([
                     });
 
                 $field.append(template({
-                    list: list
+                    list: self.attr.list
                 }));
             });
         }
