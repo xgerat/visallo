@@ -12,7 +12,8 @@ define([
     'use strict';
 
     var SCOPES = {
-        GLOBAL: 'Global'
+        GLOBAL: 'Global',
+        FAVORITE: 'Favorite'
     };
 
     var SEARCH_TYPES = ['Favorite', 'User', 'Global'];
@@ -85,7 +86,7 @@ define([
                     var tooltip = i18n('search.savedsearches.' + (item.favorited ? 'delete' : 'add') + '.favorite');
                     return _.extend({}, item, {
                         isGlobal: isGlobal,
-                        canDelete: canDelete,
+                        canDelete: canDelete && item.scope !== SCOPES.FAVORITE,
                         tooltip: tooltip
                     })
                 })
@@ -301,7 +302,7 @@ define([
                         var tooltip = i18n('search.savedsearches.' + (item.favorited ? 'delete' : 'add') + '.favorite');
                         return _.extend({}, item, {
                             isGlobal: isGlobal,
-                            canDelete: canDelete,
+                            canDelete: canDelete && item.scope !== SCOPES.FAVORITE,
                             tooltip: tooltip
                         })
                     });
