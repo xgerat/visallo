@@ -14,7 +14,9 @@
     <name>Visallo: Tools: Migrations</name>
 
     <modules>
+        <module>core</module>
         <module>workspace-to-workproduct</module>
         <module>graph-version-bump</module>
+        <module>predefined-to-dynamic-ontology</module>
     </modules>
 </project>
