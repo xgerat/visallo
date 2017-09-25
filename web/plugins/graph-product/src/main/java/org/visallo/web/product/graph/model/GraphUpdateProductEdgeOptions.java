@@ -3,11 +3,12 @@ package org.visallo.web.product.graph.model;
 import org.visallo.core.model.workspace.product.UpdateProductEdgeOptions;
 import org.visallo.web.clientapi.model.GraphPosition;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GraphUpdateProductEdgeOptions extends UpdateProductEdgeOptions {
     private String id;
-    private List<String> children;
+    private List<String> children = new ArrayList<>();
     private String parent;
     private GraphPosition pos;
 
@@ -37,5 +38,9 @@ public class GraphUpdateProductEdgeOptions extends UpdateProductEdgeOptions {
 
     public GraphPosition getPos() {
         return pos;
+    }
+
+    public boolean hasChildren() {
+        return children != null && children.size() > 0;
     }
 }

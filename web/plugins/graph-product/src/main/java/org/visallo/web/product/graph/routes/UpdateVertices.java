@@ -87,7 +87,7 @@ public class UpdateVertices implements ParameterizedHandler {
 
         Set<String> vertices = updateVertices.keySet();
         vertices = vertices.stream()
-                .filter(id -> updateVertices.get(id).getChildren() == null)
+                .filter(id -> !updateVertices.get(id).hasChildren())
                 .collect(Collectors.toSet());
         workspaceHelper.updateEntitiesOnWorkspace(
                 workspaceId,
