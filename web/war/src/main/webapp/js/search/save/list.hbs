@@ -1,6 +1,6 @@
 <ul class="nav nav-list">
   {{#each list}}
-    <li>
+    <li title="{{name}}">
         <div class="rating {{#if favorited}}favorited{{else}}not-favorited{{/if}}" title="{{tooltip}}"><span/></div>
         {{name}}
         {{#if canDelete}}
