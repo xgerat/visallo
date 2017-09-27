@@ -4,6 +4,8 @@ import com.google.common.base.Charsets;
 import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.properties.types.StringSingleValueVisalloProperty;
+import org.visallo.core.model.properties.types.VisibilityJsonVisalloProperty;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
@@ -20,6 +22,20 @@ public abstract class TermMentionGraphPropertyWorkerTestBase extends GraphProper
     protected static final String CONCEPT_IRI = "http://visallo.org/test#regexGpwTest";
 
     public abstract GraphPropertyWorker getGpw() throws Exception;
+
+    @Override
+    protected Graph getGraph() {
+        Graph graph = super.getGraph();
+        graph.defineProperty(VisalloProperties.TERM_MENTION_CONCEPT_TYPE.getPropertyName()).dataType(String.class).textIndexHint(TextIndexHint.EXACT_MATCH).define();
+        graph.defineProperty(VisalloProperties.TERM_MENTION_VISIBILITY_JSON.getPropertyName()).dataType(String.class).define();
+        graph.defineProperty(VisalloProperties.TERM_MENTION_TITLE.getPropertyName()).dataType(String.class).define();
+        graph.defineProperty(VisalloProperties.TERM_MENTION_PROCESS.getPropertyName()).dataType(String.class).define();
+        graph.defineProperty(VisalloProperties.TERM_MENTION_PROPERTY_KEY.getPropertyName()).dataType(String.class).define();
+        graph.defineProperty(VisalloProperties.TERM_MENTION_PROPERTY_NAME.getPropertyName()).dataType(String.class).define();
+        graph.defineProperty(VisalloProperties.TERM_MENTION_START_OFFSET.getPropertyName()).dataType(Integer.class).define();
+        graph.defineProperty(VisalloProperties.TERM_MENTION_END_OFFSET.getPropertyName()).dataType(Integer.class).define();
+        return graph;
+    }
 
     protected void doExtractionTest(String text, List<ExpectedTermMention> expectedTerms) throws Exception {
         VisibilityJson visibilityJson = new VisibilityJson("TermMentionGraphPropertyWorkerTestBase");

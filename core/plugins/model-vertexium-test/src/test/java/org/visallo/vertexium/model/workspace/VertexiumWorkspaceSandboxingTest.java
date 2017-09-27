@@ -46,6 +46,9 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
     private static final String OTHER_VISIBILITY_SOURCE = "other";
     private static final String VERTEX_TITLE = "The Title";
     private static final String VERTEX_CONCEPT_TYPE = "The Concept Type";
+    public static final String PROPERTY_NAME_ONE = "prop1";
+    public static final String PROPERTY_NAME_NINE = "prop9";
+    public static final String PROPERTY_NAME_TWO = "prop2";
 
     private Workspace workspace;
     private InMemoryAuthorizations workspaceAuthorizations;
@@ -90,8 +93,8 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
         User systemUser = getUserRepository().getSystemUser();
         Authorizations systemUserAuth = getAuthorizationRepository().getGraphAuthorizations(systemUser);
         entity1Vertex = getGraph().prepareVertex("entity1aId", initialVisibility)
-                .addPropertyValue("key1", "prop1", "value1", new Metadata(), initialVisibility)
-                .addPropertyValue("key9", "prop9", "value9", new Metadata(), initialVisibility)
+                .addPropertyValue("key1", PROPERTY_NAME_ONE, "value1", new Metadata(), initialVisibility)
+                .addPropertyValue("key9", PROPERTY_NAME_NINE, "value9", new Metadata(), initialVisibility)
                 .save(systemUserAuth);
 
         Concept thing = getOntologyRepository().getEntityConcept(PUBLIC);
@@ -136,7 +139,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
         );
         getOntologyRepository().getOrCreateProperty(propertyDefinition, systemUser, PUBLIC);
 
-        propertyDefinition = new OntologyPropertyDefinition(Collections.singletonList(thing), "prop1", "Prop 1", PropertyType.STRING);
+        propertyDefinition = new OntologyPropertyDefinition(Collections.singletonList(thing), PROPERTY_NAME_ONE, "Prop 1", PropertyType.STRING);
         propertyDefinition.setUserVisible(true);
         propertyDefinition.setTextIndexHints(Collections.singleton(TextIndexHint.EXACT_MATCH));
         getOntologyRepository().getOrCreateProperty(propertyDefinition, systemUser, PUBLIC);
@@ -197,6 +200,10 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
                 workspaceHelper,
                 getWorkQueueRepository()
         );
+
+        getGraph().defineProperty(PROPERTY_NAME_ONE).dataType(String.class).define();
+        getGraph().defineProperty(PROPERTY_NAME_TWO).dataType(String.class).define();
+        getGraph().defineProperty(PROPERTY_NAME_NINE).dataType(String.class).define();
     }
 
     @Test
@@ -612,8 +619,8 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
         );
 
         ElementBuilder<Vertex> vertexBuilder = getGraph().prepareVertex("v1", initialVisibility)
-                .addPropertyValue("k1", "p1", "v1", propertyMetadata, initialVisibility)
-                .addPropertyValue("k2", "p2", "v2", propertyMetadata, initialVisibility);
+                .addPropertyValue("k1", PROPERTY_NAME_ONE, "v1", propertyMetadata, initialVisibility)
+                .addPropertyValue("k2", PROPERTY_NAME_TWO, "v2", propertyMetadata, initialVisibility);
         VisalloProperties.VISIBILITY_JSON.setProperty(
                 vertexBuilder, initialVisibilityJson, propertyMetadata, new Visibility(""));
         Vertex v1 = vertexBuilder.save(workspaceAuthorizations);
@@ -630,8 +637,8 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
         assertNull(getGraph().getVertex(vertexId, workspaceAuthorizations));
 
         vertexBuilder = getGraph().prepareVertex("v1", initialVisibility)
-                .addPropertyValue("k3", "p1", "v1", propertyMetadata, initialVisibility)
-                .addPropertyValue("k4", "p2", "v2", propertyMetadata, initialVisibility);
+                .addPropertyValue("k3", PROPERTY_NAME_ONE, "v1", propertyMetadata, initialVisibility)
+                .addPropertyValue("k4", PROPERTY_NAME_TWO, "v2", propertyMetadata, initialVisibility);
         VisalloProperties.VISIBILITY_JSON.setProperty(
                 vertexBuilder, initialVisibilityJson, propertyMetadata, new Visibility(""));
         vertexBuilder.save(workspaceAuthorizations);
@@ -654,7 +661,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
         publishAllWorkspaceDiffs();
 
         entity1Vertex = getGraph().getVertex(entity1Vertex.getId(), workspaceAuthorizations);
-        Property property = entity1Vertex.getProperty("key1", "prop1");
+        Property property = entity1Vertex.getProperty("key1", PROPERTY_NAME_ONE);
         assertNotNull(property);
         workspaceHelper.deleteProperty(
                 entity1Vertex,
@@ -1013,11 +1020,11 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
     }
 
     private void markPublicPropertyHiddenOnWorkspace() {
-        OntologyProperty ontologyProperty = getOntologyRepository().getRequiredPropertyByIRI("prop1", PUBLIC);
+        OntologyProperty ontologyProperty = getOntologyRepository().getRequiredPropertyByIRI(PROPERTY_NAME_ONE, PUBLIC);
         workspaceHelper.deleteProperties(
                 entity1Vertex,
                 "key1",
-                "prop1",
+                PROPERTY_NAME_ONE,
                 ontologyProperty,
                 WORKSPACE_ID,
                 workspaceAuthorizations,
@@ -1028,7 +1035,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
     private void changePublicPropertyValueOnWorkspace() {
         VisibilityAndElementMutation<Vertex> visibilityAndMutation = getGraphRepository().setProperty(
                 entity1Vertex,
-                "prop1",
+                PROPERTY_NAME_ONE,
                 "key1",
                 "value1a",
                 initialMetadata,
@@ -1046,7 +1053,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
 
     private void assertChangedPropertyValueDiff(PropertyItem diff) {
         assertEquals("key1", diff.getKey());
-        assertEquals("prop1", diff.getName());
+        assertEquals(PROPERTY_NAME_ONE, diff.getName());
         assertEquals("value1", diff.getOldData().get("value").asText());
         assertEquals("value1a", diff.getNewData().get("value").asText());
         assertVisibilityEquals(getVisibilityTranslator().toVisibility(initialVisibilityJson).toString(), diff.getVisibilityString());
@@ -1056,7 +1063,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
 
     private void assertChangedPropertyValuePublished() {
         entity1Vertex = getGraph().getVertex(entity1Vertex.getId(), workspaceAuthorizations);
-        Property property = entity1Vertex.getProperty("key1", "prop1");
+        Property property = entity1Vertex.getProperty("key1", PROPERTY_NAME_ONE);
         assertEquals("value1a", property.getValue());
         assertVisibilityOnProperty(initialVisibility, property);
         assertFalse(property.isHidden(workspaceAuthorizations));
@@ -1064,19 +1071,19 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
 
     private void changePublicPropertyVisibilityOnWorkspace() {
         entity1Vertex.prepareMutation()
-                .addPropertyValue("key1", "prop1", "value1", secretMetadata, secretWorkspaceViz)
+                .addPropertyValue("key1", PROPERTY_NAME_ONE, "value1", secretMetadata, secretWorkspaceViz)
                 .save(workspaceAuthorizations);
     }
 
     private void changeNonPublicPropertyVisibilityOnWorkspace() {
         entity1Vertex.prepareMutation()
-                .alterPropertyVisibility("key1", "prop1", secretWorkspaceViz)
+                .alterPropertyVisibility("key1", PROPERTY_NAME_ONE, secretWorkspaceViz)
                 .save(workspaceAuthorizations);
     }
 
     private void assertChangedPropertyVisibilityDiff(PropertyItem diff) {
         assertEquals("key1", diff.getKey());
-        assertEquals("prop1", diff.getName());
+        assertEquals(PROPERTY_NAME_ONE, diff.getName());
         assertEquals("value1", diff.getOldData().get("value").asText());
         assertEquals("value1", diff.getNewData().get("value").asText());
         assertVisibilityEquals(secretWorkspaceViz.getVisibilityString(), diff.getVisibilityString());
@@ -1086,7 +1093,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
 
     private void assertChangedPropertyVisibilityPublished() {
         entity1Vertex = getGraph().getVertex(entity1Vertex.getId(), workspaceAuthorizations);
-        Property property = entity1Vertex.getProperty("key1", "prop1");
+        Property property = entity1Vertex.getProperty("key1", PROPERTY_NAME_ONE);
         assertEquals("value1", property.getValue());
         assertVisibilityOnProperty(secretVisibility, property);
         assertFalse(property.isHidden(workspaceAuthorizations));
@@ -1094,13 +1101,13 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
 
     private void changePublicPropertyValueAndVisibilityOnWorkspace() {
         entity1Vertex.prepareMutation()
-                .addPropertyValue("key1", "prop1", "value1a", secretMetadata, secretWorkspaceViz)
+                .addPropertyValue("key1", PROPERTY_NAME_ONE, "value1a", secretMetadata, secretWorkspaceViz)
                 .save(workspaceAuthorizations);
     }
 
     private void assertChangedPropertyValueAndVisibilityDiff(PropertyItem diff) {
         assertEquals("key1", diff.getKey());
-        assertEquals("prop1", diff.getName());
+        assertEquals(PROPERTY_NAME_ONE, diff.getName());
         assertEquals("value1", diff.getOldData().get("value").asText());
         assertEquals("value1a", diff.getNewData().get("value").asText());
         assertVisibilityEquals(secretWorkspaceViz.getVisibilityString(), diff.getVisibilityString());
@@ -1110,7 +1117,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
 
     private void assertChangedPropertyValueAndVisibilityPublished() {
         entity1Vertex = getGraph().getVertex(entity1Vertex.getId(), workspaceAuthorizations);
-        Property property = entity1Vertex.getProperty("key1", "prop1");
+        Property property = entity1Vertex.getProperty("key1", PROPERTY_NAME_ONE);
         assertEquals("value1a", property.getValue());
         assertVisibilityOnProperty(secretVisibility, property);
         assertFalse(property.isHidden(workspaceAuthorizations));
@@ -1118,13 +1125,13 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
 
     private void addNewPropertyOnWorkspace() {
         entity1Vertex.prepareMutation()
-                .addPropertyValue("key2", "prop2", "value2a", initialMetadata, initialWorkspaceViz)
+                .addPropertyValue("key2", PROPERTY_NAME_TWO, "value2a", initialMetadata, initialWorkspaceViz)
                 .save(workspaceAuthorizations);
     }
 
     private void assertNewPropertyDiff(PropertyItem diff) {
         assertEquals("key2", diff.getKey());
-        assertEquals("prop2", diff.getName());
+        assertEquals(PROPERTY_NAME_TWO, diff.getName());
         assertNull(diff.getOldData());
         assertEquals("value2a", diff.getNewData().get("value").asText());
         assertVisibilityEquals(initialWorkspaceViz.getVisibilityString(), diff.getVisibilityString());
@@ -1133,14 +1140,14 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
     }
 
     private void deletePublicPropertyOnWorkspace() {
-        entity1Vertex.markPropertyHidden("key9", "prop9", initialVisibility, new Visibility(WORKSPACE_ID),
+        entity1Vertex.markPropertyHidden("key9", PROPERTY_NAME_NINE, initialVisibility, new Visibility(WORKSPACE_ID),
                 workspaceAuthorizations
         );
     }
 
     private void assertDeletedPropertyDiff(PropertyItem diff) {
         assertEquals("key9", diff.getKey());
-        assertEquals("prop9", diff.getName());
+        assertEquals(PROPERTY_NAME_NINE, diff.getName());
         assertNull(diff.getOldData());
         assertEquals("value9", diff.getNewData().get("value").asText());
         assertVisibilityEquals(initialVisibility.getVisibilityString(), diff.getVisibilityString());

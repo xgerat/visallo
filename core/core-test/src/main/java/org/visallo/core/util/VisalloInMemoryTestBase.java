@@ -4,6 +4,7 @@ import com.v5analytics.simpleorm.InMemorySimpleOrmSession;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.junit.Before;
 import org.vertexium.Graph;
+import org.vertexium.TextIndexHint;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.cache.CacheService;
 import org.visallo.core.cache.NopCacheService;
@@ -24,10 +25,7 @@ import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.*;
 import org.visallo.core.model.workQueue.TestWorkQueueRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.model.workspace.WorkspaceDiffHelper;
-import org.visallo.core.model.workspace.WorkspaceHelper;
-import org.visallo.core.model.workspace.WorkspaceListener;
-import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.model.workspace.*;
 import org.visallo.core.model.workspace.product.WorkProductService;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
@@ -124,6 +122,7 @@ public abstract class VisalloInMemoryTestBase {
                 return VisalloInMemoryTestBase.this.getWorkspaceListeners();
             }
         };
+        getGraph().defineProperty(WorkspaceProperties.TITLE.getPropertyName()).dataType(String.class).textIndexHint(TextIndexHint.ALL).define();
         return workspaceRepository;
     }
 
@@ -320,6 +319,13 @@ public abstract class VisalloInMemoryTestBase {
                 return VisalloInMemoryTestBase.this.getUserListeners();
             }
         };
+        getGraph().defineProperty(UserVisalloProperties.USERNAME.getPropertyName()).dataType(String.class).textIndexHint(TextIndexHint.EXACT_MATCH).define();
+        getGraph().defineProperty(UserVisalloProperties.DISPLAY_NAME.getPropertyName()).dataType(String.class).textIndexHint(TextIndexHint.EXACT_MATCH).define();
+        getGraph().defineProperty(UserVisalloProperties.CREATE_DATE.getPropertyName()).dataType(String.class).define();
+        getGraph().defineProperty(UserVisalloProperties.PASSWORD_HASH.getPropertyName()).dataType(String.class).define();
+        getGraph().defineProperty(UserVisalloProperties.PASSWORD_SALT.getPropertyName()).dataType(String.class).define();
+        getGraph().defineProperty(UserVisalloProperties.STATUS.getPropertyName()).dataType(String.class).define();
+        getGraph().defineProperty(UserVisalloProperties.EMAIL_ADDRESS.getPropertyName()).dataType(String.class).define();
         return userRepository;
     }
 

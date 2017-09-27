@@ -96,7 +96,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         }
     }
 
-    private void defineRequiredProperties() {
+    protected void defineRequiredProperties() {
         defineRequiredProperty(VisalloProperties.CONCEPT_TYPE, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
         defineRequiredProperty(VisalloProperties.MODIFIED_BY, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
         defineRequiredProperty(VisalloProperties.MODIFIED_DATE, Date.class, TextIndexHint.NONE);
@@ -109,13 +109,17 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         defineRequiredProperty(OntologyProperties.TIME_FORMULA, String.class, TextIndexHint.NONE);
         defineRequiredProperty(OntologyProperties.GLYPH_ICON, byte[].class, TextIndexHint.NONE);
         defineRequiredProperty(OntologyProperties.MAP_GLYPH_ICON, byte[].class, TextIndexHint.NONE);
+        defineRequiredProperty(OntologyProperties.GLYPH_ICON_FILE_NAME, String.class, TextIndexHint.NONE);
         defineRequiredProperty(OntologyProperties.DATA_TYPE, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
         defineRequiredProperty(OntologyProperties.USER_VISIBLE, Boolean.TYPE, null);
         defineRequiredProperty(OntologyProperties.SEARCHABLE, Boolean.TYPE, null);
         defineRequiredProperty(OntologyProperties.SORTABLE, Boolean.TYPE, null);
         defineRequiredProperty(OntologyProperties.ADDABLE, Boolean.TYPE, null);
+        defineRequiredProperty(OntologyProperties.DELETEABLE, Boolean.TYPE, null);
+        defineRequiredProperty(OntologyProperties.UPDATEABLE, Boolean.TYPE, null);
         defineRequiredProperty(OntologyProperties.ONTOLOGY_FILE, byte[].class, TextIndexHint.NONE);
         defineRequiredProperty(OntologyProperties.ONTOLOGY_FILE_MD5, String.class, TextIndexHint.NONE);
+        defineRequiredProperty(OntologyProperties.COLOR, String.class, TextIndexHint.NONE);
         defineRequiredProperty(OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME, Integer.class, TextIndexHint.NONE);
     }
 

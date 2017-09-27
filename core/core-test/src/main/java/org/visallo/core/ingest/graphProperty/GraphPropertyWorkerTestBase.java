@@ -40,10 +40,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.mockito.Mockito.mock;
 
@@ -134,6 +131,12 @@ public abstract class GraphPropertyWorkerTestBase {
             Map graphConfiguration = getConfigurationMap();
             InMemoryGraphConfiguration inMemoryGraphConfiguration = new InMemoryGraphConfiguration(graphConfiguration);
             graph = InMemoryGraph.create(inMemoryGraphConfiguration, getGraphIdGenerator(), getGraphSearchIndex(inMemoryGraphConfiguration));
+
+            graph.defineProperty(VisalloProperties.CONCEPT_TYPE.getPropertyName()).dataType(String.class).textIndexHint(TextIndexHint.EXACT_MATCH).define();
+            graph.defineProperty(VisalloProperties.MODIFIED_BY.getPropertyName()).dataType(String.class).textIndexHint(TextIndexHint.EXACT_MATCH).define();
+            graph.defineProperty(VisalloProperties.MODIFIED_DATE.getPropertyName()).dataType(Date.class).define();
+            graph.defineProperty(VisalloProperties.VISIBILITY_JSON.getPropertyName()).dataType(String.class).define();
+            graph.defineProperty(VisalloProperties.TEXT.getPropertyName()).dataType(String.class).textIndexHint(TextIndexHint.FULL_TEXT).define();
         }
         return graph;
     }
