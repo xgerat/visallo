@@ -108,7 +108,7 @@ define([
                 }
 
                 valid = valid && _.every(filter.values, function(v) {
-                    return !_.isUndefined(v) && !_.isEmpty(v);
+                    return !_.isUndefined(v) && !(_.isObject(v) && _.isEmpty(v));
                 });
             }
 
