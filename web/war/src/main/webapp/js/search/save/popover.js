@@ -269,7 +269,10 @@ define([
                             if (activeType === 'Favorite') {
                                 if ($li.siblings().length === 0) {
                                     $li.closest('ul').html($('<li class="empty">No Saved Searches Found</li>'));
-                                } else $li.remove();
+                                } else {
+                                    $li.remove();
+                                }
+                                self.attr.list.splice(index, 1);
                             }
                         }).finally(function() {
                             $target.removeClass('favorited')
@@ -297,7 +300,7 @@ define([
                         var isGlobal = item.scope === SCOPES.GLOBAL,
                             canDelete = true;
                         if (isGlobal) {
-                            canDelete = true;
+                            canDelete = visalloData.currentUser.privileges.indexOf('SEARCH_SAVE_GLOBAL') > -1;
                         }
                         var tooltip = i18n('search.savedsearches.' + (item.favorited ? 'delete' : 'add') + '.favorite');
                         return _.extend({}, item, {
