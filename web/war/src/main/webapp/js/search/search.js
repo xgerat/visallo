@@ -461,7 +461,7 @@ define([
                 if (opened) {
                     $button.siblings('button').andSelf().teardownAllComponents();
                 } else {
-                    self.dataRequest('search', 'favorite').done(function(searches) {
+                    self.dataRequest('search', 'all', self.currentSearchUrl).done(function(searches) {
                         if (self.currentSearchQuery) {
                             self.currentSearchQuery = _.findWhere(searches, { id: self.currentSearchQuery.id });
                         }
