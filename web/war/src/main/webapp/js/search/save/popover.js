@@ -2,16 +2,20 @@
 define([
     'flight/lib/component',
     'util/popovers/withPopover',
-    'util/withDataRequest'
+    'util/withDataRequest',
+    'hbs!./list'
 ], function(
     defineComponent,
     withPopover,
-    withDataRequest) {
+    withDataRequest,
+    template) {
     'use strict';
 
     var SCOPES = {
         GLOBAL: 'Global'
     };
+
+    var SEARCH_TYPES = ['Favorite', 'User', 'Global'];
 
     return defineComponent(SavedSearches, withPopover, withDataRequest);
 
@@ -37,12 +41,16 @@ define([
     function SavedSearches() {
 
         this.defaultAttrs({
-            listSelector: 'li a',
+            favoriteSelector: '.rating',
+            listSelector: 'li',
             saveSelector: '.form button',
             nameInputSelector: '.form input.name',
             globalSearchSelector: '.form .global-search',
             globalInputSelector: '.form .global-search input',
-            deleteSelector: 'ul .btn-danger'
+            deleteSelector: 'ul .btn-danger',
+            savedSearchListTypeSelector: '.saved-search',
+            savedSearchTypeSelector: '.saved-search-type',
+            savedSearchListSelector: '.saved-search-list'
         });
 
         this.before('initialize', function(node, config) {
@@ -55,24 +63,50 @@ define([
             config.teardownOnTap = true;
             config.canAddOrUpdate = _.isUndefined(config.update) || !config.updatingGlobal ||
                 (config.updatingGlobal && config.canSaveGlobal);
-            config.list = config.list.map(function(item) {
-                var isGlobal = item.scope === SCOPES.GLOBAL,
-                    canDelete = true;
-                if (isGlobal) {
-                    canDelete = config.canSaveGlobal;
+            config.types = SEARCH_TYPES.map(function(type, i) {
+                return {
+                    name: type,
+                    displayName: {
+                        Favorite: i18n('search.savedsearches.button.favorite'),
+                        User: i18n('search.savedsearches.button.user'),
+                        Global: i18n('search.savedsearches.button.global')
+                    }[type],
+                    selected: i === 0
                 }
-                return _.extend({}, item, {
-                    isGlobal: isGlobal,
-                    canDelete: canDelete
-                })
             });
+
+            if (config.list.length > 0) {
+                config.list = config.list.map(function(item) {
+                    var isGlobal = item.scope === SCOPES.GLOBAL,
+                        canDelete = true;
+                    if (isGlobal) {
+                        canDelete = config.conSaveGlobal;
+                    }
+                    var tooltip = i18n('search.savedsearches.' + (item.favorited ? 'delete' : 'add') + '.favorite');
+                    var favoriteList = _.findWhere(config.types, {selected: true}).name === 'Favorite';
+                    return _.extend({}, item, {
+                        isGlobal: isGlobal,
+                        canDelete: canDelete && !favoriteList,
+                        tooltip: tooltip,
+                        favoriteList: favoriteList,
+                        badge: i18n('search.savedsearches.button.' + item.scope.toLowerCase())
+                    })
+                })
+            }
 
             this.after('setupWithTemplate', function() {
                 this.on(this.popover, 'click', {
+                    favoriteSelector: this.onFavoriteClick,
+                    deleteSelector: this.onDelete,
                     listSelector: this.onClick,
                     saveSelector: this.onSave,
-                    deleteSelector: this.onDelete
+                    savedSearchListTypeSelector: this.onSavedSearchListTypeClick
                 });
+
+                this.attr.list = config.list;
+
+                var $savedSearchList = this.popover.find(this.attr.savedSearchListSelector);
+                $savedSearchList.append(template({list: this.attr.list}));
 
                 this.on(this.popover, 'keyup change', {
                     nameInputSelector: this.onChange,
@@ -172,6 +206,7 @@ define([
                 $button = $(event.target).addClass('loading');
 
             $li.addClass('loading');
+            event.stopPropagation();
 
             this.dataRequest('search', 'delete', query.id)
                 .then(function() {
@@ -205,5 +240,88 @@ define([
 
             this.teardown();
         };
+
+        this.onFavoriteClick = function(event) {
+            event.stopPropagation();
+
+            var self = this,
+                $target = $(event.currentTarget),
+                isFavorited = $target.hasClass('favorited'),
+                $li = $target.closest('li'),
+                index = $li.index(),
+                searchId = this.attr.list[index].id;
+
+                // user wants to favorite search
+                if (!isFavorited) {
+                    this.dataRequest('search', 'favoriteSave', searchId)
+                        .then(function() {
+                            self.attr.list[index].favorite = true;
+                        }).finally(function() {
+                            $target.addClass('favorited')
+                                .removeClass('not-favorited')
+                                .attr('title', i18n('search.savedsearches.delete.favorite'));
+                        })
+                } else if (isFavorited) {
+                    // user wants to unfavorite search
+
+                    this.dataRequest('search', 'unfavorite', searchId)
+                        .then(function() {
+                            self.attr.list[index].favorite = false;
+                            var activeType = $('.saved-search').find('.active').data('type');
+                            if (activeType === 'Favorite') {
+                                if ($li.siblings().length === 0) {
+                                    $li.closest('ul').html($('<li class="empty">No Saved Searches Found</li>'));
+                                } else {
+                                    $li.remove();
+                                }
+                                self.attr.list.splice(index, 1);
+                            }
+                        }).finally(function() {
+                            $target.removeClass('favorited')
+                                .addClass('not-favorited')
+                                .attr('title', i18n('search.savedsearches.add.favorite'));
+                        });
+                }
+        }
+
+        this.onSavedSearchListTypeClick = function(event, data) {
+            event.stopPropagation();
+            this.switchListType($(event.target).blur().data('type'));
+        }
+
+        this.switchListType = function(listType) {
+            var self = this,
+                $field = this.popover.find(this.attr.savedSearchListSelector);
+            $field.addClass('loading')
+                .empty();
+            this.popover.find('.saved-search-type.active').removeClass('active');
+            this.popover.find('.saved-search-' + listType).addClass('active');
+            this.dataRequest('search', listType.toLowerCase()).done(function(searches) {
+                if (searches.length > 0) {
+                    self.attr.list = searches.map(function(item) {
+                        var isGlobal = item.scope === SCOPES.GLOBAL,
+                            canDelete = true;
+                        if (isGlobal) {
+                            canDelete = visalloData.currentUser.privileges.indexOf('SEARCH_SAVE_GLOBAL') > -1;
+                        }
+                        var tooltip = i18n('search.savedsearches.' + (item.favorited ? 'delete' : 'add') + '.favorite');
+                        var favoriteList = listType === 'Favorite';
+                        return _.extend({}, item, {
+                            isGlobal: isGlobal,
+                            canDelete: canDelete && !favoriteList,
+                            tooltip: tooltip,
+                            favoriteList: favoriteList,
+                            badge: i18n('search.savedsearches.button.' + item.scope.toLowerCase())
+                        })
+                    });
+                } else {
+                    self.attr.list = searches;
+                }
+
+                $field.append(template({
+                    list: self.attr.list
+                }));
+            });
+        }
     }
 });

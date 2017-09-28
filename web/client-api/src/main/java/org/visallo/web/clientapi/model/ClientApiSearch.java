@@ -7,6 +7,7 @@ public class ClientApiSearch implements ClientApiObject {
     public String url;
     public String name;
     public Scope scope;
+    public boolean favorited;
     public Map<String, Object> parameters;
 
     @Override
@@ -39,6 +40,7 @@ public class ClientApiSearch implements ClientApiObject {
                 ", url='" + url + '\'' +
                 ", name='" + name + '\'' +
                 ", scope='" + scope + '\'' +
+                ", favorited='" + favorited + '\'' +
                 ", parameters=" + parameters +
                 '}';
     }

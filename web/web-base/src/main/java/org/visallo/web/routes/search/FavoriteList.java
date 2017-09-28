@@ -7,16 +7,16 @@ import org.visallo.core.model.search.SearchRepository;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiSearchListResponse;
 
-public class SearchList implements ParameterizedHandler {
+public class FavoriteList implements ParameterizedHandler {
     private final SearchRepository searchRepository;
 
     @Inject
-    public SearchList(SearchRepository searchRepository) {
+    public FavoriteList(SearchRepository searchRepository) {
         this.searchRepository = searchRepository;
     }
 
     @Handle
     public ClientApiSearchListResponse handle(User user) throws Exception {
-        return this.searchRepository.getAllSavedSearches(user);
+        return this.searchRepository.getAllFavoriteSavedSearches(user);
     }
 }

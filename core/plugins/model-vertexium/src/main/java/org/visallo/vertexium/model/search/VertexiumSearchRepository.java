@@ -21,6 +21,7 @@ import org.visallo.web.clientapi.model.ClientApiSearch;
 import org.visallo.web.clientapi.model.ClientApiSearchListResponse;
 import org.visallo.web.clientapi.model.Privilege;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -101,6 +102,39 @@ public class VertexiumSearchRepository extends SearchRepository {
     }
 
     @Override
+    public void favoriteSearch(
+            String id,
+            User user
+    ) {
+        checkNotNull(user, "User is required");
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                UserRepository.VISIBILITY_STRING
+        );
+
+        Vertex searchVertex = getSavedSearchVertex(id, user);
+        checkNotNull(searchVertex, "Could not find search vertex with id " + id);
+
+        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        checkNotNull(userVertex, "Could not find user vertex with id " + user.getUserId());
+
+        String edgeId = getFavoriteEdgeId(userVertex, searchVertex);
+        if (!graph.doesEdgeExist(edgeId, authorizations)) {
+            graph.addEdge(
+                    edgeId,
+                    userVertex,
+                    searchVertex,
+                    SearchProperties.HAS_FAVORITED,
+                    VISIBILITY.getVisibility(),
+                    authorizations
+            );
+
+            graph.flush();
+        }
+    }
+
+    @Override
     public String saveGlobalSearch(
             String id,
             String name,
@@ -163,7 +197,7 @@ public class VertexiumSearchRepository extends SearchRepository {
     }
 
     @Override
-    public ClientApiSearchListResponse getSavedSearches(User user) {
+    public ClientApiSearchListResponse getAllSavedSearches(User user) {
         checkNotNull(user, "User is required");
         Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
                 user,
@@ -172,7 +206,49 @@ public class VertexiumSearchRepository extends SearchRepository {
         );
 
         ClientApiSearchListResponse result = new ClientApiSearchListResponse();
-        Iterables.addAll(result.searches, getGlobalSavedSearches(authorizations));
+        Iterables.addAll(result.searches, getGlobalSavedSearches(user, authorizations));
+        Iterables.addAll(result.searches, getUserSavedSearches(user, authorizations));
+        return result;
+    }
+
+    @Override
+    public ClientApiSearchListResponse getAllFavoriteSavedSearches(User user) {
+        checkNotNull(user, "User is required");
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                UserRepository.VISIBILITY_STRING
+        );
+
+        ClientApiSearchListResponse result = new ClientApiSearchListResponse();
+        Iterables.addAll(result.searches, getUserFavoritedSavedSearches(user, authorizations));
+        return result;
+    }
+
+    @Override
+    public ClientApiSearchListResponse getGlobalSavedSearches(User user) {
+        checkNotNull(user, "User is required");
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                UserRepository.VISIBILITY_STRING
+        );
+
+        ClientApiSearchListResponse result = new ClientApiSearchListResponse();
+        Iterables.addAll(result.searches, getGlobalSavedSearches(user, authorizations));
+        return result;
+    }
+
+    @Override
+    public ClientApiSearchListResponse getUserSavedSearches(User user) {
+        checkNotNull(user, "User is required");
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                UserRepository.VISIBILITY_STRING
+        );
+
+        ClientApiSearchListResponse result = new ClientApiSearchListResponse();
         Iterables.addAll(result.searches, getUserSavedSearches(user, authorizations));
         return result;
     }
@@ -185,20 +261,53 @@ public class VertexiumSearchRepository extends SearchRepository {
                 SearchProperties.HAS_SAVED_SEARCH,
                 authorizations
         );
+        List<String> userFavoritedSearchIds = getUserFavoritedSearchIds(userVertex, authorizations);
         return stream(userSearchVertices)
-                .map(searchVertex -> toClientApiSearch(searchVertex, ClientApiSearch.Scope.User))
+                .map(searchVertex -> {
+                    boolean favorited = userFavoritedSearchIds.contains(searchVertex.getId());
+                    return toClientApiSearch(searchVertex, favorited, ClientApiSearch.Scope.User);
+                })
                 .collect(Collectors.toList());
     }
 
-    private Iterable<ClientApiSearch> getGlobalSavedSearches(Authorizations authorizations) {
+    private List<String> getUserFavoritedSearchIds(Vertex userVertex, Authorizations authorizations) {
+        Iterable<EdgeInfo> edgeInfos = userVertex.getEdgeInfos(Direction.OUT, SearchProperties.HAS_FAVORITED, authorizations);
+        return stream(edgeInfos)
+                .map(EdgeInfo::getVertexId)
+                .collect(Collectors.toList());
+    }
+
+    private Iterable<ClientApiSearch> getUserFavoritedSavedSearches(User user, Authorizations authorizations) {
+        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        checkNotNull(userVertex, "Could not find user vertex with id " + user.getUserId());
+
+        ClientApiSearchListResponse result = new ClientApiSearchListResponse();
+        Iterable<ClientApiSearch> allGlobalSavedSearches = getGlobalSavedSearches(user, authorizations);
+        Iterable<ClientApiSearch> allUserSavedSearches = getUserSavedSearches(user, authorizations);
+        Iterables.addAll(result.searches, allGlobalSavedSearches);
+        Iterables.addAll(result.searches, allUserSavedSearches);
+
+        return stream(result.searches)
+                .filter(search -> search.favorited)
+                .collect(Collectors.toList());
+    }
+
+    private Iterable<ClientApiSearch> getGlobalSavedSearches(User user, Authorizations authorizations) {
         Vertex globalSavedSearchesRootVertex = getGlobalSavedSearchesRootVertex();
         Iterable<Vertex> globalSearchVertices = globalSavedSearchesRootVertex.getVertices(
                 Direction.OUT,
                 SearchProperties.HAS_SAVED_SEARCH,
                 authorizations
         );
+
+        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        checkNotNull(userVertex, "Could not find user vertex with id " + user.getUserId());
+        List<String> userFavoritedSearchIds = getUserFavoritedSearchIds(userVertex, authorizations);
         return stream(globalSearchVertices)
-                .map(searchVertex -> toClientApiSearch(searchVertex, ClientApiSearch.Scope.Global))
+                .map(searchVertex -> {
+                    boolean favorited = userFavoritedSearchIds.contains(searchVertex.getId());
+                    return toClientApiSearch(searchVertex, favorited, ClientApiSearch.Scope.Global);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -224,11 +333,16 @@ public class VertexiumSearchRepository extends SearchRepository {
     }
 
     public static ClientApiSearch toClientApiSearch(Vertex searchVertex, ClientApiSearch.Scope scope) {
+        return toClientApiSearch(searchVertex, false, scope);
+    }
+
+    public static ClientApiSearch toClientApiSearch(Vertex searchVertex, boolean favorited, ClientApiSearch.Scope scope) {
         ClientApiSearch result = new ClientApiSearch();
         result.id = searchVertex.getId();
         result.name = SearchProperties.NAME.getPropertyValue(searchVertex);
         result.url = SearchProperties.URL.getPropertyValue(searchVertex);
         result.scope = scope;
+        result.favorited = favorited;
         result.parameters = ClientApiConverter.toClientApiValue(SearchProperties.PARAMETERS.getPropertyValue(
                 searchVertex));
         return result;
@@ -236,16 +350,7 @@ public class VertexiumSearchRepository extends SearchRepository {
 
     @Override
     public ClientApiSearch getSavedSearch(String id, User user) {
-        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
-                user,
-                VISIBILITY_STRING,
-                UserRepository.VISIBILITY_STRING
-        );
-        Vertex searchVertex = graph.getVertex(id, authorizations);
-        if (searchVertex == null) {
-            return null;
-        }
-        return toClientApiSearch(searchVertex);
+        return toClientApiSearch(getSavedSearchVertex(id, user));
     }
 
     @Override
@@ -264,12 +369,34 @@ public class VertexiumSearchRepository extends SearchRepository {
                 throw new VisalloAccessDeniedException(
                         "User does not have the privilege to delete a global search", user, id);
             }
-        }
-        else if (!isSearchPrivateToUser(id, user, authorizations)) {
+        } else if (!isSearchPrivateToUser(id, user, authorizations)) {
             throw new VisalloAccessDeniedException("User does not own this this search", user, id);
         }
 
         graph.deleteVertex(searchVertex, authorizations);
+        graph.flush();
+    }
+
+    @Override
+    public void unfavoriteSearch(final String id, User user) {
+        checkNotNull(user, "User is required");
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                UserRepository.VISIBILITY_STRING
+        );
+
+        Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
+        checkNotNull(userVertex, "Could not find user vertex with id " + user.getUserId());
+
+        Vertex searchVertex = graph.getVertex(id, authorizations);
+        checkNotNull(searchVertex, "Could not find search with id " + id);
+
+        String edgeId = getFavoriteEdgeId(userVertex, searchVertex);
+        Edge favoritedEdge = graph.getEdge(edgeId, authorizations);
+        checkNotNull(favoritedEdge, "Could not find favorited edge with id " + edgeId);
+
+        graph.deleteEdge(favoritedEdge, authorizations);
         graph.flush();
     }
 
@@ -296,5 +423,22 @@ public class VertexiumSearchRepository extends SearchRepository {
                 authorizations
         );
         return stream(vertexIds).anyMatch(vertexId -> vertexId.equals(id));
+    }
+
+    private Vertex getSavedSearchVertex(String id, User user) {
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                UserRepository.VISIBILITY_STRING
+        );
+        Vertex searchVertex = graph.getVertex(id, authorizations);
+        if (searchVertex == null) {
+            return null;
+        }
+        return searchVertex;
+    }
+
+    private String getFavoriteEdgeId(Vertex userVertex, Vertex searchVertex) {
+        return userVertex.getId() + "_" + SearchProperties.HAS_FAVORITED + "_" + searchVertex.getId();
     }
 }

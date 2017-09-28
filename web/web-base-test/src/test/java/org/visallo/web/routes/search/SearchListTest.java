@@ -32,7 +32,7 @@ public class SearchListTest {
     public void testList() throws Exception {
         ClientApiSearchListResponse savedSearches = new ClientApiSearchListResponse();
 
-        when(searchRepository.getSavedSearches(eq(user))).thenReturn(savedSearches);
+        when(searchRepository.getAllSavedSearches(eq(user))).thenReturn(savedSearches);
 
         ClientApiSearchListResponse savedSearchesResults = searchList.handle(user);
 

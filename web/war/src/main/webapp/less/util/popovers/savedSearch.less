@@ -8,16 +8,11 @@
     padding: 0;
     margin: 0;
 }
-.savedSearchesPopover .popover-content a {
-    padding: 1em;
-    margin: 0;
-}
 .savedSearchesPopover .popover-content a h1 {
     font-size: 95%;
     line-height: 1em;
     margin: 0;
     padding: 0;
-    font-weight: normal;
 }
 .savedSearchesPopover .popover-content a pre {
     font-size: 80%;
@@ -25,9 +20,6 @@
     overflow: hidden;
     color: #333;
     font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
-}
-.savedSearchesPopover a {
-    border-top: 1px solid #ddd;
 }
 .savedSearchesPopover li.empty {
   color: #666;
@@ -76,12 +68,6 @@
   margin: 0;
   margin-left: -1px;
 }
-.savedSearchesPopover h1 {
-  font-size: 105%;
-  line-height: 1.4em;    
-  margin: 0;
-  padding: 0;
-}
 .savedSearchesPopover ul li {
     position: relative;
 }
@@ -108,11 +94,14 @@
     display: block;
 }
 .savedSearchesPopover ul li .badge {
-  display: block;
   font-size: 80%;
 }
 .savedSearchesPopover ul li:hover {
   .btn {
+    display: block;
+  }
+
+  .badge {
     display: block;
   }
 }
@@ -122,4 +111,63 @@
     background-color: transparent;
     border: 0;
     font-size: 100%;
+}
+.saved-search {
+    padding: 0 0.5em 0 0.5em;
+}
+.saved-search button {
+    width: 33.33%;
+}
+.saved-search-list li {
+    border-top: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    height: 2.5em;
+    cursor: pointer;
+    padding: 0.5em -;
+    color: #0088cc;
+    font-weight: normal;
+    border-top: 1px solid #ddd;
+    font-size: 95%;
+
+    &:hover {
+        background-color: #eaeaea;
+    }
+}
+.rating {
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+    margin: 0 1em;
+    cursor: pointer;
+}
+.not-favorited {
+    span {
+        &:before {
+            content: '\002606';
+            color: #575757;
+            font-size: 24px;
+        }
+    }
+
+    &:hover {
+        span {
+            display: none;
+        }
+
+        &:before {
+            content: '\002605';
+            color: #0088cc;
+            font-size: 24px;
+        }
+    }
+}
+.favorited {
+    span {
+        &:before {
+            content: '\002605';
+            color: #0088cc;
+            font-size: 24px;
+        }
+    }
 }
