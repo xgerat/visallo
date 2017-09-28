@@ -12,8 +12,7 @@ define([
     'use strict';
 
     var SCOPES = {
-        GLOBAL: 'Global',
-        FAVORITE: 'Favorite'
+        GLOBAL: 'Global'
     };
 
     var SEARCH_TYPES = ['Favorite', 'User', 'Global'];
@@ -84,10 +83,13 @@ define([
                         canDelete = config.conSaveGlobal;
                     }
                     var tooltip = i18n('search.savedsearches.' + (item.favorited ? 'delete' : 'add') + '.favorite');
+                    var favoriteList = _.findWhere(config.types, {selected: true}).name === 'Favorite';
                     return _.extend({}, item, {
                         isGlobal: isGlobal,
-                        canDelete: canDelete && item.scope !== SCOPES.FAVORITE,
-                        tooltip: tooltip
+                        canDelete: canDelete && !favoriteList,
+                        tooltip: tooltip,
+                        favoriteList: favoriteList,
+                        badge: i18n('search.savedsearches.button.' + item.scope.toLowerCase())
                     })
                 })
             }
@@ -303,10 +305,13 @@ define([
                             canDelete = visalloData.currentUser.privileges.indexOf('SEARCH_SAVE_GLOBAL') > -1;
                         }
                         var tooltip = i18n('search.savedsearches.' + (item.favorited ? 'delete' : 'add') + '.favorite');
+                        var favoriteList = listType === 'Favorite';
                         return _.extend({}, item, {
                             isGlobal: isGlobal,
-                            canDelete: canDelete && item.scope !== SCOPES.FAVORITE,
-                            tooltip: tooltip
+                            canDelete: canDelete && !favoriteList,
+                            tooltip: tooltip,
+                            favoriteList: favoriteList,
+                            badge: i18n('search.savedsearches.button.' + item.scope.toLowerCase())
                         })
                     });
                 } else {

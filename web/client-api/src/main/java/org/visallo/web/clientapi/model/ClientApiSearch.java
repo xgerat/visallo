@@ -47,7 +47,6 @@ public class ClientApiSearch implements ClientApiObject {
 
     public enum Scope {
         User,
-        Global,
-        Favorite
+        Global
     }
 }

@@ -221,7 +221,7 @@ public class VertexiumSearchRepository extends SearchRepository {
         );
 
         ClientApiSearchListResponse result = new ClientApiSearchListResponse();
-        Iterables.addAll(result.searches, getUserVaoritedSavedSearches(user, authorizations));
+        Iterables.addAll(result.searches, getUserFavoritedSavedSearches(user, authorizations));
         return result;
     }
 
@@ -277,14 +277,18 @@ public class VertexiumSearchRepository extends SearchRepository {
                 .collect(Collectors.toList());
     }
 
-    private Iterable<ClientApiSearch> getUserVaoritedSavedSearches (User user, Authorizations authorizations) {
+    private Iterable<ClientApiSearch> getUserFavoritedSavedSearches(User user, Authorizations authorizations) {
         Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
         checkNotNull(userVertex, "Could not find user vertex with id " + user.getUserId());
 
-        List<String> userFavoritedSearchIds = getUserFavoritedSearchIds(userVertex, authorizations);
-        Iterable<Vertex> searchVertices = graph.getVertices(userFavoritedSearchIds, authorizations);
-        return stream(searchVertices)
-                .map(searchVertex -> toClientApiSearch(searchVertex, true, ClientApiSearch.Scope.Favorite))
+        ClientApiSearchListResponse result = new ClientApiSearchListResponse();
+        Iterable<ClientApiSearch> allGlobalSavedSearches = getGlobalSavedSearches(user, authorizations);
+        Iterable<ClientApiSearch> allUserSavedSearches = getUserSavedSearches(user, authorizations);
+        Iterables.addAll(result.searches, allGlobalSavedSearches);
+        Iterables.addAll(result.searches, allUserSavedSearches);
+
+        return stream(result.searches)
+                .filter(search -> search.favorited)
                 .collect(Collectors.toList());
     }
 
