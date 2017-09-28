@@ -54,6 +54,7 @@ define([
                 property = this.attr.property,
                 vertex = this.attr.data;
 
+            this.justification = {};
             this.modified = {};
 
             this.on('click', {
@@ -497,7 +498,7 @@ define([
             } else {
                 var valid = !this.propertyInvalid &&
                     (this.visibilitySource && this.visibilitySource.valid) &&
-                    (this.justification ? this.justification.valid : true);
+                    (!_.isEmpty(this.justification) ? this.justification.valid : true);
                 var empty = _.reject(this.$node.find('.configuration input'), function(input) {
                     return !input.required || !!input.value;
                 }).length > 0;
