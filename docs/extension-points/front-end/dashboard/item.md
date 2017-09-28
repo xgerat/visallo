@@ -95,7 +95,7 @@ registry.registerExtension('org.visallo.web.dashboard.item', {
 * `offset` _(optional)_ `[Number]` Index of results to start.
 * `filter` _(required)_ `[Array]` List of filter properties.
     * `propertyName` _(required)_ `[String]` Iri of property name to filter.
-    * `predicate` _(required)_ `[String]` Type of filter operation `has`, `hasNot`, `equal`, `contains`, `range`, `<`, `>`
+    * `predicate` _(required)_ `[String]` Type of filter operation `has`, `hasNotAny`, `equal`, `contains`, `range`, `<`, `>`
     * `values` _(optional)_ `[Array]` Value(s) to apply to predicate.
 * `aggregations` _(optional)_ `[Array]` List of aggregations to apply, each item is json string.
     * `type` _(required)_ `[String]` Type of aggregation: `term`, `geohash`, `histogram`

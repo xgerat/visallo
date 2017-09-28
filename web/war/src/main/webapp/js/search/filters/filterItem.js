@@ -10,10 +10,12 @@ define([
 
     var PREDICATES = {
             HAS: 'has',
-            HAS_NOT: 'hasNot',
+            HAS_NOT_ANY: 'hasNotAny',
             CONTAINS: '~',
+            NOT_CONTAINS: '!~',
             EQUALS: '=',
             IN: 'in',
+            NOT_IN: '!in',
             LESS_THAN: '<',
             GREATER_THAN: '>',
             BETWEEN: 'range',
@@ -59,7 +61,7 @@ define([
         });
 
         this.predicateNeedsValues = function() {
-            return (this.filter.predicate !== PREDICATES.HAS && this.filter.predicate !== PREDICATES.HAS_NOT);
+            return (this.filter.predicate !== PREDICATES.HAS && this.filter.predicate !== PREDICATES.HAS_NOT_ANY);
         };
 
         this.isValid = function() {
@@ -101,7 +103,7 @@ define([
                 } else if (this.filter.predicate === PREDICATES.WITHIN) {
                     var geo = _.first(this.filter.values);
                     filter.values = geo ? [geo.latitude, geo.longitude, geo.radius] : new Array(3);
-                } else if (this.filter.predicate === PREDICATES.IN) {
+                } else if (this.filter.predicate === PREDICATES.IN || this.filter.predicate === PREDICATES.NOT_IN) {
                     filter.values = this.filter.values.slice(0);
                 } else {
                     filter.values = this.filter.values.slice(0, 1);
@@ -275,7 +277,7 @@ define([
                 } else if (self.predicateNeedsValues()) {
                     node.eq(0).show();
                     node.eq(1).hide();
-                    if (self.filter.predicate === PREDICATES.IN) {
+                    if (self.filter.predicate === PREDICATES.IN || self.filter.predicate === PREDICATES.NOT_IN) {
                         self.filter.values = _.isArray(self.filter.values) ? self.filter.values : [self.filter.values];
                     }
                 } else {
@@ -310,15 +312,16 @@ define([
             });
         };
         this.predicatesForProperty = function(property) {
-            var standardPredicates = [PREDICATES.HAS, PREDICATES.HAS_NOT];
+            var standardPredicates = [PREDICATES.HAS, PREDICATES.HAS_NOT_ANY];
 
             if (property.possibleValues) {
-                return [PREDICATES.IN].concat(standardPredicates);
+                return [PREDICATES.IN, PREDICATES.NOT_IN].concat(standardPredicates);
             }
 
             switch (property.dataType) {
                 case 'string': return [
                         PREDICATES.CONTAINS,
+                        PREDICATES.NOT_CONTAINS,
                         PREDICATES.EQUALS
                     ].concat(standardPredicates);
 
