@@ -76,22 +76,34 @@ define([
             });
 
             if (config.list.length > 0) {
-                config.list = config.list.map(function(item) {
-                    var isGlobal = item.scope === SCOPES.GLOBAL,
-                        canDelete = true;
-                    if (isGlobal) {
-                        canDelete = config.conSaveGlobal;
-                    }
-                    var tooltip = i18n('search.savedsearches.' + (item.favorited ? 'delete' : 'add') + '.favorite');
-                    var favoriteList = _.findWhere(config.types, {selected: true}).name === 'Favorite';
-                    return _.extend({}, item, {
-                        isGlobal: isGlobal,
-                        canDelete: canDelete && !favoriteList,
-                        tooltip: tooltip,
-                        favoriteList: favoriteList,
-                        badge: i18n('search.savedsearches.button.' + item.scope.toLowerCase())
-                    })
-                })
+                config.currentSearchType = _.findWhere(config.types, {selected: true});
+                var searches;
+                if (config.currentSearchType.name === 'Favorite') {
+                    searches = _.filter(config.list, 'favorited');
+                } else {
+                    searches = _.groupBy(config.list, 'scope')[config.currentSearchType.name];
+                }
+                if (searches) {
+                    config.list = searches
+                        .map(function(item) {
+                            var isGlobal = item.scope === SCOPES.GLOBAL,
+                                canDelete = true;
+                            if (isGlobal) {
+                                canDelete = config.conSaveGlobal;
+                            }
+                            var tooltip = i18n('search.savedsearches.' + (item.favorited ? 'delete' : 'add') + '.favorite');
+                            var favoriteList = _.findWhere(config.types, {selected: true}).name === 'Favorite';
+                            return _.extend({}, item, {
+                                isGlobal: isGlobal,
+                                canDelete: canDelete && !favoriteList,
+                                tooltip: tooltip,
+                                favoriteList: favoriteList,
+                                badge: i18n('search.savedsearches.button.' + item.scope.toLowerCase())
+                            })
+                        })
+                } else {
+                    config.list = searches;
+                }
             }
 
             this.after('setupWithTemplate', function() {
