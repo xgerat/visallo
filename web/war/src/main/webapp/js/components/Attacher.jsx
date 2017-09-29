@@ -79,7 +79,16 @@ define([
                 if (attach._reactElement) {
                     this.setState({ element: attach._reactElement })
                 }
+                this.afterAttach();
             })
+        },
+
+        afterAttach() {
+            const afterAttach = this.props.afterAttach;
+
+            if (_.isFunction(afterAttach)) {
+                afterAttach(this.attacher);
+            }
         }
     });
 

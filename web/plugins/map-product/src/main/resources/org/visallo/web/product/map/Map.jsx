@@ -2,27 +2,17 @@ define([
     'create-react-class',
     'prop-types',
     './OpenLayers',
-    'components/RegistryInjectorHOC',
     'configuration/plugins/registry',
     'util/vertex/formatters',
     'util/mapConfig'
-], function(createReactClass, PropTypes, OpenLayers, RegistryInjectorHOC, registry, F, mapConfig) {
+], function(createReactClass, PropTypes, OpenLayers, registry, F, mapConfig) {
     'use strict';
 
     /**
-     * Plugin to add custom options components (Flight or React) which display in the map options menu (next to Fit)
-     * when its opened.
-     *
-     * This could be used to:
-     * * Add new overlay layers to the map
-     * * Zoom to specific area
-     * * ... or custom interface controls that use anything available in the [OpenLayers API](http://openlayers.org/en/latest/apidoc)
-     *
-     * @param {string} identifier Unique id for this option item
-     * @param {string} optionComponentPath Path to {@link org.visallo.map.options~Component} to render
+     * @deprecated Use {@link org.visallo.product.toolbar.item} instead
      */
     registry.documentExtensionPoint('org.visallo.map.options',
-        'Add components to map options dropdown',
+        'Add components to the map options toolbar',
         function(e) {
             return ('identifier' in e) && ('optionComponentPath' in e);
         },
@@ -45,20 +35,22 @@ define([
 
         render() {
             const { viewport, generatePreview } = this.state;
+            const { product, onSelectElements, onUpdatePreview } = this.props;
+
             return (
                 <div style={{height:'100%'}} ref={r => {this.wrap = r}}>
                 <OpenLayers
+                    product={product}
                     features={this.mapElementsToFeatures()}
                     viewport={viewport}
-                    tools={this.getTools()}
                     generatePreview={generatePreview}
                     panelPadding={this.props.panelPadding}
                     onTap={this.onTap}
                     onPan={this.onViewport}
                     onZoom={this.onViewport}
                     onContextTap={this.onContextTap}
-                    onSelectElements={this.props.onSelectElements}
-                    onUpdatePreview={this.props.onUpdatePreview.bind(this, this.props.product.id)}
+                    onSelectElements={onSelectElements}
+                    onUpdatePreview={onUpdatePreview.bind(this, this.props.product.id)}
                     {...mapConfig()}
                 />
                 </div>
@@ -124,14 +116,6 @@ define([
                     { x: pageX, y: pageY }
                 );
             }
-        },
-
-        getTools() {
-            return this.props.registry['org.visallo.map.options'].map(e => ({
-                identifier: e.identifier,
-                componentPath: e.optionComponentPath,
-                product: this.props.product
-            }));
         },
 
         onViewport(event) {
@@ -274,7 +258,5 @@ define([
         }
     });
 
-    return RegistryInjectorHOC(Map, [
-        'org.visallo.map.options'
-    ])
+    return Map;
 });

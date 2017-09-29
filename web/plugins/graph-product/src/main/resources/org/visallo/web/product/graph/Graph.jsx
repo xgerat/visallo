@@ -310,7 +310,7 @@ define([
                         ref={r => { this.cytoscape = r}}
                         {...events}
                         {...menuHandlers}
-                        tools={this.getTools()}
+                        product={product}
                         initialProductDisplay={initialProductDisplay}
                         hasPreview={Boolean(previewMD5)}
                         config={config}
@@ -380,19 +380,6 @@ define([
         reapplyGraphStylesheet() {
             memoizeClear();
             this.forceUpdate();
-        },
-
-        getTools() {
-            /**
-             * @typedef org.visallo.graph.options~Component
-             * @property {object} cy The cytoscape instance
-             * @property {object} product The graph product
-             */
-            return this.props.registry['org.visallo.graph.options'].map(e => ({
-                identifier: e.identifier,
-                componentPath: e.optionComponentPath,
-                product: this.props.product
-            }));
         },
 
         onReady({ cy }) {
@@ -1598,7 +1585,6 @@ define([
         'org.visallo.graph.node.decoration',
         'org.visallo.graph.node.transformer',
         'org.visallo.graph.collapsed.class',
-        'org.visallo.graph.options',
         'org.visallo.graph.selection',
         'org.visallo.graph.style',
         'org.visallo.graph.view'

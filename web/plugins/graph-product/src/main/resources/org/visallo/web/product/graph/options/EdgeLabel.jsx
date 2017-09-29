@@ -17,7 +17,7 @@ define([
             const showEdges = preferenceValue !== 'false';
 
             return (
-                <label>{i18n('controls.options.edgeLabels.toggle')}
+                <label>{i18n('product.toolbar.edgeLabels.toggle')}
                     <input onChange={this.onChange} type="checkbox" defaultChecked={showEdges} />
                 </label>
             )

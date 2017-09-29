@@ -31,14 +31,10 @@ define([
     'use strict';
 
     /**
-     * Plugin to add custom options components (Flight or React) which display in the graph options menu (next to Fit)
-     * when its opened.
-     *
-     * @param {string} identifier Unique id for this option item
-     * @param {string} optionComponentPath Path to {@link org.visallo.graph.options~Component} to render
+     * @deprecated Use {@link org.visallo.product.toolbar.item} instead
      */
     registry.documentExtensionPoint('org.visallo.graph.options',
-        'Add components to graph options dropdown',
+        'Add components to the graph product toolbar',
         function(e) {
             return ('identifier' in e) && ('optionComponentPath' in e);
         },
@@ -301,13 +297,15 @@ define([
         },
         'http://docs.visallo.org/extension-points/front-end/graphEdge/transformer.html'
     );
-    registry.registerExtension('org.visallo.graph.options', {
+    registry.registerExtension('org.visallo.product.toolbar.item', {
         identifier: 'toggleEdgeLabel',
-        optionComponentPath: 'org/visallo/web/product/graph/dist/EdgeLabel'
+        itemComponentPath: 'org/visallo/web/product/graph/dist/EdgeLabel',
+        canHandle: (product) => product.kind === 'org.visallo.web.product.graph.GraphWorkProduct'
     });
-    registry.registerExtension('org.visallo.graph.options', {
+    registry.registerExtension('org.visallo.product.toolbar.item', {
         identifier: 'toggleSnapToGrid',
-        optionComponentPath: 'org/visallo/web/product/graph/dist/SnapToGrid'
+        itemComponentPath: 'org/visallo/web/product/graph/dist/SnapToGrid',
+        canHandle: (product) => product.kind === 'org.visallo.web.product.graph.GraphWorkProduct'
     });
     registry.registerExtension('org.visallo.vertex.menu', {
         label: i18n('vertex.contextmenu.add_related'),

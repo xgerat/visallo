@@ -16,7 +16,7 @@ define([
             const { snapToGrid } = this.props;
 
             return (
-                <label>{i18n('controls.options.snapToGrid.toggle')}
+                <label>{i18n('product.toolbar.snapToGrid.toggle')}
                     <input onChange={this.onChange} type="checkbox" defaultChecked={snapToGrid} />
                 </label>
             )

@@ -6,7 +6,7 @@ define([
     'cytoscape-dagre',
     'dagre',
     'fast-json-patch',
-    'components/NavigationControls',
+    'product/toolbar/ProductToolbar',
     'colorjs',
     './betterGrid',
     './Menu',
@@ -19,7 +19,7 @@ define([
     cytoscapeDagre,
     dagre,
     jsonpatch,
-    NavigationControls,
+    ProductToolbar,
     colorjs,
     betterGrid,
     Menu,
@@ -102,7 +102,6 @@ define([
                 hasPreview: false,
                 initialProductDisplay: false,
                 panelPadding: { left:0, right:0, top:0, bottom:0 },
-                tools: [],
                 onReady() {},
                 onGhostFinished() {},
                 onUpdatePreview() {}
@@ -303,7 +302,7 @@ define([
 
         render() {
             const { showGraphMenu } = this.state;
-            const { editable } = this.props;
+            const { editable, product } = this.props;
 
             const menu = showGraphMenu ? (
                 <Menu event={showGraphMenu}
@@ -316,12 +315,14 @@ define([
                 <div onMouseDown={this.onMouseDown} style={{height: '100%'}}>
                     <div style={{height: '100%'}} ref="cytoscape"></div>
                     {this.state.cy ? (
-                        <NavigationControls
+                        <ProductToolbar
                             rightOffset={this.props.panelPadding.right}
-                            tools={this.injectToolProps()}
+                            injectedProductProps={this.getInjectedToolProps()}
+                            product={product}
+                            showNavigationControls={true}
                             onFit={this.onControlsFit}
                             onZoom={this.onControlsZoom}
-                            onPan={this.onControlsPan} />
+                        />
                     ) : null}
                     {menu}
                 </div>
@@ -357,7 +358,7 @@ define([
             }
         },
 
-        _zoom(factor, dt) {
+        _zoom(factor, dt = 1) {
             const { cy } = this.state;
 
             var zoom = cy._private.zoom,
@@ -484,20 +485,7 @@ define([
         },
 
         onControlsZoom(dir) {
-            const timeStamp = new Date().getTime();
-            var dt = timeStamp - (this.lastTimeStamp || 0);
-            var zoomFactor = this.zoomFactor || 0;
-
-            if (dt < 30) {
-                dt /= 1000;
-                zoomFactor += zoomAcceleration * dt * zoomDamping;
-            } else {
-                dt = 1;
-                zoomFactor = 0.01;
-            }
-            this.zoomFactor = zoomFactor;
-            this.lastTimeStamp = timeStamp;
-            this._zoom(zoomFactor * (dir === 'out' ? -1 : 1), dt);
+            this._zoom(.2 * (dir === 'out' ? -1 : 1));
         },
 
         onControlsPan(pan, options) {
@@ -875,18 +863,22 @@ define([
             }
         },
 
-        injectToolProps() {
+        /**
+         * Graph work product toolbar item component
+         *
+         * @typedef org.visallo.product.toolbar.item~GraphComponent
+         * @property {object} product The graph product
+         * @property {object} cy The cytoscape instance
+         */
+        getInjectedToolProps() {
             const { cy } = this.state;
+            let props = {};
+
             if (cy) {
-                return this.props.tools.map(tool => ({
-                    ...tool,
-                    props: {
-                        cy,
-                        reapplyGraphStylesheet: this.props.reapplyGraphStylesheet
-                    }
-                }))
+                props = { cy, reapplyGraphStylesheet: this.props.reapplyGraphStylesheet };
             }
-            return [];
+
+            return props;
         },
 
         drawControlDragSelection(newData) {
