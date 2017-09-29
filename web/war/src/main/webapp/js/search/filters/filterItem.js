@@ -303,7 +303,7 @@ define([
                             onlySearchable: true,
                             focus: false,
                             property: property,
-                            value: !self.filter.values[i] ? [] : [self.filter.values[i]]
+                            value: !self.filter.values[i] ? [] : self.filter.values[i]
                         });
                     })
                 }
