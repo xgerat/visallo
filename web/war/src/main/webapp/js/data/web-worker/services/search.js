@@ -129,6 +129,12 @@ define(['../util/ajax'], function(ajax) {
             return ajax('DELETE->HTML', '/search/unfavorite', {
                 id: searchId
             })
+        },
+
+        get: function(searchId) {
+            return ajax('GET', '/search/get', {
+                id: searchId
+            })
         }
 
     };

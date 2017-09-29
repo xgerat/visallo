@@ -235,7 +235,8 @@ define([
         this.handleClick = function(object) {
             var self = this,
                 report = this.attr.report,
-                filters = object.filters;
+                filters = object.filters,
+                target = d3.event.target;
 
             if (filters) {
                 filters = _.reject(filters, function(filter) {
@@ -251,7 +252,6 @@ define([
             }
 
             if (report && _.isString(report.clickHandlerModulePath)) {
-                var target = d3.event.target;
                 return Promise.require(report.clickHandlerModulePath)
                     .then(function(clickHandler) {
                         if (_.isFunction(clickHandler)) {
@@ -262,45 +262,58 @@ define([
             } else if (object && object.conceptId) {
                 // FIXME: extend original search params
                 this.popupSearch('/vertex/search', {
-                    q: '*',
+                    q: !report.endpointParameters.q ? '*' : report.endpointParameters.q,
                     conceptType: object.conceptId,
                     filter: JSON.stringify([])
                 })
             } else if (object && object.edgeLabel) {
                 // FIXME: extend original search params
                 this.popupSearch('/edge/search', {
-                    q: '*',
+                    q: !report.endpointParameters.q ? '*' : report.endpointParameters.q,
                     edgeLabel: object.edgeLabel,
                     filter: JSON.stringify([])
                 })
-            } else if (object && _.isArray(filters)) {
-                if (report.endpoint === '/search/run') {
-                    this.popupSearch(report.endpoint, {
-                        id: report.endpointParameters.id,
-                        filter: JSON.stringify(filters)
-                    })
-                } else {
-                    var params = _.omit(report.endpointParameters, 'size', 'aggregations');
-                    params.filter = JSON.stringify(JSON.parse(params.filter || '[]').concat(filters));
-                    this.popupSearch('/element/search', params);
-                }
-            } else if (object && (/^other$/i).test(object.label)) {
-                if (report.endpoint === '/search/run') {
-                    var aggregations = report.endpointParameters.aggregations,
-                        aggregationStr = _.first(aggregations),
-                        aggregation = aggregationStr && JSON.parse(aggregationStr);
+            } else {
+                return this.dataRequest('search', 'get', report.endpointParameters.id)
+                    .then(function(search) {
+                        var allFilters = _.uniq(JSON.parse(search.parameters.filter).concat(filters), function(filter) {
+                            var allValues = JSON.stringify(filter.values),
+                                predicate = filter.predicate === 'equal' ? '=' : filter.predicate;
+                            return filter.propertyId + ':' + allValues + ':' + predicate;
+                        });
+                        if (object && _.isArray(filters)) {
+                            if (report.endpoint === '/search/run') {
+                                self.popupSearch(report.endpoint, {
+                                    id: report.endpointParameters.id,
+                                    filter: JSON.stringify(allFilters),
+                                    conceptType: search.parameters.conceptType,
+                                    q: search.parameters.q,
+                                    edgeLabel: search.parameters.edgeLabel
+                                }, target)
+                            } else {
+                                var params = _.omit(report.endpointParameters, 'size', 'aggregations');
+                                params.filter = JSON.stringify(JSON.parse(params.filter || '[]').concat(allFilters));
+                                self.popupSearch('/element/search', params, target);
+                            }
+                        } else if (object && (/^other$/i).test(object.label)) {
+                            if (report.endpoint === '/search/run') {
+                                var aggregations = report.endpointParameters.aggregations,
+                                    aggregationStr = _.first(aggregations),
+                                    aggregation = aggregationStr && JSON.parse(aggregationStr);
 
-                    if (aggregation) {
-                        // FIXME: extend original search params
-                        this.popupSearch(report.endpoint, {
-                            id: report.endpointParameters.id,
-                            filter: JSON.stringify([{
-                                propertyId: aggregation.field,
-                                predicate: 'hasNotAny'
-                            }])
-                        })
-                    }
-                }
+                                if (aggregation) {
+                                    // FIXME: extend original search params
+                                    self.popupSearch(report.endpoint, {
+                                        id: report.endpointParameters.id,
+                                        filter: JSON.stringify([{
+                                            propertyId: aggregation.field,
+                                            predicate: 'hasNotAny'
+                                        }])
+                                    }, target)
+                                }
+                            }
+                        }
+                    });
             }
         };
 
