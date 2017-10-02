@@ -317,11 +317,25 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
         updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), propertyKey, newValue, metadata, timestamp, visibility);
     }
 
+    /**
+     * Gets the only property value. If there are multiple property values with the same name an exception will be
+     * thrown. If the property does not exist a null will be returned.
+     */
     public TRaw getOnlyPropertyValue(Element element) {
         Object value = getOnlyElement(element.getPropertyValues(getPropertyName()), null);
         if (value != null) {
             return unwrap(value);
         }
         return null;
+    }
+
+    /**
+     * Gets the only property value. If there are multiple property values with the same name an exception will be
+     * thrown. If the property does not exist an exception will be thrown.
+     */
+    public TRaw getOnlyPropertyValueRequired(Element element) {
+        Object value = getOnlyElement(element.getPropertyValues(getPropertyName()), null);
+        checkNotNull(value, "Property value of property " + getPropertyName() + " cannot be null");
+        return unwrap(value);
     }
 }
