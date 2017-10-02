@@ -186,6 +186,8 @@ public abstract class WorkspaceRepository {
             User user
     );
 
+    public abstract Vertex getProductVertex(String workspaceId, String productId, User user);
+
     public enum UpdateUserOnWorkspaceResult {
         ADD, UPDATE
     }

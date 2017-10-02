@@ -16,8 +16,9 @@ public class GraphUpdateProductEdgeOptions extends UpdateProductEdgeOptions {
         return id;
     }
 
-    public void setId(String id) {
+    public GraphUpdateProductEdgeOptions setId(String id) {
         this.id = id;
+        return this;
     }
 
     public List<String> getChildren() {
@@ -28,12 +29,14 @@ public class GraphUpdateProductEdgeOptions extends UpdateProductEdgeOptions {
         return parent;
     }
 
-    public void setParent(String parent) {
+    public GraphUpdateProductEdgeOptions setParent(String parent) {
         this.parent = parent;
+        return this;
     }
 
-    public void setPos(GraphPosition pos) {
+    public GraphUpdateProductEdgeOptions setPos(GraphPosition pos) {
         this.pos = pos;
+        return this;
     }
 
     public GraphPosition getPos() {

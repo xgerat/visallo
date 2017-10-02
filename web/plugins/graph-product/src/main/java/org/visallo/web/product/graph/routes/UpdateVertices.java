@@ -96,8 +96,7 @@ public class UpdateVertices implements ParameterizedHandler {
         );
 
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.HIGH, user, authorizations)) {
-            Vertex productVertex = graph.getVertex(productId, authorizations);
-
+            Vertex productVertex = workspaceRepository.getProductVertex(workspaceId, productId, user);
             graphWorkProductService.updateVertices(ctx, productVertex, updateVertices, user, WorkspaceRepository.VISIBILITY.getVisibility(), authorizations);
         } catch (Exception e) {
             throw new VisalloException("Could not update vertices in product: " + productId);

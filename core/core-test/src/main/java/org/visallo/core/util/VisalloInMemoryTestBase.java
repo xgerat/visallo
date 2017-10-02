@@ -13,6 +13,7 @@ import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.formula.FormulaEvaluator;
 import org.visallo.core.model.WorkQueueNames;
+import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
 import org.visallo.core.model.file.ClassPathFileSystemRepository;
 import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.model.graph.GraphRepository;
@@ -64,6 +65,7 @@ public abstract class VisalloInMemoryTestBase {
     private WorkspaceHelper workspaceHelper;
     private CacheService cacheService;
     private Map configurationMap;
+    private ArtifactThumbnailRepository artifactThumbnailRepository;
 
     @Before
     public void before() {
@@ -92,6 +94,7 @@ public abstract class VisalloInMemoryTestBase {
         workspaceHelper = null;
         configurationMap = null;
         cacheService = null;
+        artifactThumbnailRepository = null;
     }
 
     protected WorkspaceRepository getWorkspaceRepository() {
@@ -491,5 +494,17 @@ public abstract class VisalloInMemoryTestBase {
         }
         cacheService = new NopCacheService();
         return cacheService;
+    }
+
+    public ArtifactThumbnailRepository getArtifactThumbnailRepository() {
+        if (artifactThumbnailRepository != null) {
+            return artifactThumbnailRepository;
+        }
+        artifactThumbnailRepository = new ArtifactThumbnailRepository(
+                getSimpleOrmSession(),
+                getUserRepository(),
+                getOntologyRepository()
+        );
+        return artifactThumbnailRepository;
     }
 }

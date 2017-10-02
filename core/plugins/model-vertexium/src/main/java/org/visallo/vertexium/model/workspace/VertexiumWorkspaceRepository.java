@@ -1186,6 +1186,15 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         return null;
     }
 
+    public Vertex getProductVertex(String workspaceId, String productId, User user) {
+        Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                workspaceId
+        );
+        return getGraph().getVertex(productId, authorizations);
+    }
+
     @Override
     public Product findProductById(String workspaceId, String productId, GetExtendedDataParams params, boolean includeExtended, User user) {
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
@@ -1193,7 +1202,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 VISIBILITY_STRING,
                 workspaceId
         );
-        Vertex productVertex = getGraph().getVertex(productId, authorizations);
+        Vertex productVertex = getProductVertex(workspaceId, productId, user);
         if (productVertex == null) {
             return null;
         }
