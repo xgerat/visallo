@@ -47,7 +47,7 @@
       "<rootDir>/__mocks__/_setup.js"
     ],
     "moduleNameMapper": {
-      "components/NavigationControls": "<rootDir>/__mocks__/components/NavigationControls.jsx",
+      "product/toolbar/ProductToolbar": "<rootDir>/__mocks__/product/toolbar/ProductToolbar.jsx",
       "components/RegistryInjectorHOC": "<rootDir>/__mocks__/components/RegistryInjectorHOC.jsx",
       "components/Attacher": "<rootDir>/__mocks__/components/Attacher.jsx",
       "popovers/index": "<rootDir>/__mocks__/popovers.js",

@@ -107,5 +107,10 @@ function render(props = {}) {
 }
 
 function comp(props = {}) {
-    return <Cytoscape {...props} onCollapseSelectedNodes={() => {}}_disablePreviewDelay={true} />
+    return <Cytoscape
+        {...props}
+        onCollapseSelectedNodes={() => {}}
+        reapplyGraphStylesheet={() => {}}
+        _disablePreviewDelay={true}
+    />
 }
