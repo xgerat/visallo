@@ -187,6 +187,12 @@ define([
                         url: search.url
                     };
 
+                    const configuration = {
+                        ...item.configuration,
+                        searchParameters: search.parameters
+                    };
+                    item.configuration = configuration;
+
                     if (tableSettings && tableSettings[searchId]) {
                         tableView = {
                             ...tableSettings[searchId],
