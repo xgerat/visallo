@@ -18,16 +18,13 @@ define([], function() {
             this.on('undo', this.onUndo);
             this.on('redo', this.onRedo);
 
+            const selectId = (state) => state.workspace.currentId || null;
+            const selector = (state) => selectId(state) && state.workspace.byId[selectId(state)] || null;
             visalloData.storePromise.then(store => {
-                const selectId = (s) => s.workspace.currentId || null;
-                const select = (s) => selectId(s) && s.workspace.byId[selectId(s)] || null;
-
                 let previous = store.getState();
 
-                store.subscribe(() => {
+                return store.observe(selector, (newWorkspace, oldWorkspace) => {
                     const state = store.getState()
-                    const oldWorkspace = select(previous);
-                    const newWorkspace = select(state);
                     const changed = newWorkspace && (!oldWorkspace || oldWorkspace.workspaceId !== newWorkspace.workspaceId);
 
                     if (changed) {
@@ -49,7 +46,9 @@ define([], function() {
                                 this.trigger('workspaceUpdated', { workspace })
                             }
                         });
+
                         const deletedKeys = Object.keys(_.omit(previous.workspace.byId, Object.keys(state.workspace.byId)));
+
                         if (deletedKeys.length) {
                             deletedKeys.forEach(workspaceId => {
                                 this.trigger('workspaceDeleted', { workspaceId });
@@ -57,8 +56,8 @@ define([], function() {
                         }
                     }
                     previous = state;
-                })
-            })
+                });
+            });
         });
 
         this.onLoadCurrentWorkspace = function(event) {

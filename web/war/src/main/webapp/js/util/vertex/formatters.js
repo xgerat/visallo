@@ -35,11 +35,10 @@ define([
         return noTint;
     };
     visalloData.storePromise.then(function(store) {
-        _state = store.getState();
-        store.subscribe(function() {
-            _state = store.getState();
+        return store.observe(function(newState) {
+            _state = newState;
         });
-    })
+    });
 
     /**
      * Utilities that assist in transforming vertices and edges.

@@ -7,6 +7,7 @@
         'fast-json-patch',
         'redux',
         './store/rootReducer',
+        './store/enhancer/observe',
 
         // Middleware
         './store/middleware/actionRouter',
@@ -15,7 +16,7 @@
         './store/middleware/undo',
         './store/middleware/dataRequest',
         //'./store/middleware/logger'
-    ], function(registry, jsonpatch, redux, rootReducer, ...middleware) {
+    ], function(registry, jsonpatch, redux, rootReducer, observe, ...middleware) {
         var store;
 
         return {
@@ -23,7 +24,10 @@
                 if (!store) {
                     store = redux.createStore(
                         rootReducer,
-                        redux.applyMiddleware(...middleware)
+                        redux.compose(
+                            redux.applyMiddleware(...middleware),
+                            observe
+                        )
                     );
                     store.subscribe(stateChanged(store.getState()))
                 }

@@ -44,19 +44,15 @@ define([
     });
     var subscribeToClear = _.once(function() {
         var _store = store.getStore();
-        var selectOntology = function(store) {
-            return store.workspace.currentId && store.ontology && store.ontology[store.workspace.currentId];
+        var selectOntology = function(state) {
+            return state.workspace.currentId && state.ontology && state.ontology[state.workspace.currentId];
         };
-        var previous = selectOntology(_store.getState());
-        _store.subscribe(function() {
-            var current = selectOntology(_store.getState());
-            if (previous !== current) {
-                previous = current;
-                if (previous && current) {
-                    _.defer(api.clearMemoizedValues);
-                }
+
+        _store.observe(selectOntology, function(current, previous) {
+            if (previous && current) {
+                _.defer(api.clearMemoizedValues);
             }
-        })
+        });
     });
     var getOntology = function() {
         return store.getOrWaitForNestedState(function(s) {

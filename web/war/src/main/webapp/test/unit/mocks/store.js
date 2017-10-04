@@ -18,7 +18,8 @@ define(['util/promise', '/base/test/unit/mocks/ontologyJson'], function(Promise,
                         ontology
                     };
                 },
-                subscribe: function() { }
+                subscribe: function() { },
+                observe: function(handler) { handler(this.getState(), this.getState())}
             }
         },
         getOrWaitForNestedState: function(callback){

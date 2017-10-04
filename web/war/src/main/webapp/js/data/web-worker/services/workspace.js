@@ -8,8 +8,9 @@ define([
     '../util/ajax',
     '../store',
     '../store/workspace/actions-impl',
+    '../store/element/selectors',
     '../util/queue'
-], function(ajax, storeHelper, workspaceActions, queue) {
+], function(ajax, storeHelper, workspaceActions, elementSelectors, queue) {
     'use strict';
 
     const { getStore } = storeHelper;
@@ -106,9 +107,8 @@ define([
                 }
                 let unsubscribe = () => {};
                 return new Promise(function(fulfill) {
-                    unsubscribe = store.subscribe(() => {
-                        const state = store.getState();
-                        const product = productId && state.product.workspaces[workspaceId].products[productId];
+                    unsubscribe = store.observe(state => state.product.workspaces, (newState) => {
+                        const product = productId && newState.product.workspaces[workspaceId].products[productId];
                         if (product.extendedData.vertices && product.extendedData.edges) {
                             fulfill(product.extendedData);
                         }
@@ -133,14 +133,10 @@ define([
                     let unsubscribe = () => {};
                     return new Promise(function(fulfill) {
                         var previous = state.element[state.workspace.currentId];
-                        unsubscribe = store.subscribe(() => {
-                            const state = store.getState();
-                            const elements = state.element[state.workspace.currentId];
-                            if (previous !== elements) {
-                                let result = check(elements);
-                                if (result) {
-                                    fulfill(result);
-                                }
+                        unsubscribe = store.observe(elementSelectors.getElements, (newElements) => {
+                            let result = check(elements);
+                            if (result) {
+                                fulfill(result);
                             }
                         })
                     }).tap(unsubscribe);

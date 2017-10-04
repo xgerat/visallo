@@ -35,22 +35,15 @@ define([
             this.$node.html(template({}));
             this.updateTitle();
 
-            visalloData.storePromise.then(store => {
-                let p;
-                store.subscribe(() => {
-                    const s = store.getState();
-                    if (s.selection) {
-                        if (!p || s.selection !== p) {
-                            const elements = s.selection.idsByType
-                            const { vertices: vertexIds, edges: edgeIds } = elements;
-                            this.updateItems({
-                                add: { vertexIds, edgeIds }
-                            });
-                        }
-                        p = s.selection;
-                    }
-                })
-            })
+            visalloData.storePromise.then(store => store.observe(state => state.selection,
+                (newSelection, oldSelection) => {
+                    const elements = newSelection.idsByType;
+                    const { vertices: vertexIds, edges: edgeIds } = elements;
+                    this.updateItems({
+                        add: { vertexIds, edgeIds }
+                    });
+                }
+            ));
             this._windowIsHidden = false;
             this.on(document, 'openFullscreen', this.onOpenFullscreen);
             this.on(document, 'window-visibility-change', this.onVisibilityChange);

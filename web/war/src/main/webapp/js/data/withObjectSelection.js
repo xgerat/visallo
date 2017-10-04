@@ -85,22 +85,15 @@ define([
         });
 
         this.subscribeForSelection = function() {
-            const selectState = state => state.selection.idsByType;
-            let previousState = null;
-            visalloData.storePromise.then(store => store.subscribe(() => {
-                let newState = store.getState();
-                let prevSelection = previousState && selectState(previousState);
-                let newSelection = selectState(newState);
+            const selector = state => state.selection.idsByType;
 
-                if (!prevSelection || prevSelection !== newSelection) {
-                    previousState = newState;
-                    this.trigger('selectObjects', {
-                        vertexIds: newSelection.vertices,
-                        edgeIds: newSelection.edges,
-                        options: newSelection.options,
-                        dispatch: false
-                    });
-                }
+            visalloData.storePromise.then((store) => store.observe(selector, (newSelection) => {
+                this.trigger('selectObjects', {
+                    vertexIds: newSelection.vertices,
+                    edgeIds: newSelection.edges,
+                    options: newSelection.options,
+                    dispatch: false
+                });
             }))
         };
 

@@ -1,9 +1,11 @@
 define([
     'redux',
-    'fast-json-patch'
+    'fast-json-patch',
+    'data/web-worker/store/enhancer/observe'
 ], function(
     redux,
-    jsonpatch) {
+    jsonpatch,
+    observe) {
     'use strict';
 
     return withReduxStore;
@@ -15,14 +17,18 @@ define([
         })
 
         this.reduxStoreInit = function(message) {
-            var initialState = message.state,
-                devTools = _.isFunction(window.devToolsExtension) ? window.devToolsExtension() : null,
-                store = redux.createStore(
-                    rootReducer(initialState),
-                    devTools ?
-                        redux.compose(redux.applyMiddleware(webworkerMiddleware(this.worker)), devTools) :
-                        redux.applyMiddleware(webworkerMiddleware(this.worker))
-                );
+            const initialState = message.state;
+            const devTools = _.isFunction(window.devToolsExtension) ? window.devToolsExtension() : null;
+            const enhancers = [redux.applyMiddleware(webworkerMiddleware(this.worker)), observe];
+
+            if (devTools) {
+                enhancers.push(devTools);
+            }
+
+            const store = redux.createStore(
+                rootReducer(initialState),
+                redux.compose(...enhancers)
+            );
 
             this._reduxStore = store;
             this.setupInitialStoreState();

@@ -14,7 +14,8 @@ console.log('in store')
         getStore: function() {
             return {
                 getState: function () { return { workspace: { currentId: 'WORKSPACE_ID' }, ontology: workspaceOntology }; },
-                subscribe: function() {}
+                subscribe: function() {},
+                observe: function(handler) { handler(this.getState(), this.getState())}
             };
         },
         getOrWaitForNestedState: function(callback){

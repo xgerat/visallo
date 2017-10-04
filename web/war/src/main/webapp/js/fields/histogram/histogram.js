@@ -77,18 +77,11 @@ define([
         });
 
         this.watchForProductChanges = function() {
-            visalloData.storePromise.then(store => {
-                var state = store.getState();
-                var previous = productSelectors.getProduct(state);
-                this.subscription = store.subscribe(() => {
-                    state = store.getState();
-                    var product = productSelectors.getProduct(state);
-                    if (product !== previous && product) {
-                        this.renderChart().then(() => this.updateBarSelection(this.currentSelected));
-                    }
-                    previous = product;
-                });
-            });
+            this.subscription = visalloData.storePromise.then(store => store.observe(productSelectors.getProduct, (newProduct) => {
+                if (newProduct) {
+                    this.renderChart().then(() => this.updateBarSelection(this.currentSelected));
+                }
+            }));
         }
 
         this.onFitHistogram = function() {
