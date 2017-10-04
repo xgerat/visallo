@@ -15,6 +15,10 @@ define([
         self = this,
         cachedApiVersions = null;
 
+    function componentOrDefault(c) {
+        return 'default' in c ? c.default : c;
+    }
+
     /**
      * Abstracts the attachment of flight and react nodes
      */
@@ -68,7 +72,7 @@ define([
         return Promise.try(this._verifyState.bind(this))
             .then(function() {
                 return Promise.all([
-                    self._component || Promise.require(self._path),
+                    self._component || Promise.require(self._path).then(componentOrDefault),
                     cachedApiVersions || (cachedApiVersions = loadApiVersions()),
                     visalloData.storePromise
                 ]);
