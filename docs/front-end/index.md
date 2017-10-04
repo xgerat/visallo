@@ -69,6 +69,7 @@ Visallo has a built-in set of routing using the URLs fragment identifier.
 
         Fragment: #tools=[menubar name, [menubar name]]
         Example: https://visallo.com/#tools=products      // Open Work Products (and first product)
+                 https://visallo.com/#tools=products&id=[WORK_PRODUCT_ID] // Open Work Products list and specific product id
                  https://visallo.com/#tools=dashboard,workspaces,activity // Open Dashboard, Cases, and Activity Pane
 
     Opens Visallo to the specified menu bar identifiers. Multiple tools can be passed if one is fullscreen and one is a pane. Behavior is undefined if the number of fullscreen tools is not equal to 1, or multiple panes are given.
