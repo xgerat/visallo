@@ -62,7 +62,7 @@ public abstract class OntologyRouteTestBase extends RouteTestBase {
                     Concept rootConcept = getOrCreateConcept(null, ROOT_CONCEPT_IRI, "root", null, systemUser, PUBLIC);
                     getOrCreateConcept(rootConcept, ENTITY_CONCEPT_IRI, "thing", null, systemUser, PUBLIC);
                     getOrCreateConcept(null, USER_CONCEPT_IRI, "visalloUser", null, false, systemUser, PUBLIC);
-                    defineRequiredProperties();
+                    defineRequiredProperties(getGraph());
                     clearCache();
                 }
 

@@ -308,7 +308,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         InMemoryOntologyProperty property = getPropertyByIRI(propertyIri, workspaceId);
         if (property == null) {
             searchable = determineSearchable(propertyIri, dataType, textIndexHints, searchable);
-            definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost, sortable);
+            definePropertyOnGraph(graph, propertyIri, PropertyType.getTypeClass(dataType), textIndexHints, boost, sortable);
 
             if (dataType.equals(PropertyType.EXTENDED_DATA_TABLE)) {
                 property = new InMemoryExtendedDataTableOntologyProperty();

@@ -21,10 +21,7 @@ import org.semanticweb.owlapi.io.ReaderDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.search.EntitySearcher;
-import org.vertexium.Authorizations;
-import org.vertexium.DefinePropertyBuilder;
-import org.vertexium.Graph;
-import org.vertexium.TextIndexHint;
+import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.query.Contains;
 import org.vertexium.query.GraphQuery;
@@ -1719,29 +1716,64 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return configuration;
     }
 
-    protected void definePropertyOnGraph(
-            Graph graph,
-            String propertyIri,
-            PropertyType dataType,
-            Collection<TextIndexHint> textIndexHints,
-            Double boost,
-            boolean sortable
-    ) {
-        DefinePropertyBuilder definePropertyBuilder = graph.defineProperty(propertyIri).sortable(sortable);
-        definePropertyBuilder.dataType(PropertyType.getTypeClass(dataType));
-        if (dataType == PropertyType.DIRECTORY_ENTITY) {
-            definePropertyBuilder.textIndexHint(TextIndexHint.EXACT_MATCH);
-        } else if (dataType == PropertyType.STRING) {
-            definePropertyBuilder.textIndexHint(textIndexHints);
-        }
-        if (boost != null) {
-            if (graph.isFieldBoostSupported()) {
-                definePropertyBuilder.boost(boost);
-            } else {
-                LOGGER.warn("Field boosting is not support by the graph");
+    protected void defineRequiredProperties(Graph graph) {
+        definePropertyOnGraph(graph, VisalloProperties.CONCEPT_TYPE, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
+        definePropertyOnGraph(graph, VisalloProperties.MODIFIED_BY, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
+        definePropertyOnGraph(graph, VisalloProperties.MODIFIED_DATE, Date.class, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, VisalloProperties.VISIBILITY_JSON, String.class, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.ONTOLOGY_TITLE, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
+        definePropertyOnGraph(graph, OntologyProperties.DISPLAY_NAME, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
+        definePropertyOnGraph(graph, OntologyProperties.INTENT, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
+        definePropertyOnGraph(graph, OntologyProperties.TITLE_FORMULA, String.class, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.SUBTITLE_FORMULA, String.class, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.TIME_FORMULA, String.class, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.GLYPH_ICON, byte[].class, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.MAP_GLYPH_ICON, byte[].class, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.GLYPH_ICON_FILE_NAME, String.class, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.DATA_TYPE, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
+        definePropertyOnGraph(graph, OntologyProperties.USER_VISIBLE, Boolean.TYPE, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.SEARCHABLE, Boolean.TYPE, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.SORTABLE, Boolean.TYPE, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.ADDABLE, Boolean.TYPE, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.DELETEABLE, Boolean.TYPE, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.UPDATEABLE, Boolean.TYPE, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.ONTOLOGY_FILE, byte[].class, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.ONTOLOGY_FILE_MD5, String.class, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.COLOR, String.class, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME, Integer.class, TextIndexHint.NONE);
+    }
+
+    protected void definePropertyOnGraph(Graph graph, VisalloPropertyBase<?, ?> property, Class dataType, Set<TextIndexHint> textIndexHint) {
+        definePropertyOnGraph(graph, property.getPropertyName(), dataType, textIndexHint, null, false);
+    }
+
+    protected void definePropertyOnGraph(Graph graph, String propertyName, Class dataType, Collection<TextIndexHint> textIndexHint, Double boost, boolean sortable) {
+        if (!graph.isPropertyDefined(propertyName)) {
+            DefinePropertyBuilder builder = graph.defineProperty(propertyName).dataType(dataType).sortable(sortable);
+            if (textIndexHint != null) {
+                builder.textIndexHint(textIndexHint);
+            }
+            if (boost != null) {
+                if (graph.isFieldBoostSupported()) {
+                    builder.boost(boost);
+                } else {
+                    LOGGER.warn("Field boosting is not support by the graph");
+                }
+            }
+            builder.define();
+        } else {
+            PropertyDefinition propertyDefinition = graph.getPropertyDefinition(propertyName);
+            if (propertyDefinition.getDataType() != dataType) {
+                LOGGER.warn("Ontology property type mismatch for property %s! Expected %s but found %s",
+                        propertyName, dataType.getName(), propertyDefinition.getDataType().getName());
+            }
+
+            Set definedTextHints = propertyDefinition.getTextIndexHints() == null ? Collections.EMPTY_SET : propertyDefinition.getTextIndexHints();
+            if (!definedTextHints.equals(textIndexHint)) {
+                LOGGER.warn("Ontology property text index hints mismatch for property %s! Expected %s but found %s",
+                        propertyName, textIndexHint, definedTextHints);
             }
         }
-        definePropertyBuilder.define();
     }
 
     protected boolean determineSearchable(

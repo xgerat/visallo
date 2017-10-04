@@ -85,7 +85,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
 
             graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
 
-            defineRequiredProperties();
+            defineRequiredProperties(graph);
 
             publicOntologyAuthorizations = graph.createAuthorizations(Collections.singleton(VISIBILITY_STRING));
 
@@ -93,43 +93,6 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         } catch (Exception ex) {
             LOGGER.error("Could not initialize: %s", this.getClass().getName(), ex);
             throw ex;
-        }
-    }
-
-    protected void defineRequiredProperties() {
-        defineRequiredProperty(VisalloProperties.CONCEPT_TYPE, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
-        defineRequiredProperty(VisalloProperties.MODIFIED_BY, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
-        defineRequiredProperty(VisalloProperties.MODIFIED_DATE, Date.class, TextIndexHint.NONE);
-        defineRequiredProperty(VisalloProperties.VISIBILITY_JSON, String.class, TextIndexHint.NONE);
-        defineRequiredProperty(OntologyProperties.ONTOLOGY_TITLE, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
-        defineRequiredProperty(OntologyProperties.DISPLAY_NAME, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
-        defineRequiredProperty(OntologyProperties.INTENT, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
-        defineRequiredProperty(OntologyProperties.TITLE_FORMULA, String.class, TextIndexHint.NONE);
-        defineRequiredProperty(OntologyProperties.SUBTITLE_FORMULA, String.class, TextIndexHint.NONE);
-        defineRequiredProperty(OntologyProperties.TIME_FORMULA, String.class, TextIndexHint.NONE);
-        defineRequiredProperty(OntologyProperties.GLYPH_ICON, byte[].class, TextIndexHint.NONE);
-        defineRequiredProperty(OntologyProperties.MAP_GLYPH_ICON, byte[].class, TextIndexHint.NONE);
-        defineRequiredProperty(OntologyProperties.GLYPH_ICON_FILE_NAME, String.class, TextIndexHint.NONE);
-        defineRequiredProperty(OntologyProperties.DATA_TYPE, String.class, EnumSet.of(TextIndexHint.EXACT_MATCH));
-        defineRequiredProperty(OntologyProperties.USER_VISIBLE, Boolean.TYPE, null);
-        defineRequiredProperty(OntologyProperties.SEARCHABLE, Boolean.TYPE, null);
-        defineRequiredProperty(OntologyProperties.SORTABLE, Boolean.TYPE, null);
-        defineRequiredProperty(OntologyProperties.ADDABLE, Boolean.TYPE, null);
-        defineRequiredProperty(OntologyProperties.DELETEABLE, Boolean.TYPE, null);
-        defineRequiredProperty(OntologyProperties.UPDATEABLE, Boolean.TYPE, null);
-        defineRequiredProperty(OntologyProperties.ONTOLOGY_FILE, byte[].class, TextIndexHint.NONE);
-        defineRequiredProperty(OntologyProperties.ONTOLOGY_FILE_MD5, String.class, TextIndexHint.NONE);
-        defineRequiredProperty(OntologyProperties.COLOR, String.class, TextIndexHint.NONE);
-        defineRequiredProperty(OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME, Integer.class, TextIndexHint.NONE);
-    }
-
-    private void defineRequiredProperty(VisalloPropertyBase<?, ?> property, Class dataType, Set<TextIndexHint> textIndexHint) {
-        if (!graph.isPropertyDefined(property.getPropertyName())) {
-            DefinePropertyBuilder builder = graph.defineProperty(property.getPropertyName()).dataType(dataType);
-            if (textIndexHint != null) {
-                builder.textIndexHint(textIndexHint);
-            }
-            builder.define();
         }
     }
 
@@ -846,7 +809,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         OntologyProperty typeProperty = getPropertyByIRI(propertyIri, workspaceId);
         Vertex propertyVertex;
         if (typeProperty == null) {
-            definePropertyOnGraph(graph, propertyIri, dataType, textIndexHints, boost, sortable);
+            definePropertyOnGraph(graph, propertyIri, PropertyType.getTypeClass(dataType), textIndexHints, boost, sortable);
 
             try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(getPriority(user), user, authorizations)) {
                 ctx.setPushOnQueue(false);

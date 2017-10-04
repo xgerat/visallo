@@ -6,15 +6,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.Property;
-import org.vertexium.Vertex;
+import org.vertexium.*;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.WorkQueueNames;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.IntegerVisalloProperty;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -26,10 +24,7 @@ import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiImportProperty;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -75,6 +70,10 @@ public class FileImportTest {
     @Before
     public void setup() {
         graph = InMemoryGraph.create();
+        graph.defineProperty(VisalloProperties.CONTENT_HASH.getPropertyName())
+                .dataType(String.class)
+                .textIndexHint(EnumSet.of(TextIndexHint.EXACT_MATCH)).define();
+
         visibilityTranslator = new DirectVisibilityTranslator();
 
         String workspaceId = "junit-workspace";

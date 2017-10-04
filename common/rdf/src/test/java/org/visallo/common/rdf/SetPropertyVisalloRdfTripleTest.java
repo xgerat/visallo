@@ -66,7 +66,7 @@ public class SetPropertyVisalloRdfTripleTest extends VisalloRdfTripleTestBase {
 
     @Test
     public void testGeoLocationValue() {
-        testValue(new GeoPoint(42.2, 54.6), "\"42.2, 54.6\"^^<http://visallo.org#geolocation>");
+        testValue(new GeoPoint(42.2283, 54.6753), "\"42.2283, 54.6753\"^^<http://visallo.org#geolocation>");
     }
 
     @Test
