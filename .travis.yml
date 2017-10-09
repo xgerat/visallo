@@ -1,25 +1,21 @@
-dist: precise
-addons:
-  apt:
-    packages:
-      - python
-sudo: false
+sudo: required
+services:
+  - docker
 language: java
-jdk:
-  - oraclejdk8
-node_js: "6"
-cache:
-  directories:
-    - $HOME/.npm
-    - $HOME/.yarn-cache
-    - $HOME/awscli-bundle
 env:
-  - CC=clang CXX=clang++
+  - BUILD_PROJECT=1
   - BUILD_DOCS=1 VERSION_LIST="release-3.1 master" VERSION_ROOT="release-3.1" 
-install: ./travis/install.sh
+before_install:
+  - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+  - docker pull visallo/travis:visallo-4.0.0
+install: /bin/true
 script: ./travis/script.sh
 after_success: ./travis/after-success.sh
 branches:
   only:
     - master
     - /^release-.*$/
+cache:
+  directories:
+    - ${HOME}/.npm
+    - ${HOME}/.m2/repository
