@@ -74,7 +74,7 @@ public class OntologyRelationshipSave extends OntologyBase {
             ontologyRepository.addDomainConceptsToRelationshipType(relationshipIri, foundDomainIris, user, workspaceId);
             ontologyRepository.addRangeConceptsToRelationshipType(relationshipIri, foundRangeIris, user, workspaceId);
         }
-        relationship.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), displayName, authorizations);
+        relationship.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), displayName, user, authorizations);
 
         ontologyRepository.clearCache(workspaceId);
         workQueueRepository.pushOntologyRelationshipsChange(workspaceId, relationship.getId());

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import org.vertexium.Authorizations;
 import org.visallo.core.model.ontology.ExtendedDataTableProperty;
 import org.visallo.core.model.ontology.OntologyProperties;
+import org.visallo.core.user.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,7 @@ public class InMemoryExtendedDataTableOntologyProperty extends InMemoryOntologyP
     }
 
     @Override
-    public void setProperty(String name, Object value, Authorizations authorizations) {
+    public void setProperty(String name, Object value, User user, Authorizations authorizations) {
         if (OntologyProperties.TITLE_FORMULA.getPropertyName().equals(name)) {
             this.titleFormula = (String) value;
         } else if (OntologyProperties.SUBTITLE_FORMULA.getPropertyName().equals(name)) {
@@ -59,7 +60,7 @@ public class InMemoryExtendedDataTableOntologyProperty extends InMemoryOntologyP
         } else if (OntologyProperties.TIME_FORMULA.getPropertyName().equals(name)) {
             this.timeFormula = (String) value;
         } else {
-            super.setProperty(name, value, authorizations);
+            super.setProperty(name, value, user, authorizations);
         }
     }
 }

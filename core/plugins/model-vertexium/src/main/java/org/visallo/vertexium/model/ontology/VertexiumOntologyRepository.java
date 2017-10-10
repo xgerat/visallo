@@ -32,7 +32,6 @@ import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.ontology.*;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.properties.types.VisalloPropertyBase;
 import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workspace.WorkspaceProperties;
@@ -49,6 +48,7 @@ import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -132,7 +132,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     protected void addEntityGlyphIconToEntityConcept(Concept entityConcept, byte[] rawImg, Authorizations authorizations) {
         StreamingPropertyValue raw = new StreamingPropertyValue(new ByteArrayInputStream(rawImg), byte[].class);
         raw.searchIndex(false);
-        entityConcept.setProperty(OntologyProperties.GLYPH_ICON.getPropertyName(), raw, authorizations);
+        entityConcept.setProperty(OntologyProperties.GLYPH_ICON.getPropertyName(), raw, getSystemUser(), authorizations);
         graph.flush();
     }
 
@@ -149,16 +149,23 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         value.searchIndex(false);
         Vertex rootConceptVertex = ((VertexiumConcept) getRootConcept(PUBLIC)).getVertex();
         Property existingProperty = OntologyProperties.ONTOLOGY_FILE.getProperty(rootConceptVertex, documentIRI.toString());
+        Date modifiedDate = new Date();
         Metadata metadata;
         if (existingProperty == null) {
-            metadata = new Metadata();
+            metadata = getMetadata(modifiedDate, getSystemUser(), VISIBILITY.getVisibility());
             metadata.add("index", Iterables.size(OntologyProperties.ONTOLOGY_FILE.getProperties(rootConceptVertex)), VISIBILITY.getVisibility());
         } else {
             metadata = existingProperty.getMetadata();
         }
-        OntologyProperties.ONTOLOGY_FILE.addPropertyValue(rootConceptVertex, documentIRI.toString(), value, metadata, VISIBILITY.getVisibility(), authorizations);
-        OntologyProperties.ONTOLOGY_FILE_MD5.addPropertyValue(rootConceptVertex, documentIRI.toString(), md5, metadata, VISIBILITY.getVisibility(), authorizations);
-        graph.flush();
+
+        VisibilityJson visibilityJson = new VisibilityJson(VISIBILITY.getVisibility().getVisibilityString());
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.LOW, getSystemUser(), getAuthorizations(PUBLIC))) {
+            ctx.setPushOnQueue(false);
+            ctx.update(rootConceptVertex, modifiedDate, visibilityJson, rootConceptCtx -> {
+                OntologyProperties.ONTOLOGY_FILE.updateProperty(rootConceptCtx, documentIRI.toString(), value, metadata, VISIBILITY.getVisibility());
+                OntologyProperties.ONTOLOGY_FILE_MD5.updateProperty(rootConceptCtx, documentIRI.toString(), md5, metadata, VISIBILITY.getVisibility());
+            });
+        }
     }
 
     @Override
@@ -488,11 +495,10 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     }
 
     private Metadata getMetadata(Date modifiedDate, User user, Visibility visibility) {
-        Metadata metadata = null;
+        Metadata metadata = new Metadata();
+        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, modifiedDate, visibility);
         if (user != null) {
-            metadata = new Metadata();
             VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), visibility);
-            VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, modifiedDate, visibility);
         }
         return metadata;
     }
@@ -624,41 +630,42 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(getPriority(user), user, getAuthorizations(workspaceId))) {
             ctx.setPushOnQueue(false);
 
-            ExistingElementMutation<Vertex> builder = vertex.prepareMutation();
-            vertex = ctx.update(builder, elemCtx -> {
-                Visibility visibility = VISIBILITY.getVisibility();
-                OntologyProperties.SEARCHABLE.updateProperty(elemCtx, finalSearchable, visibility);
-                OntologyProperties.SORTABLE.updateProperty(elemCtx, sortable, visibility);
-                OntologyProperties.ADDABLE.updateProperty(elemCtx, addable, visibility);
-                OntologyProperties.DELETEABLE.updateProperty(elemCtx, deleteable, visibility);
-                OntologyProperties.UPDATEABLE.updateProperty(elemCtx, updateable, visibility);
-                OntologyProperties.USER_VISIBLE.updateProperty(elemCtx, userVisible, visibility);
+            Date modifiedDate = new Date();
+            Visibility visibility = VISIBILITY.getVisibility();
+            Metadata metadata = getMetadata(modifiedDate, user, visibility);
+
+            vertex = ctx.update(vertex.prepareMutation(), elemCtx -> {
+                OntologyProperties.SEARCHABLE.updateProperty(elemCtx, finalSearchable, metadata, visibility);
+                OntologyProperties.SORTABLE.updateProperty(elemCtx, sortable, metadata, visibility);
+                OntologyProperties.ADDABLE.updateProperty(elemCtx, addable, metadata, visibility);
+                OntologyProperties.DELETEABLE.updateProperty(elemCtx, deleteable, metadata, visibility);
+                OntologyProperties.UPDATEABLE.updateProperty(elemCtx, updateable, metadata, visibility);
+                OntologyProperties.USER_VISIBLE.updateProperty(elemCtx, userVisible, metadata, visibility);
                 if (boost != null) {
-                    OntologyProperties.BOOST.updateProperty(elemCtx, boost, visibility);
+                    OntologyProperties.BOOST.updateProperty(elemCtx, boost, metadata, visibility);
                 }
                 if (displayName != null && !displayName.trim().isEmpty()) {
-                    OntologyProperties.DISPLAY_NAME.updateProperty(elemCtx, displayName.trim(), visibility);
+                    OntologyProperties.DISPLAY_NAME.updateProperty(elemCtx, displayName.trim(), metadata, visibility);
                 }
                 if (displayType != null && !displayType.trim().isEmpty()) {
-                    OntologyProperties.DISPLAY_TYPE.updateProperty(elemCtx, displayType, visibility);
+                    OntologyProperties.DISPLAY_TYPE.updateProperty(elemCtx, displayType, metadata, visibility);
                 }
                 if (propertyGroup != null && !propertyGroup.trim().isEmpty()) {
-                    OntologyProperties.PROPERTY_GROUP.updateProperty(elemCtx, propertyGroup, visibility);
+                    OntologyProperties.PROPERTY_GROUP.updateProperty(elemCtx, propertyGroup, metadata, visibility);
                 }
                 if (validationFormula != null && !validationFormula.trim().isEmpty()) {
-                    OntologyProperties.VALIDATION_FORMULA.updateProperty(elemCtx, validationFormula, visibility);
+                    OntologyProperties.VALIDATION_FORMULA.updateProperty(elemCtx, validationFormula, metadata, visibility);
                 }
                 if (displayFormula != null && !displayFormula.trim().isEmpty()) {
-                    OntologyProperties.DISPLAY_FORMULA.updateProperty(elemCtx, displayFormula, visibility);
+                    OntologyProperties.DISPLAY_FORMULA.updateProperty(elemCtx, displayFormula, metadata, visibility);
                 }
                 if (dependentPropertyIris != null) {
                     saveDependentProperties(vertexId, dependentPropertyIris, user, workspaceId);
                 }
                 if (possibleValues != null) {
-                    OntologyProperties.POSSIBLE_VALUES.updateProperty(elemCtx, JSONUtil.toJson(possibleValues), VISIBILITY.getVisibility());
+                    OntologyProperties.POSSIBLE_VALUES.updateProperty(elemCtx, JSONUtil.toJson(possibleValues), metadata, visibility);
                 }
                 if (intents != null) {
-                    Metadata metadata = new Metadata();
                     for (String intent : intents) {
                         OntologyProperties.INTENT.updateProperty(elemCtx, intent, intent, metadata, visibility);
                     }
@@ -815,8 +822,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 ctx.setPushOnQueue(false);
 
                 Visibility visibility = VISIBILITY.getVisibility();
-                VisibilityJson visibilityJson = new VisibilityJson();
-                visibilityJson.setSource(visibility.getVisibilityString());
+                VisibilityJson visibilityJson = new VisibilityJson(visibility.getVisibilityString());
 
                 VertexBuilder builder = prepareVertex(ID_PREFIX_PROPERTY, propertyIri, workspaceId, visibility, visibilityJson);
                 Date modifiedDate = new Date();
@@ -864,8 +870,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
     private void saveDependentProperties(String propertyVertexId, Collection<String> dependentPropertyIris, User user, String workspaceId) {
         Authorizations authorizations = getAuthorizations(workspaceId);
 
-        int i;
-        for (i = 0; i < 1000; i++) {
+        for (int i = 0; i < 1000; i++) {
             String edgeId = propertyVertexId + "-dependentProperty-" + i;
             Edge edge = graph.getEdge(edgeId, authorizations);
             if (edge == null) {
@@ -875,14 +880,24 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         }
         graph.flush();
 
-        i = 0;
-        for (String dependentPropertyIri : dependentPropertyIris) {
-            String dependentPropertyVertexId = ID_PREFIX_PROPERTY + dependentPropertyIri;
-            String edgeId = propertyVertexId + "-dependentProperty-" + i;
-            EdgeBuilderByVertexId m = graph.prepareEdge(edgeId, propertyVertexId, dependentPropertyVertexId, OntologyProperties.EDGE_LABEL_DEPENDENT_PROPERTY, VISIBILITY.getVisibility());
-            OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME.setProperty(m, i, VISIBILITY.getVisibility());
-            m.save(authorizations);
-            i++;
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(getPriority(user), user, authorizations)) {
+            ctx.setPushOnQueue(false);
+
+            Visibility visibility = VISIBILITY.getVisibility();
+            VisibilityJson visibilityJson = new VisibilityJson(visibility.getVisibilityString());
+            Date modifiedDate = new Date();
+            Metadata metadata = getMetadata(modifiedDate, user, visibility);
+            AtomicInteger indexCounter = new AtomicInteger();
+            for (String dependentPropertyIri : dependentPropertyIris) {
+                int i = indexCounter.getAndIncrement();
+                String dependentPropertyVertexId = ID_PREFIX_PROPERTY + dependentPropertyIri;
+                String edgeId = propertyVertexId + "-dependentProperty-" + i;
+                EdgeBuilderByVertexId m = graph.prepareEdge(edgeId, propertyVertexId, dependentPropertyVertexId, OntologyProperties.EDGE_LABEL_DEPENDENT_PROPERTY, visibility);
+                ctx.update(m, edgeCtx -> {
+                    edgeCtx.updateBuiltInProperties(modifiedDate, visibilityJson);
+                    OntologyProperties.DEPENDENT_PROPERTY_ORDER_PROPERTY_NAME.updateProperty(edgeCtx, i, metadata, visibility);
+                });
+            }
         }
     }
 

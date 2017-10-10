@@ -145,6 +145,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     private Relationship getOrCreateTopObjectPropertyRelationship(Authorizations authorizations) {
+        User user = getSystemUser();
         Relationship topObjectProperty = internalGetOrCreateRelationshipType(
                 null,
                 Collections.emptyList(),
@@ -152,11 +153,11 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 TOP_OBJECT_PROPERTY_IRI,
                 null,
                 true,
-                getSystemUser(),
+                user,
                 PUBLIC
         );
         if (topObjectProperty.getUserVisible()) {
-            topObjectProperty.setProperty(OntologyProperties.USER_VISIBLE.getPropertyName(), false, authorizations);
+            topObjectProperty.setProperty(OntologyProperties.USER_VISIBLE.getPropertyName(), false, user, authorizations);
         }
         return topObjectProperty;
     }
@@ -419,37 +420,39 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         Concept parent = getParentConcept(o, ontologyClass, inDir, authorizations);
         Concept result = internalGetOrCreateConcept(parent, uri, label, null, null, inDir, isDeclaredInOntology, getSystemUser(), PUBLIC);
 
+        User user = getSystemUser();
+
         for (OWLAnnotation annotation : EntitySearcher.getAnnotations(ontologyClass, o)) {
             String annotationIri = annotation.getProperty().getIRI().toString();
             OWLLiteral valueLiteral = (OWLLiteral) annotation.getValue();
             String valueString = valueLiteral.getLiteral();
 
             if (annotationIri.equals(OntologyProperties.INTENT.getPropertyName())) {
-                result.addIntent(valueString, authorizations);
+                result.addIntent(valueString, user, authorizations);
                 continue;
             }
 
             if (annotationIri.equals(OntologyProperties.SEARCHABLE.getPropertyName())) {
                 boolean searchable = Boolean.parseBoolean(valueString);
-                result.setProperty(OntologyProperties.SEARCHABLE.getPropertyName(), searchable, authorizations);
+                result.setProperty(OntologyProperties.SEARCHABLE.getPropertyName(), searchable, user, authorizations);
                 continue;
             }
 
             if (annotationIri.equals(OntologyProperties.SORTABLE.getPropertyName())) {
                 boolean sortable = Boolean.parseBoolean(valueString);
-                result.setProperty(OntologyProperties.SORTABLE.getPropertyName(), sortable, authorizations);
+                result.setProperty(OntologyProperties.SORTABLE.getPropertyName(), sortable, user, authorizations);
                 continue;
             }
 
             if (annotationIri.equals(OntologyProperties.ADDABLE.getPropertyName())) {
                 boolean searchable = Boolean.parseBoolean(valueString);
-                result.setProperty(OntologyProperties.ADDABLE.getPropertyName(), searchable, authorizations);
+                result.setProperty(OntologyProperties.ADDABLE.getPropertyName(), searchable, user, authorizations);
                 continue;
             }
 
             if (annotationIri.equals(OntologyProperties.USER_VISIBLE.getPropertyName())) {
                 boolean userVisible = Boolean.parseBoolean(valueString);
-                result.setProperty(OntologyProperties.USER_VISIBLE.getPropertyName(), userVisible, authorizations);
+                result.setProperty(OntologyProperties.USER_VISIBLE.getPropertyName(), userVisible, user, authorizations);
                 continue;
             }
 
@@ -459,6 +462,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                         inDir,
                         valueString,
                         OntologyProperties.GLYPH_ICON.getPropertyName(),
+                        user,
                         authorizations
                 );
                 continue;
@@ -470,6 +474,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                         inDir,
                         valueString,
                         OntologyProperties.GLYPH_ICON_SELECTED.getPropertyName(),
+                        user,
                         authorizations
                 );
                 continue;
@@ -481,6 +486,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                         inDir,
                         valueString,
                         OntologyProperties.MAP_GLYPH_ICON.getPropertyName(),
+                        user,
                         authorizations
                 );
                 continue;
@@ -493,29 +499,30 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 result.setProperty(
                         OntologyProperties.ADD_RELATED_CONCEPT_WHITE_LIST.getPropertyName(),
                         valueString.trim(),
+                        user,
                         authorizations
                 );
                 continue;
             }
 
             if (annotationIri.equals("http://www.w3.org/2000/01/rdf-schema#label")) {
-                result.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), valueString, authorizations);
+                result.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), valueString, user, authorizations);
                 continue;
             }
 
             if (annotationIri.equals(OntologyProperties.UPDATEABLE.getPropertyName())) {
                 boolean updateable = Boolean.parseBoolean(valueString);
-                result.setProperty(OntologyProperties.UPDATEABLE.getPropertyName(), updateable, authorizations);
+                result.setProperty(OntologyProperties.UPDATEABLE.getPropertyName(), updateable, user, authorizations);
                 continue;
             }
 
             if (annotationIri.equals(OntologyProperties.DELETEABLE.getPropertyName())) {
                 boolean deleteable = Boolean.parseBoolean(valueString);
-                result.setProperty(OntologyProperties.DELETEABLE.getPropertyName(), deleteable, authorizations);
+                result.setProperty(OntologyProperties.DELETEABLE.getPropertyName(), deleteable, user, authorizations);
                 continue;
             }
 
-            result.setProperty(annotationIri, valueString, authorizations);
+            result.setProperty(annotationIri, valueString, user, authorizations);
         }
 
         return result;
@@ -526,6 +533,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             File inDir,
             String glyphIconFileName,
             String propertyKey,
+            User user,
             Authorizations authorizations
     ) throws IOException {
         if (glyphIconFileName != null) {
@@ -537,7 +545,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 StreamingPropertyValue value = new StreamingPropertyValue(iconFileIn, byte[].class);
                 value.searchIndex(false);
                 value.store(true);
-                concept.setProperty(propertyKey, value, authorizations);
+                concept.setProperty(propertyKey, value, user, authorizations);
             }
         }
     }
@@ -590,6 +598,8 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             boolean deleteable = OWLOntologyUtil.getDeleteable(o, dataTypeProperty);
             boolean updateable = OWLOntologyUtil.getUpdateable(o, dataTypeProperty);
 
+            User user = getSystemUser();
+
             List<Concept> domainConcepts = new ArrayList<>();
             for (OWLClassExpression domainClassExpr : EntitySearcher.getDomains(dataTypeProperty, o)) {
                 OWLClass domainClass = domainClassExpr.asOWLClass();
@@ -638,10 +648,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                     intents,
                     deleteable,
                     updateable,
-                    getSystemUser(),
+                    user,
                     PUBLIC
             );
-            property.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), propertyDisplayName, authorizations);
+            property.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), propertyDisplayName, user, authorizations);
 
             for (OWLAnnotation annotation : EntitySearcher.getAnnotations(dataTypeProperty, o)) {
                 String annotationIri = annotation.getProperty().getIRI().toString();
@@ -653,6 +663,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                     property.setProperty(
                             OntologyProperties.TITLE_FORMULA.getPropertyName(),
                             valueString,
+                            user,
                             authorizations
                     );
                     continue;
@@ -662,6 +673,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                     property.setProperty(
                             OntologyProperties.SUBTITLE_FORMULA.getPropertyName(),
                             valueString,
+                            user,
                             authorizations
                     );
                     continue;
@@ -671,6 +683,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                     property.setProperty(
                             OntologyProperties.TIME_FORMULA.getPropertyName(),
                             valueString,
+                            user,
                             authorizations
                     );
                     continue;
@@ -792,6 +805,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
         boolean isDeclaredInOntology = o.isDeclared(objectProperty);
 
+        User user = getSystemUser();
         Relationship parent = getParentObjectProperty(o, objectProperty, authorizations);
         Relationship relationship = internalGetOrCreateRelationshipType(
                 parent,
@@ -800,7 +814,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 iri,
                 null,
                 isDeclaredInOntology,
-                getSystemUser(),
+                user,
                 PUBLIC
         );
 
@@ -810,7 +824,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             String valueString = valueLiteral.getLiteral();
 
             if (annotationIri.equals(OntologyProperties.INTENT.getPropertyName())) {
-                relationship.addIntent(valueString, authorizations);
+                relationship.addIntent(valueString, user, authorizations);
                 continue;
             }
 
@@ -818,6 +832,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 relationship.setProperty(
                         OntologyProperties.USER_VISIBLE.getPropertyName(),
                         Boolean.parseBoolean(valueString),
+                        user,
                         authorizations
                 );
                 continue;
@@ -827,6 +842,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 relationship.setProperty(
                         OntologyProperties.DELETEABLE.getPropertyName(),
                         Boolean.parseBoolean(valueString),
+                        user,
                         authorizations
                 );
                 continue;
@@ -836,6 +852,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 relationship.setProperty(
                         OntologyProperties.UPDATEABLE.getPropertyName(),
                         Boolean.parseBoolean(valueString),
+                        user,
                         authorizations
                 );
                 continue;
@@ -845,12 +862,13 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 relationship.setProperty(
                         OntologyProperties.DISPLAY_NAME.getPropertyName(),
                         valueString,
+                        user,
                         authorizations
                 );
                 continue;
             }
 
-            relationship.setProperty(annotationIri, valueString, authorizations);
+            relationship.setProperty(annotationIri, valueString, user, authorizations);
         }
         return relationship;
     }

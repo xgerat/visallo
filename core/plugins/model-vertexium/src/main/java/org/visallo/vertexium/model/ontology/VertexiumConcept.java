@@ -3,7 +3,9 @@ package org.visallo.vertexium.model.ontology;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.vertexium.Authorizations;
+import org.vertexium.Metadata;
 import org.vertexium.Vertex;
+import org.vertexium.Visibility;
 import org.vertexium.mutation.ElementMutation;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.util.IterableUtils;
@@ -13,15 +15,13 @@ import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.user.User;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class VertexiumConcept extends Concept {
     private final Vertex vertex;
@@ -121,15 +121,17 @@ public class VertexiumConcept extends Concept {
     }
 
     @Override
-    public void addIntent(String intent, Authorizations authorizations) {
-        OntologyProperties.INTENT.addPropertyValue(vertex, intent, intent, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
-        getVertex().getGraph().flush();
+    public void addIntent(String intent, User user, Authorizations authorizations) {
+        Visibility visibility = OntologyRepository.VISIBILITY.getVisibility();
+        Metadata metadata = createPropertyMetadata(user, new Date(), visibility);
+        OntologyProperties.INTENT.addPropertyValue(vertex, intent, intent, metadata, visibility, authorizations);
+        vertex.getGraph().flush();
     }
 
     @Override
     public void removeIntent(String intent, Authorizations authorizations) {
         OntologyProperties.INTENT.removeProperty(vertex, intent, authorizations);
-        getVertex().getGraph().flush();
+        vertex.getGraph().flush();
     }
 
     @Override
@@ -156,8 +158,10 @@ public class VertexiumConcept extends Concept {
     }
 
     @Override
-    public void setProperty(String name, Object value, Authorizations authorizations) {
-        getVertex().setProperty(name, value, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
+    public void setProperty(String name, Object value, User user, Authorizations authorizations) {
+        Visibility visibility = OntologyRepository.VISIBILITY.getVisibility();
+        Metadata metadata = createPropertyMetadata(user, new Date(), visibility);
+        getVertex().setProperty(name, value, metadata, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
         getVertex().getGraph().flush();
     }
 
@@ -251,5 +255,14 @@ public class VertexiumConcept extends Concept {
     @Override
     public SandboxStatus getSandboxStatus() {
         return SandboxStatusUtil.getSandboxStatus(this.vertex, this.workspaceId);
+    }
+
+    private Metadata createPropertyMetadata(User user, Date modifiedDate, Visibility visibility) {
+        Metadata metadata = new Metadata();
+        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, modifiedDate, visibility);
+        if (user != null) {
+            VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), visibility);
+        }
+        return metadata;
     }
 }

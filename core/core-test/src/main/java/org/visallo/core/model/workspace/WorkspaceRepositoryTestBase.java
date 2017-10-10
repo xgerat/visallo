@@ -36,7 +36,6 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
     private Workspace workspace;
     private Authorizations workspaceAuthorizations;
     private Concept thingConcept;
-    private WorkspaceHelper workspaceHelper;
 
     @Override
     public void before() {
@@ -49,7 +48,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
 
         List<Concept> things = Collections.singletonList(thingConcept);
         Relationship hasEntityRel = getOntologyRepository().getOrCreateRelationshipType(null, things, things, "has-entity-iri", true, systemUser, PUBLIC);
-        hasEntityRel.addIntent("entityHasImage", authorizations);
+        hasEntityRel.addIntent("entityHasImage", user, authorizations);
 
         getOntologyRepository().getOrCreateConcept(thingConcept, JUNIT_CONCEPT_TYPE, "Junit Concept", null, systemUser, PUBLIC);
         getOntologyRepository().getOrCreateRelationshipType(null, things, things, JUNIT_EDGE_LABEL, true, systemUser, PUBLIC);

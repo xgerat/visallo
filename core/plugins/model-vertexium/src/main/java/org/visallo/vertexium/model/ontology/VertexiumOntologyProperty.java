@@ -2,9 +2,7 @@ package org.visallo.vertexium.model.ontology;
 
 import com.google.common.collect.ImmutableList;
 import org.json.JSONObject;
-import org.vertexium.Authorizations;
-import org.vertexium.Direction;
-import org.vertexium.Vertex;
+import org.vertexium.*;
 import org.vertexium.util.CloseableUtils;
 import org.vertexium.util.IterableUtils;
 import org.visallo.core.model.ontology.LabelName;
@@ -12,15 +10,13 @@ import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.user.User;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.web.clientapi.model.PropertyType;
 import org.visallo.web.clientapi.model.SandboxStatus;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -38,8 +34,16 @@ public class VertexiumOntologyProperty extends OntologyProperty {
     }
 
     @Override
-    public void setProperty(String name, Object value, Authorizations authorizations) {
-        getVertex().setProperty(name, value, OntologyRepository.VISIBILITY.getVisibility(), authorizations);
+    public void setProperty(String name, Object value, User user, Authorizations authorizations) {
+        Visibility visibility = OntologyRepository.VISIBILITY.getVisibility();
+
+        Metadata metadata = new Metadata();
+        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, new Date(), visibility);
+        if (user != null) {
+            VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, user.getUserId(), visibility);
+        }
+
+        getVertex().setProperty(name, value, metadata, visibility, authorizations);
         getVertex().getGraph().flush();
     }
 

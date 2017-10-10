@@ -99,7 +99,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
 
         Concept thing = getOntologyRepository().getEntityConcept(PUBLIC);
         Relationship hasEntityRel = getOntologyRepository().getOrCreateRelationshipType(null, Collections.singleton(thing), Collections.singleton(thing), "has-entity-iri", true, systemUser, PUBLIC);
-        hasEntityRel.addIntent("entityHasImage", systemUserAuth);
+        hasEntityRel.addIntent("entityHasImage", systemUser, systemUserAuth);
 
         getOntologyRepository().getOrCreateConcept(thing, VERTEX_CONCEPT_TYPE, VERTEX_CONCEPT_TYPE, null, systemUser, PUBLIC);
 

@@ -4,8 +4,7 @@ import com.google.common.collect.ImmutableList;
 import org.vertexium.Authorizations;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
-import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.ontology.OntologyRepositoryBase;
+import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.PropertyType;
 import org.visallo.web.clientapi.model.SandboxStatus;
 
@@ -204,7 +203,7 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     }
 
     @Override
-    public void setProperty(String name, Object value, Authorizations authorizations) {
+    public void setProperty(String name, Object value, User user, Authorizations authorizations) {
         if (OntologyProperties.DISPLAY_TYPE.getPropertyName().equals(name)) {
             this.displayType = (String) value;
         } else if (OntologyProperties.DISPLAY_FORMULA.getPropertyName().equals(name)) {

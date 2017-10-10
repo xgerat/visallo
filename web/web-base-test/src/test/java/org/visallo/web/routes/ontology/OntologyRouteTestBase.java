@@ -86,7 +86,7 @@ public abstract class OntologyRouteTestBase extends RouteTestBase {
 
         List<Concept> things = Collections.singletonList(thingConcept);
         Relationship hasEntityRel = ontologyRepository.getOrCreateRelationshipType(null, things, things, "has-entity-iri", true, systemUser, PUBLIC);
-        hasEntityRel.addIntent("entityHasImage", systemAuthorizations);
+        hasEntityRel.addIntent("entityHasImage", user, systemAuthorizations);
 
         ontologyRepository.getOrCreateConcept(thingConcept, PUBLIC_CONCEPT_IRI, "Public A", null, systemUser, PUBLIC);
         ontologyRepository.getOrCreateConcept(thingConcept, PUBLIC_CONCEPT_IRI_B, "Public B", null, systemUser, PUBLIC);

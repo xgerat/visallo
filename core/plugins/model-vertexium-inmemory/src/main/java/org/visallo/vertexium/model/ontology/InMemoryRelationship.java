@@ -5,6 +5,7 @@ import org.vertexium.util.ConvertingIterable;
 import org.visallo.core.model.ontology.OntologyProperties;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.Relationship;
+import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.SandboxStatus;
 
 import java.util.*;
@@ -121,7 +122,7 @@ public class InMemoryRelationship extends Relationship {
     }
 
     @Override
-    public void addIntent(String intent, Authorizations authorizations) {
+    public void addIntent(String intent, User user, Authorizations authorizations) {
         this.intents.add(intent);
     }
 
@@ -131,7 +132,7 @@ public class InMemoryRelationship extends Relationship {
     }
 
     @Override
-    public void setProperty(String name, Object value, Authorizations authorizations) {
+    public void setProperty(String name, Object value, User user, Authorizations authorizations) {
         if (OntologyProperties.DISPLAY_NAME.getPropertyName().equals(name)) {
             this.displayName = (String) value;
         } else if (OntologyProperties.TITLE_FORMULA.getPropertyName().equals(name)) {

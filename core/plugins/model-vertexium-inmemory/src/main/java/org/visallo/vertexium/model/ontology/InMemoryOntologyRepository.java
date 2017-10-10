@@ -147,10 +147,11 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             File inDir,
             String glyphIconFileName,
             String propertyKey,
+            User user,
             Authorizations authorizations
     ) throws IOException {
         if (glyphIconFileName == null) {
-            concept.setProperty(propertyKey, null, authorizations);
+            concept.setProperty(propertyKey, null, user, authorizations);
         } else {
             File iconFile = new File(inDir, glyphIconFileName);
             if (!iconFile.exists()) {
@@ -158,7 +159,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             }
             try {
                 try (InputStream iconFileIn = new FileInputStream(iconFile)) {
-                    concept.setProperty(propertyKey, IOUtils.toByteArray(iconFileIn), authorizations);
+                    concept.setProperty(propertyKey, IOUtils.toByteArray(iconFileIn), user, authorizations);
                 }
             } catch (IOException ex) {
                 throw new VisalloException("Failed to set glyph icon to " + iconFile, ex);
@@ -168,7 +169,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
 
     @Override
     protected void addEntityGlyphIconToEntityConcept(Concept entityConcept, byte[] rawImg, Authorizations authorizations) {
-        entityConcept.setProperty(OntologyProperties.GLYPH_ICON.getPropertyName(), rawImg, authorizations);
+        entityConcept.setProperty(OntologyProperties.GLYPH_ICON.getPropertyName(), rawImg, getSystemUser(), authorizations);
     }
 
     @Override
@@ -632,22 +633,22 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         } else {
             concept = new InMemoryConcept(conceptIRI, ((InMemoryConcept) parent).getConceptIRI(), isPublic(workspaceId) ? null : workspaceId);
         }
-        concept.setProperty(OntologyProperties.TITLE.getPropertyName(), conceptIRI, null);
-        concept.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), displayName, null);
+        concept.setProperty(OntologyProperties.TITLE.getPropertyName(), conceptIRI, user, null);
+        concept.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), displayName, user, null);
 
         if (conceptIRI.equals(OntologyRepository.ENTITY_CONCEPT_IRI)) {
-            concept.setProperty(OntologyProperties.TITLE_FORMULA.getPropertyName(), "prop('http://visallo.org#title') || ''", null);
+            concept.setProperty(OntologyProperties.TITLE_FORMULA.getPropertyName(), "prop('http://visallo.org#title') || ''", user, null);
 
             // TODO: change to ontology && ontology.displayName
-            concept.setProperty(OntologyProperties.SUBTITLE_FORMULA.getPropertyName(), "prop('http://visallo.org#source') || ''", null);
-            concept.setProperty(OntologyProperties.TIME_FORMULA.getPropertyName(), "''", null);
+            concept.setProperty(OntologyProperties.SUBTITLE_FORMULA.getPropertyName(), "prop('http://visallo.org#source') || ''", user, null);
+            concept.setProperty(OntologyProperties.TIME_FORMULA.getPropertyName(), "''", user, null);
         }
 
         if (!StringUtils.isEmpty(glyphIconHref)) {
-            concept.setProperty(OntologyProperties.GLYPH_ICON_FILE_NAME.getPropertyName(), glyphIconHref, null);
+            concept.setProperty(OntologyProperties.GLYPH_ICON_FILE_NAME.getPropertyName(), glyphIconHref, user, null);
         }
         if (!StringUtils.isEmpty(color)) {
-            concept.setProperty(OntologyProperties.COLOR.getPropertyName(), color, null);
+            concept.setProperty(OntologyProperties.COLOR.getPropertyName(), color, user, null);
         }
 
         String cacheKey = isPublic(workspaceId) ? PUBLIC_ONTOLOGY_CACHE_KEY : workspaceId;
@@ -715,7 +716,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         );
 
         if (displayName != null) {
-            inMemRelationship.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), displayName, getAuthorizations(workspaceId));
+            inMemRelationship.setProperty(OntologyProperties.DISPLAY_NAME.getPropertyName(), displayName, user, getAuthorizations(workspaceId));
         }
 
         String cacheKey = isPublic(workspaceId) ? PUBLIC_ONTOLOGY_CACHE_KEY : workspaceId;
@@ -769,7 +770,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
                     property.removeIntent(intent, null);
                 }
             } else {
-                property.setProperty(propertyName, null, null);
+                property.setProperty(propertyName, null, null, null);
             }
         }
     }

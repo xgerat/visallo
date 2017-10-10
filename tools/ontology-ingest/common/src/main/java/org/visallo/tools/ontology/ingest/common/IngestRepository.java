@@ -106,7 +106,7 @@ public class IngestRepository {
                 visibilityTranslator.getDefaultVisibility()
         );
 
-        addProperties(ingestOptions, vertexBuilder, conceptBuilder);
+        addProperties(ingestOptions, conceptVisibility, vertexBuilder, conceptBuilder);
 
         LOGGER.trace("Saving vertex: %s", vertexBuilder.getVertexId());
         return vertexBuilder.save(getAuthorizations(ingestOptions));
@@ -123,7 +123,7 @@ public class IngestRepository {
                 relationshipVisibility
         );
 
-        addProperties(ingestOptions, edgeBuilder, relationshipBuilder);
+        addProperties(ingestOptions, relationshipVisibility, edgeBuilder, relationshipBuilder);
 
         LOGGER.trace("Saving edge: %s", edgeBuilder.getEdgeId());
         return edgeBuilder.save(getAuthorizations(ingestOptions));
@@ -131,11 +131,13 @@ public class IngestRepository {
 
     private void addProperties(
             IngestOptions ingestOptions,
+            Visibility elementVisibility,
             ElementBuilder elementBuilder,
             EntityBuilder entityBuilder
     ) {
         VisalloProperties.MODIFIED_BY.setProperty(elementBuilder, ingestOptions.getIngestUser().getUserId(), visibilityTranslator.getDefaultVisibility());
         VisalloProperties.MODIFIED_DATE.setProperty(elementBuilder, new Date(), visibilityTranslator.getDefaultVisibility());
+        VisalloProperties.VISIBILITY_JSON.setProperty(elementBuilder, new VisibilityJson(elementVisibility.getVisibilityString()), visibilityTranslator.getDefaultVisibility());
 
         for (PropertyAddition<?> propertyAddition : entityBuilder.getPropertyAdditions()) {
             if (propertyAddition.getValue() != null) {

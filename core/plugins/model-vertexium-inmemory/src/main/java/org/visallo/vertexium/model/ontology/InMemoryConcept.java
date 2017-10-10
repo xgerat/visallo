@@ -3,6 +3,7 @@ package org.visallo.vertexium.model.ontology;
 import org.vertexium.Authorizations;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperties;
+import org.visallo.core.user.User;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.web.clientapi.model.SandboxStatus;
 
@@ -75,7 +76,7 @@ public class InMemoryConcept extends Concept {
     }
 
     @Override
-    public void addIntent(String intent, Authorizations authorizations) {
+    public void addIntent(String intent, User user, Authorizations authorizations) {
         this.intents.add(intent);
     }
 
@@ -165,7 +166,7 @@ public class InMemoryConcept extends Concept {
     }
 
     @Override
-    public void setProperty(String name, Object value, Authorizations authorizations) {
+    public void setProperty(String name, Object value, User user, Authorizations authorizations) {
         if (OntologyProperties.COLOR.getPropertyName().equals(name)) {
             this.color = (String) value;
         } else if (OntologyProperties.DISPLAY_TYPE.getPropertyName().equals(name)) {

@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import org.atteo.evo.inflector.English;
 import org.vertexium.Authorizations;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiOntology;
 import org.visallo.web.clientapi.model.SandboxStatus;
 
@@ -144,7 +145,7 @@ public abstract class Concept implements OntologyElement, HasOntologyProperties 
         return results;
     }
 
-    public abstract void setProperty(String name, Object value, Authorizations authorizations);
+    public abstract void setProperty(String name, Object value, User user, Authorizations authorizations);
 
     public abstract void removeProperty(String name, Authorizations authorizations);
 
@@ -162,17 +163,17 @@ public abstract class Concept implements OntologyElement, HasOntologyProperties 
 
     public abstract String[] getIntents();
 
-    public abstract void addIntent(String intent, Authorizations authorizations);
+    public abstract void addIntent(String intent, User user, Authorizations authorizations);
 
     public abstract void removeIntent(String intent, Authorizations authorizations);
 
-    public void updateIntents(String[] newIntents, Authorizations authorizations) {
+    public void updateIntents(String[] newIntents, User user, Authorizations authorizations) {
         ArrayList<String> toBeRemovedIntents = Lists.newArrayList(getIntents());
         for (String newIntent : newIntents) {
             if (toBeRemovedIntents.contains(newIntent)) {
                 toBeRemovedIntents.remove(newIntent);
             } else {
-                addIntent(newIntent, authorizations);
+                addIntent(newIntent, user, authorizations);
             }
         }
         for (String toBeRemovedIntent : toBeRemovedIntents) {

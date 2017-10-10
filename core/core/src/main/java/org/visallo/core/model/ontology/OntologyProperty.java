@@ -11,6 +11,7 @@ import org.vertexium.type.GeoHash;
 import org.vertexium.type.GeoPoint;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.types.*;
+import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.ClientApiOntology;
 import org.visallo.web.clientapi.model.PropertyType;
 import org.visallo.web.clientapi.model.SandboxStatus;
@@ -106,7 +107,7 @@ public abstract class OntologyProperty {
         }
     }
 
-    public abstract void setProperty(String name, Object value, Authorizations authorizations);
+    public abstract void setProperty(String name, Object value, User user, Authorizations authorizations);
 
     public static Collection<ClientApiOntology.Property> toClientApiProperties(Iterable<OntologyProperty> properties) {
         Collection<ClientApiOntology.Property> results = new ArrayList<>();
