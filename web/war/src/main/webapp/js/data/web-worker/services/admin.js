@@ -57,13 +57,6 @@ define([
             var formData = new FormData();
             formData.append('workspace', workspaceFile);
             return ajax('POST->HTML', '/admin/workspace/import', formData);
-        },
-
-        ontologyUpload: function(iri, file) {
-            var formData = new FormData();
-            formData.append('file', file);
-            formData.append('documentIRI', iri);
-            return ajax('POST->HTML', '/admin/upload-ontology', formData);
         }
     };
 

@@ -17,7 +17,6 @@ import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.privilegeFilters.*;
 import org.visallo.web.routes.Index;
 import org.visallo.web.routes.admin.AdminList;
-import org.visallo.web.routes.admin.AdminUploadOntology;
 import org.visallo.web.routes.admin.PluginList;
 import org.visallo.web.routes.dashboard.*;
 import org.visallo.web.routes.directory.DirectoryGet;
@@ -224,7 +223,6 @@ public class Router extends HttpServlet {
 
             app.get("/admin/all", authenticator, csrfProtector, AdminPrivilegeFilter.class, AdminList.class);
             app.get("/admin/plugins", authenticator, csrfProtector, AdminPrivilegeFilter.class, PluginList.class);
-            app.post("/admin/upload-ontology", authenticator, csrfProtector, AdminPrivilegeFilter.class, AdminUploadOntology.class);
 
             app.get("/ping", RateLimitFilter.class, Ping.class);
             app.get("/ping/stats", authenticator, AdminPrivilegeFilter.class, PingStats.class);
