@@ -140,8 +140,9 @@ define([
                 backgroundSize: option.backgroundSize,
                 width: option.width,
                 height: option.height,
-                transform: `scale(${option.scale})`,
-                transformOrigin: '0 50%',
+                transform: `scale(${option.scale}) translate(0, -50%)`,
+                transformOrigin: '0 0',
+                top: '50%',
                 margin: '0'
             }}></div>{option[labelKey]}</div>
         );
