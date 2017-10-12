@@ -1093,7 +1093,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         Relationship parentRelationship = getParentRelationship(relationship, workspaceId);
         while (parentRelationship != null) {
             result.add(parentRelationship);
-            parentRelationship = getParentRelationship(relationship, workspaceId);
+            parentRelationship = getParentRelationship(parentRelationship, workspaceId);
         }
         return result;
     }
@@ -1435,6 +1435,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             String workspaceId
     ) {
         checkPrivileges(user, workspaceId);
+        if (parent == null && !relationshipIRI.equals(TOP_OBJECT_PROPERTY_IRI)) {
+            parent = getTopObjectPropertyRelationship(workspaceId);
+        }
         return internalGetOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, displayName, isDeclaredInOntology, user, workspaceId);
     }
 
@@ -1718,6 +1721,10 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
         cacheService.put(ONTOLOGY_CACHE_NAME, workspaceId, ontology, ontologyCacheOptions);
         return ontology;
+    }
+
+    protected Relationship getTopObjectPropertyRelationship(String workspaceId) {
+        return getRelationshipByIRI(TOP_OBJECT_PROPERTY_IRI, workspaceId);
     }
 
     @Override
