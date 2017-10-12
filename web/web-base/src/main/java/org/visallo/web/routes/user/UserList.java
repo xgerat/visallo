@@ -7,12 +7,13 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.FilterIterable;
-import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.WorkspaceUser;
 import org.visallo.core.user.User;
+import org.visallo.core.util.VisalloLogger;
+import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiUsers;
 import org.visallo.web.clientapi.model.UserStatus;
 
@@ -26,6 +27,7 @@ import static org.vertexium.util.IterableUtils.toList;
 
 @Singleton
 public class UserList implements ParameterizedHandler {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserList.class);
     private final UserRepository userRepository;
     private final WorkspaceRepository workspaceRepository;
 
@@ -56,7 +58,8 @@ public class UserList implements ParameterizedHandler {
             for (String userId : userIds) {
                 User u = userRepository.findById(userId);
                 if (u == null) {
-                    throw new VisalloResourceNotFoundException("User " + userId + " not found");
+                    LOGGER.error("User " + userId + " not found");
+                    continue;
                 }
                 users.add(u);
             }
