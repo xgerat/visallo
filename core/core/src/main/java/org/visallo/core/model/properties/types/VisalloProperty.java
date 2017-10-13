@@ -191,7 +191,7 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
             PropertyMetadata metadata
     ) {
         checkNotNull(metadata, "metadata is required");
-        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata.createMetadata(), null, metadata.getVisibility());
+        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata.createMetadata(), null, metadata.getPropertyVisibility());
     }
 
     public <T extends Element> void updateProperty(
@@ -201,7 +201,7 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
             PropertyMetadata metadata
     ) {
         checkNotNull(metadata, "metadata is required");
-        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), propertyKey, newValue, metadata.createMetadata(), null, metadata.getVisibility());
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), propertyKey, newValue, metadata.createMetadata(), null, metadata.getPropertyVisibility());
     }
 
     /**
@@ -236,7 +236,7 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
             Long timestamp
     ) {
         checkNotNull(metadata, "metadata is required");
-        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata.createMetadata(), timestamp, metadata.getVisibility());
+        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata.createMetadata(), timestamp, metadata.getPropertyVisibility());
     }
 
     public <T extends Element> void updateProperty(
@@ -247,7 +247,7 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
             Long timestamp
     ) {
         checkNotNull(metadata, "metadata is required");
-        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), propertyKey, newValue, metadata.createMetadata(), timestamp, metadata.getVisibility());
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), propertyKey, newValue, metadata.createMetadata(), timestamp, metadata.getPropertyVisibility());
     }
 
     /**

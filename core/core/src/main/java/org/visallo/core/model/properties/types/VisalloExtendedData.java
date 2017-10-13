@@ -68,7 +68,7 @@ public abstract class VisalloExtendedData<TRaw, TGraph> {
             Long timestamp
     ) {
         checkNotNull(newValue, "null values are not allowed");
-        m.addExtendedData(tableName, row, columnName, rawToGraph(newValue), timestamp, propertyMetadata.getVisibility());
+        m.addExtendedData(tableName, row, columnName, rawToGraph(newValue), timestamp, propertyMetadata.getPropertyVisibility());
     }
 
     public static String rowIdFromDate(Date timestamp) {

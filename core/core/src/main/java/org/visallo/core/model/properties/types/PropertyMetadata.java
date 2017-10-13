@@ -11,33 +11,53 @@ import java.util.Date;
 import java.util.List;
 
 public class PropertyMetadata {
+    private static final Visibility DEFAULT_VISIBILITY = new Visibility("");
+
     private final Date modifiedDate;
     private final User modifiedBy;
     private final Double confidence;
     private final VisibilityJson visibilityJson;
-    private final Visibility visibility;
+    private final Visibility propertyVisibility;
     private final List<AdditionalMetadataItem> additionalMetadataItems = new ArrayList<>();
 
-    public PropertyMetadata(User modifiedBy, VisibilityJson visibilityJson, Visibility visibility) {
-        this(new Date(), modifiedBy, visibilityJson, visibility);
+    /**
+     * @param modifiedBy The user to set as the modifiedBy metadata
+     * @param visibilityJson The visibility json to use in the metadata
+     * @param propertyVisibility The visibility of the property
+     */
+    public PropertyMetadata(User modifiedBy, VisibilityJson visibilityJson, Visibility propertyVisibility) {
+        this(new Date(), modifiedBy, visibilityJson, propertyVisibility);
     }
 
-    public PropertyMetadata(Date modifiedDate, User modifiedBy, VisibilityJson visibilityJson, Visibility visibility) {
-        this(modifiedDate, modifiedBy, null, visibilityJson, visibility);
+    /**
+     * @param modifiedDate The date to use as modifiedDate
+     * @param modifiedBy The user to set as the modifiedBy metadata
+     * @param visibilityJson The visibility json to use in the metadata
+     * @param propertyVisibility The visibility of the property
+     */
+    public PropertyMetadata(Date modifiedDate, User modifiedBy, VisibilityJson visibilityJson, Visibility propertyVisibility) {
+        this(modifiedDate, modifiedBy, null, visibilityJson, propertyVisibility);
     }
 
+    /**
+     * @param modifiedDate The date to use as modifiedDate
+     * @param modifiedBy The user to set as the modifiedBy metadata
+     * @param confidence The confidence metadata value
+     * @param visibilityJson The visibility json to use in the metadata
+     * @param propertyVisibility The visibility of the property
+     */
     public PropertyMetadata(
             Date modifiedDate,
             User modifiedBy,
             Double confidence,
             VisibilityJson visibilityJson,
-            Visibility visibility
+            Visibility propertyVisibility
     ) {
         this.modifiedDate = modifiedDate;
         this.modifiedBy = modifiedBy;
         this.confidence = confidence;
         this.visibilityJson = visibilityJson;
-        this.visibility = visibility;
+        this.propertyVisibility = propertyVisibility;
     }
 
     public PropertyMetadata(PropertyMetadata metadata) {
@@ -46,7 +66,7 @@ public class PropertyMetadata {
                 metadata.getModifiedBy(),
                 metadata.getConfidence(),
                 metadata.getVisibilityJson(),
-                metadata.getVisibility()
+                metadata.getPropertyVisibility()
         );
         for (AdditionalMetadataItem item : metadata.getAdditionalMetadataItems()) {
             add(item.getKey(), item.getValue(), item.getVisibility());
@@ -55,11 +75,11 @@ public class PropertyMetadata {
 
     public Metadata createMetadata() {
         Metadata metadata = new Metadata();
-        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, modifiedDate, visibility);
-        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, modifiedBy.getUserId(), visibility);
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, visibility);
+        VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, modifiedDate, DEFAULT_VISIBILITY);
+        VisalloProperties.MODIFIED_BY_METADATA.setMetadata(metadata, modifiedBy.getUserId(), DEFAULT_VISIBILITY);
+        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, DEFAULT_VISIBILITY);
         if (confidence != null) {
-            VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, confidence, visibility);
+            VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, confidence, DEFAULT_VISIBILITY);
         }
         for (AdditionalMetadataItem additionalMetadataItem : additionalMetadataItems) {
             metadata.add(
@@ -87,8 +107,8 @@ public class PropertyMetadata {
         return visibilityJson;
     }
 
-    public Visibility getVisibility() {
-        return visibility;
+    public Visibility getPropertyVisibility() {
+        return propertyVisibility;
     }
 
     public Iterable<AdditionalMetadataItem> getAdditionalMetadataItems() {

@@ -179,7 +179,7 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             PropertyMetadata metadata
     ) {
         checkNotNull(metadata, "metadata cannot be null");
-        updateProperty(changedPropertiesOut, element, m, newValue, metadata.createMetadata(), null, metadata.getVisibility());
+        updateProperty(changedPropertiesOut, element, m, newValue, metadata.createMetadata(), null, metadata.getPropertyVisibility());
     }
 
     public <T extends Element> void updateProperty(
@@ -187,7 +187,7 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             TRaw newValue,
             PropertyMetadata metadata
     ) {
-        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, metadata.createMetadata(), null, metadata.getVisibility());
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, metadata.createMetadata(), null, metadata.getPropertyVisibility());
     }
 
     /**
@@ -216,7 +216,7 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             Long timestamp
     ) {
         checkNotNull(metadata, "metadata cannot be null");
-        updateProperty(changedPropertiesOut, element, m, newValue, metadata.createMetadata(), timestamp, metadata.getVisibility());
+        updateProperty(changedPropertiesOut, element, m, newValue, metadata.createMetadata(), timestamp, metadata.getPropertyVisibility());
     }
 
     public <T extends Element> void updateProperty(
@@ -225,7 +225,7 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             PropertyMetadata metadata,
             Long timestamp
     ) {
-        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, metadata.createMetadata(), timestamp, metadata.getVisibility());
+        updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, metadata.createMetadata(), timestamp, metadata.getPropertyVisibility());
     }
 
     /**

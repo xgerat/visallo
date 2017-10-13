@@ -149,10 +149,9 @@ public class GraphPropertyWorkData {
 
     public Metadata createPropertyMetadata(User user) {
         Metadata metadata = new Metadata();
-        VisibilityJson visibilityJson = getElementVisibilityJson();
+        VisibilityJson visibilityJson = getPropertyVisibilityJson();
         Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
         if (visibilityJson != null) {
-            
             VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, defaultVisibility);
         }
         VisalloProperties.MODIFIED_DATE_METADATA.setMetadata(metadata, new Date(), defaultVisibility);

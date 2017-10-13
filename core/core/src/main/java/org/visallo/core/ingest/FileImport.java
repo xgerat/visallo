@@ -290,12 +290,16 @@ public class FileImport {
             StreamingPropertyValue rawValue = new StreamingPropertyValue(fileInputStream, byte[].class);
             rawValue.searchIndex(false);
 
+            Date modifiedDate = new Date();
+
             VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, visibilitySource, workspace == null ? null : workspace.getWorkspaceId());
             VisalloVisibility visalloVisibility = this.visibilityTranslator.toVisibility(visibilityJson);
             Visibility visibility = visalloVisibility.getVisibility();
+            PropertyMetadata propertyMetadata = new PropertyMetadata(modifiedDate, user, 0.1, visibilityJson, visibility);
+
             Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
-            PropertyMetadata defaultPropertyMetadata = new PropertyMetadata(user, visibilityJson, defaultVisibility);
-            VisalloProperties.CONFIDENCE_METADATA.setMetadata(defaultPropertyMetadata, 0.1, visibilityTranslator.getDefaultVisibility());
+            VisibilityJson defaultVisibilityJson = new VisibilityJson(defaultVisibility.getVisibilityString());
+            PropertyMetadata defaultPropertyMetadata = new PropertyMetadata(modifiedDate, user, defaultVisibilityJson, defaultVisibility);
 
             VertexBuilder vertexBuilder;
             if (predefinedId == null) {
@@ -308,7 +312,8 @@ public class FileImport {
             VisalloProperties.CONTENT_HASH.updateProperty(changedProperties, null, vertexBuilder, MULTI_VALUE_KEY, hash, defaultPropertyMetadata);
 
             String fileName = Strings.isNullOrEmpty(originalFilename) ? f.getName() : originalFilename;
-            VisalloProperties.FILE_NAME.updateProperty(changedProperties, null, vertexBuilder, MULTI_VALUE_KEY, fileName, defaultPropertyMetadata);
+            VisalloProperties.FILE_NAME.updateProperty(changedProperties, null, vertexBuilder, MULTI_VALUE_KEY, fileName, propertyMetadata);
+
             VisalloProperties.MODIFIED_DATE.updateProperty(
                     changedProperties,
                     null,
@@ -357,7 +362,6 @@ public class FileImport {
             vertex = vertexBuilder.save(authorizations);
 
             for (PostFileImportHandler postFileImportHandler : this.postFileImportHandlers) {
-                PropertyMetadata propertyMetadata = new PropertyMetadata(user, visibilityJson, visibility);
                 postFileImportHandler.handle(graph, vertex, changedProperties, workspace, propertyMetadata, visibility, user, authorizations);
             }
 
