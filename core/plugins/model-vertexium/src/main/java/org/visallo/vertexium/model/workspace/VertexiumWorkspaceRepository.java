@@ -47,6 +47,7 @@ import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.vertexium.model.user.VertexiumUserRepository;
+import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
@@ -126,6 +127,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         this.lockRepository = lockRepository;
 
         graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
+        graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_PRODUCT_STRING);
         graphAuthorizationRepository.addAuthorizationToGraph(VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
     }
 
@@ -587,6 +589,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
                     user,
                     VISIBILITY_STRING,
+                    VISIBILITY_PRODUCT_STRING,
                     workspace.getWorkspaceId()
             );
 
@@ -1200,6 +1203,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
                 user,
                 VISIBILITY_STRING,
+                VISIBILITY_PRODUCT_STRING,
                 workspaceId
         );
         Vertex productVertex = getProductVertex(workspaceId, productId, user);
@@ -1216,6 +1220,71 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         }
 
         return productVertexToProduct(workspaceId, productVertex, includeExtended, extendedData, authorizations, user);
+    }
+
+    public WorkProductAncillaryResponse addOrUpdateProductAncillaryVertex(
+            String workspaceId,
+            String productId,
+            String vertexId,
+            User user,
+            UpdateProductEdgeOptions productEdgeOptions,
+            GraphUpdateContext.Update<Vertex> updateVertexFn) {
+        return addOrUpdateProductAncillaryVertex(workspaceId, productId, vertexId, user, null, productEdgeOptions, updateVertexFn);
+    }
+    public WorkProductAncillaryResponse addOrUpdateProductAncillaryVertex(
+            String workspaceId,
+            String productId,
+            String vertexId,
+            User user,
+            String sourceGuid,
+            UpdateProductEdgeOptions productEdgeOptions,
+            GraphUpdateContext.Update<Vertex> updateVertexFn) {
+        Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                VISIBILITY_PRODUCT_STRING,
+                workspaceId
+        );
+        Vertex productVertex = getGraph().getVertex(productId, authorizations);
+        if (productVertex == null) {
+            throw new VisalloException("Unable to update vertex, productId not found: " + productId);
+        }
+
+        String kind = WorkspaceProperties.PRODUCT_KIND.getPropertyValue(productVertex);
+        WorkProductService service = getWorkProductServiceByKind(kind);
+        if (!(service instanceof WorkProductServiceHasElements)) {
+            throw new VisalloException("Service doesn't support entities");
+        }
+        WorkProductServiceHasElements elementsService = (WorkProductServiceHasElements) service;
+
+        Vertex vertex = null;
+        Edge edge = null;
+        Visibility workspaceVisibility = VISIBILITY.getVisibility();
+        Visibility productVisibility = VISIBILITY_PRODUCT.getVisibility();
+
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
+            ctx.setPushOnQueue(false);
+            vertex = ctx.getOrCreateVertexAndUpdate(vertexId, productVisibility, updateVertexFn).get();
+
+            edge = (Edge) elementsService.addOrUpdateProductEdgeToAncillaryEntity(
+                    ctx,
+                    productVertex,
+                    vertex.getId(),
+                    productEdgeOptions,
+                    workspaceVisibility
+            ).get();
+
+            getWorkQueueRepository().broadcastWorkProductAncillaryChange(
+                productVertex.getId(), workspaceId, vertex.getId(), user, sourceGuid
+            );
+        } catch (Exception e) {
+            throw new VisalloException("Unable to add or update vertex", e);
+        }
+
+        return new WorkProductAncillaryResponse(
+            ClientApiConverter.toClientApiVertex(vertex, workspaceId, authorizations),
+            elementsService.populateProductVertexWithWorkspaceEdge(edge)
+        );
     }
 
     private ProductPreview getProductPreviewFromUrl(String url) {

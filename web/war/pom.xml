@@ -147,6 +147,15 @@
                                 </goals>
                             </execution>
                             <execution>
+                                <id>grunt dependencies</id>
+                                <goals>
+                                    <goal>grunt</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>deps</arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
                                 <id>grunt</id>
                                 <goals>
                                     <goal>grunt</goal>

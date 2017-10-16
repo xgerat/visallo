@@ -4,6 +4,7 @@ define([
     'colorjs'
 ], function(createReactClass, PropTypes, colorjs) {
 
+    let CssIdentifier = 1;
     const BLACK = 'rgb(0,0,0)';
     const saturation = 0.7;
     const lightness = 0.5;
@@ -29,6 +30,9 @@ define([
         getInitialState() {
             return { value: this.props.value };
         },
+        componentWillMount() {
+            this.cssIdentifier = `_cs-${CssIdentifier++}`;
+        },
         componentDidMount() {
             this.publish = _.debounce(this._publish, 100);
         },
@@ -44,14 +48,14 @@ define([
             const hue = color.getHue();
             const colorStyle = `hsl(${hue}, ${saturation * 100}%, ${lightness * 100}%);`
             const style = black ? '' : `
-                .color-selector input[type=range]::-moz-range-thumb { background: ${colorStyle} }
-                .color-selector input[type=range]::-ms-thumb { background: ${colorStyle} }
-                .color-selector input[type=range]::-webkit-slider-thumb { background: ${colorStyle} }`;
+                #${this.cssIdentifier} input[type=range]::-moz-range-thumb { background: ${colorStyle} }
+                #${this.cssIdentifier} input[type=range]::-ms-thumb { background: ${colorStyle} }
+                #${this.cssIdentifier} input[type=range]::-webkit-slider-thumb { background: ${colorStyle} }`;
             const percent = hue / 360;
             const shade = black ? '' : _.find(shades, s => hue < s.s).v;
 
             return (
-                <div className={`color-selector ${black ? 'black' : ''}`} style={{ display: 'flex' }}>
+                <div id={this.cssIdentifier} className={`color-selector ${black ? 'black' : ''}`} style={{ display: 'flex' }}>
                     <div title="Set to Black" className="black">
                         <button onClick={this.onClickBlack} onMouseDown={this.onMouseDownBlack}>Set to Black</button>
                     </div>

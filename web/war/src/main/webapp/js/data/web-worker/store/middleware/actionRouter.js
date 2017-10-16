@@ -16,6 +16,9 @@ define(['../actions'], function(actions) {
 
             if (workerImpl && name) {
                 require([workerImpl], function(worker) {
+                    if ('default' in worker) {
+                        worker = worker.default;
+                    }
                     if (name in worker) {
                         var impl = worker[name];
                         if (_.isFunction(impl)) {
@@ -27,6 +30,7 @@ define(['../actions'], function(actions) {
                             next(impl)
                         }
                     } else {
+                        console.error(worker);
                         throw new Error('Action dispatched with no matching worker impl: ' + name + ', worker = ' + workerImpl)
                     }
                 }, function(error) {

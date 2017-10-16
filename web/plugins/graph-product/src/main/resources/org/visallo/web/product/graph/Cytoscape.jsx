@@ -87,7 +87,7 @@ define([
             hasPreview: PropTypes.bool,
             editable: PropTypes.bool,
             onCollapseSelectedNodes: PropTypes.func.isRequired,
-            reapplyGraphStylesheet: PropTypes.func.isRequired,
+            requestUpdate: PropTypes.func.isRequired,
             ...eventPropTypes
         },
 
@@ -132,7 +132,7 @@ define([
             cy.on('tap mouseover mouseout', 'node.decoration', event => {
                 this.props.onDecorationEvent(event);
             });
-            cy.on('position grab free', 'node.v', ({ target }) => {
+            cy.on('position grab free', 'node.v,node.ancillary', ({ target }) => {
                 if (target.isChild()) {
                     this.updateDecorationPositions(target);
                 }
@@ -176,12 +176,17 @@ define([
             }
         },
 
-        componentDidUpdate() {
+        componentDidUpdate(prevProps, prevState) {
             const { cy } = this.state;
-            const { elements, drawEdgeToMouseFrom, initialProductDisplay, hasPreview } = this.props;
+            const { elements, drawEdgeToMouseFrom, initialProductDisplay, hasPreview, drawPaths: newPaths } = this.props;
+            const oldPaths = prevProps.drawPaths;
             const newData = { elements };
             const oldData = cy.json()
             const disableSelection = Boolean(drawEdgeToMouseFrom);
+
+            if (oldPaths && oldPaths !== newPaths) {
+                cy.$('.path-edge').removeStyle('display opacity line-color source-arrow-color target-arrow-color');
+            }
 
             this.drawEdgeToMouseFrom(newData);
             this.drawPaths(newData);
@@ -209,6 +214,7 @@ define([
             })
             deferredNodes.forEach(n => n());
             cy.batch(() => decorations.forEach(n => n()));
+            cy.batch(() => this.updatePathStyles(oldPaths, newPaths));
 
             cy.autounselectify(disableSelection)
 
@@ -269,13 +275,15 @@ define([
                 container: this.refs.cytoscape,
                 boxSelectionEnabled: true,
                 ready: (event) => {
-                    var { cy } = event,
-                        eventMap = _.mapObject(EVENTS, (name, key) => (e) => {
+                    var { cy } = event;
+
+                    _.each(EVENTS, (name, key) => {
+                        cy.on(key, (e) => {
                             if (this[key + 'Disabled'] !== true) {
                                 this.props[name](e)
                             }
                         });
-                    cy.on(eventMap)
+                    });
                     cy.on('cxttap', (event) => {
                         const {target, cy} = event;
                         if (cy === target) {
@@ -361,13 +369,9 @@ define([
         _zoom(factor, dt = 1) {
             const { cy } = this.state;
 
-            var zoom = cy._private.zoom,
-                [,, width, height] = cy.renderer().containerBB,
-                pos = cy.renderer().projectIntoViewport(width / 2, height / 2);
-
             cy.zoom({
-                level: zoom + factor * dt,
-                position: { x: pos[0], y: pos[1] }
+                level: cy.zoom() + factor * dt,
+                renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 }
             })
         },
 
@@ -452,7 +456,7 @@ define([
         onMenuLayout(layout, options) {
             const { cy } = this.state;
             const onlySelected = options && options.onlySelected;
-            const elements = onlySelected ? cy.collection(cy.nodes().filter(':selected')) : cy.nodes();
+            const elements = onlySelected ? cy.collection(cy.nodes().filter(':selected')) : cy.$('.v,.c');
             const defaultOptions = {...LAYOUT_OPTIONS[layout] };
 
             var opts = {
@@ -499,7 +503,7 @@ define([
         fit(nodes, options = {}) {
             const { animate = true } = options;
             const { cy } = this.state;
-            const cyNodes = nodes || cy.nodes('node.c,node.v,node.partial,.decoration');
+            const cyNodes = nodes || cy.nodes('node.c,node.v,node.partial,.ancillary,.decoration');
 
             if (cyNodes.size() === 0) {
                 cy.reset();
@@ -555,7 +559,7 @@ define([
                     } else {
                         _p.zoom = zoom;
                         _p.pan = position;
-                        cy.trigger('pan zoom viewport');
+                        cy.emit('pan zoom viewport');
                         cy.notify({ type: 'viewport' });
                     }
                 }
@@ -824,6 +828,41 @@ define([
             }
         },
 
+        updatePathStyles(oldPaths, newPaths) {
+            const cy = this.state.cy;
+            const updateStyles = (paths, enabled = true) => {
+                const pathNodeIds = _.uniq(_.flatten(paths));
+
+                pathNodeIds.forEach(id => {
+                    const cyNode = cy.getElementById(id);
+
+                    if (enabled) {
+                        cyNode.style({
+                            'display': 'element',
+                            'opacity': 1
+                        });
+                    } else {
+                        cyNode.removeStyle('display opacity');
+                    }
+                });
+            };
+
+            if (oldPaths) {
+                updateStyles(oldPaths.renderedPaths, false);
+            }
+
+            if (newPaths) {
+                updateStyles(newPaths.renderedPaths);
+                cy.$('.path-edge').forEach(cyEdge => cyEdge.style({
+                    'display': 'element',
+                    'opacity': 1,
+                    'line-color': cyEdge.data('pathColor'),
+                    'source-arrow-color': cyEdge.data('pathColor'),
+                    'target-arrow-color': cyEdge.data('pathColor')
+                }));
+            }
+        },
+
         drawEdgeToMouseFrom(newData) {
             const { drawEdgeToMouseFrom } = this.props;
             const { cy } = this.state;
@@ -869,13 +908,16 @@ define([
          * @typedef org.visallo.product.toolbar.item~GraphComponent
          * @property {object} product The graph product
          * @property {object} cy The cytoscape instance
+         * @property {function} requestUpdate Request the product should update. This is not guaranteed
+         * to happen in the very next cycle. The product will group updates together for performance.
          */
         getInjectedToolProps() {
             const { cy } = this.state;
+            const { product, requestUpdate } = this.props;
             let props = {};
 
             if (cy) {
-                props = { cy, reapplyGraphStylesheet: this.props.reapplyGraphStylesheet };
+                props = { product, cy, requestUpdate };
             }
 
             return props;

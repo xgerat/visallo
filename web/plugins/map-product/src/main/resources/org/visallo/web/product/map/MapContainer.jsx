@@ -36,6 +36,7 @@ define([
                 selection: productSelectors.getSelectedElementsInProduct(state),
                 viewport: productSelectors.getViewport(state),
                 productElementIds: productSelectors.getElementIdsInProduct(state),
+                product: productSelectors.getProduct(state),
                 elements: productSelectors.getElementsInProduct(state),
                 pixelRatio: state.screen.pixelRatio,
                 mimeTypes,

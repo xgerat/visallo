@@ -3,8 +3,8 @@ define([
     'classnames',
     'prop-types',
     './ConceptSelector',
-    '../GlyphSelector',
-    '../ColorSelector',
+    '../field/GlyphSelector',
+    '../field/ColorSelector',
     '../Alert'
 ], function(createReactClass,
     classNames,

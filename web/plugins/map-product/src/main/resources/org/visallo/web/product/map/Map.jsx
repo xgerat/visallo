@@ -3,10 +3,14 @@ define([
     'prop-types',
     './OpenLayers',
     'configuration/plugins/registry',
+    'components/RegistryInjectorHOC',
     'util/vertex/formatters',
+    'util/deepObjectCache',
     'util/mapConfig'
-], function(createReactClass, PropTypes, OpenLayers, registry, F, mapConfig) {
+], function(createReactClass, PropTypes, OpenLayers, registry, RegistryInjectorHOC, F, DeepObjectCache, mapConfig) {
     'use strict';
+
+    const REQUEST_UPDATE_DEBOUNCE = 300;
 
     /**
      * @deprecated Use {@link org.visallo.product.toolbar.item} instead
@@ -17,6 +21,44 @@ define([
             return ('identifier' in e) && ('optionComponentPath' in e);
         },
         'http://docs.visallo.org/extension-points/front-end/mapOptions'
+    );
+
+    /**
+     * Extension to style map features/pins using the
+     * [OpenLayers](http://openlayers.org)
+     * [`ol.style.Style`](http://openlayers.org/en/latest/apidoc/ol.style.Style.html)
+     * api.
+     *
+     * This does not change clustered features.
+     *
+     * @param {org.visallo.map.style~canHandle} canHandle Function that
+     * determines if style function applies for elements.
+     * @param {org.visallo.map.style~style} style Style to use for feature
+     * @param {org.visallo.map.style~style} selectedStyle Style to use when feature is selected
+     * @example
+     * registry.registerExtension('org.visallo.map.style', {
+     *     canHandle: function(productEdgeInfo, element) {
+     *         return element.properties.length > 2;
+     *     },
+     *     style: function(productEdgeInfo, element) {
+     *         const fill = new ol.style.Fill({ color: '#ff0000' })
+     *         const stroke = new ol.style.Stroke({ color: '#0000ff', width: 2 })
+     *         return new ol.style.Style({
+     *             image: new ol.style.Circle({
+     *                 fill: fill,
+     *                 stroke: stroke,
+     *                 radius: 25
+     *             })
+     *         })
+     *     }
+     * });
+     */
+    registry.documentExtensionPoint('org.visallo.map.style',
+        'Style map features using OpenLayers',
+        function(e) {
+            return _.isFunction(e.canHandle) && (_.isFunction(e.style) || _.isFunction(e.selectedStyle))
+        },
+        'http://docs.visallo.org/extension-points/front-end/mapStyle'
     );
 
     const Map = createReactClass({
@@ -36,15 +78,18 @@ define([
         render() {
             const { viewport, generatePreview } = this.state;
             const { product, onSelectElements, onUpdatePreview } = this.props;
+            const { clusterFeatures, ancillaryFeatures } = this.mapElementsToFeatures();
 
             return (
                 <div style={{height:'100%'}} ref={r => {this.wrap = r}}>
                 <OpenLayers
                     product={product}
-                    features={this.mapElementsToFeatures()}
+                    features={clusterFeatures}
+                    below={ancillaryFeatures}
                     viewport={viewport}
                     generatePreview={generatePreview}
                     panelPadding={this.props.panelPadding}
+                    clearCaches={this.requestUpdateDebounce}
                     onTap={this.onTap}
                     onPan={this.onViewport}
                     onZoom={this.onViewport}
@@ -64,6 +109,15 @@ define([
                 this.saveViewport(this.props)
                 this.setState({ viewport: nextProps.viewport || {}, generatePreview: true })
             }
+        },
+
+        componentWillMount() {
+            this.caches = {
+                canHandle: new DeepObjectCache(),
+                style: new DeepObjectCache(),
+                selectedStyle: new DeepObjectCache()
+            };
+            this.requestUpdateDebounce = _.debounce(this.clearCaches, REQUEST_UPDATE_DEBOUNCE)
         },
 
         componentDidMount() {
@@ -134,13 +188,88 @@ define([
             }
         },
 
+        getStyles(edgeInfo, element, ontology) {
+            const { registry } = this.props;
+            const calculatedStyles = registry['org.visallo.map.style']
+                .reduce((styles, { canHandle, style, selectedStyle }) => {
+
+                    /**
+                     * Decide which vertices to apply style
+                     *
+                     * @function org.visallo.map.style~canHandle
+                     * @param {object} productEdgeInfo The edge info from product->vertex
+                     * @param {object} element The vertex
+                     * @param {Array.<object>} element.properties The vertex properties
+                     * @returns {boolean} True if extension should handle this vertex (style/selectedStyle functions will be invoked.)
+                     */
+                    if (this.caches.canHandle.getOrUpdate(canHandle, edgeInfo, element)) {
+                        if (style) {
+                            /**
+                             * Return an OpenLayers [`ol.style.Style`](http://openlayers.org/en/latest/apidoc/ol.style.Style.html)
+                             * object for the given element.
+                             *
+                             * @function org.visallo.map.style~style
+                             * @param {object} productEdgeInfo The edge info from product->vertex
+                             * @param {object} element The vertex
+                             * @param {Array.<object>} element.properties The vertex properties
+                             * @returns {ol.style.Style}
+                             */
+                            const normalStyle = this.caches.style.getOrUpdate(style, edgeInfo, element, ontology)
+                            if (normalStyle) {
+                                if (_.isArray(normalStyle)) {
+                                    if (normalStyle.length) styles.normal.push(...normalStyle)
+                                } else {
+                                    styles.normal.push(normalStyle)
+                                }
+                            }
+                        }
+
+                        if (selectedStyle) {
+                            const output = this.caches.selectedStyle.getOrUpdate(selectedStyle, edgeInfo, element, ontology)
+                            if (output) {
+                                if (_.isArray(output)) {
+                                    if (output.length) styles.selected.push(...output)
+                                } else {
+                                    styles.selected.push(output)
+                                }
+                            }
+                        }
+                    }
+                    return styles;
+                }, { normal: [], selected: []})
+
+            if (calculatedStyles.normal.length || calculatedStyles.selected.length) {
+                return calculatedStyles;
+            }
+        },
+
         mapElementsToFeatures() {
+            const { product } = this.props;
+            const { extendedData } = product;
+            if (!extendedData || !extendedData.vertices) return [];
             const { vertices, edges } = this.props.elements;
             const elementsSelectedById = { ..._.indexBy(this.props.selection.vertices), ..._.indexBy(this.props.selection.edges) };
             const elements = Object.values(vertices).concat(Object.values(edges));
             const geoLocationProperties = _.groupBy(this.props.ontologyProperties, 'dataType').geoLocation;
 
-            return elements.map(el => {
+            const ancillaryFeatures = [];
+            const clusterFeatures = [];
+
+            elements.forEach(el => {
+                const extendedDataType = extendedData[el.type === 'vertex' ? 'vertices' : 'edges'];
+                const edgeInfo = extendedDataType[el.id];
+                const styles = this.getStyles(edgeInfo, el, F.vertex.concept(el));
+
+                if (extendedData.vertices[el.id] && extendedData.vertices[el.id].ancillary) {
+                    ancillaryFeatures.push({
+                        id: el.id,
+                        element: el,
+                        selected,
+                        styles
+                    })
+                    return;
+                }
+
                 const geoLocations = geoLocationProperties &&
                     _.chain(geoLocationProperties)
                         .map(function(geoLocationProperty) {
@@ -165,7 +294,7 @@ define([
                     }),
                     iconUrlSelected = `${iconUrl}&selected=true`;
 
-                return {
+                clusterFeatures.push({
                     id: el.id,
                     element: el,
                     selected,
@@ -174,9 +303,12 @@ define([
                     iconSize: [22, 40].map(v => v * this.props.pixelRatio),
                     iconAnchor: [0.5, 1.0],
                     pixelRatio: this.props.pixelRatio,
+                    styles,
                     geoLocations
-                }
+                })
             })
+
+            return { ancillaryFeatures, clusterFeatures };
         },
 
         getTilePropsFromConfiguration() {
@@ -255,8 +387,15 @@ define([
                 this.removeEvents.push({ node, func, events });
                 $(node).on(events, func);
             })
+        },
+
+        clearCaches() {
+            Object.keys(this.caches).forEach(key => this.caches[key].clear())
+            this.forceUpdate();
         }
     });
 
-    return Map;
+    return RegistryInjectorHOC(Map, [
+        'org.visallo.map.style'
+    ])
 });

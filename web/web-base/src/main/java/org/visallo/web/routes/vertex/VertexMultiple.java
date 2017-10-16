@@ -16,10 +16,13 @@ import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
+import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.model.ClientApiVertexMultipleResponse;
 import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 
 @Singleton
 public class VertexMultiple implements ParameterizedHandler {
@@ -46,11 +49,12 @@ public class VertexMultiple implements ParameterizedHandler {
             HttpServletRequest request,
             @Required(name = "vertexIds[]") String[] vertexIdsParam,
             @Optional(name = "fallbackToPublic", defaultValue = "false") boolean fallbackToPublic,
+            @Optional(name = "includeAncillary", defaultValue = "false") boolean includeAncillary,
             User user
     ) throws Exception {
         ClientApiVertexMultipleResponse result = new ClientApiVertexMultipleResponse();
-
         String workspaceId = null;
+
         try {
             workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request, workspaceRepository, userRepository);
             result.setRequiredFallback(false);
@@ -62,23 +66,32 @@ public class VertexMultiple implements ParameterizedHandler {
             }
         }
 
-        Authorizations authorizations = workspaceId != null ?
-                authorizationRepository.getGraphAuthorizations(user, workspaceId) :
-                authorizationRepository.getGraphAuthorizations(user);
+        List<String> auths = new ArrayList<>();
+        if (workspaceId != null) {
+            auths.add(workspaceId);
+        }
+        if (includeAncillary) {
+            auths.add(WorkspaceRepository.VISIBILITY_PRODUCT_STRING);
+        }
+
+        Authorizations authorizations = authorizationRepository.getGraphAuthorizations(user, auths.toArray(new String[]{}));
 
         Iterable<Vertex> graphVertices = graph.getVertices(
                 Sets.newHashSet(vertexIdsParam),
                 ClientApiConverter.SEARCH_FETCH_HINTS,
                 authorizations
         );
-
+        
         for (Vertex v : graphVertices) {
-            result.getVertices().add(ClientApiConverter.toClientApiVertex(
+            ClientApiVertex vertex = ClientApiConverter.toClientApiVertex(
                     v,
                     workspaceId,
                     authorizations
-            ));
+            );
+
+            result.getVertices().add(vertex);
         }
+
         return result;
     }
 }

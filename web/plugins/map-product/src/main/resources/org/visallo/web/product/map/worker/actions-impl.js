@@ -81,8 +81,6 @@ define([
             const workspaceId = state.workspace.currentId;
             const workspace = state.workspace.byId[workspaceId];
             if (workspace.editable && elements && elements.vertexIds && elements.vertexIds.length) {
-                const product = state.product.workspaces[workspaceId].products[productId];
-
                 let undoPayload = {};
                 if (undoable) {
                     undoPayload = {

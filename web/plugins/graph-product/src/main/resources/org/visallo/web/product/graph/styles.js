@@ -84,6 +84,35 @@ define([], function() {
                     }
                 },
                 {
+                    selector: 'node.ancillary',
+                    css: {
+                        'background-color': '#fff',
+                        'background-fit': 'contain',
+                        'border-color': 'white',
+                        'background-image-crossorigin': 'use-credentials',
+                        'font-family': 'helvetica',
+                        'font-size': 18 * pixelRatio,
+                        'min-zoomed-font-size': 4,
+                        'text-events': 'yes',
+                        'text-outline-color': 'transparent',
+                        'text-outline-width': 0,
+                        'text-halign': 'center',
+                        'text-valign': 'center',
+                        content: '',
+                        opacity: 1,
+                        color: '#333',
+                        height: GENERIC_SIZE * pixelRatio,
+                        shape: 'rectangle',
+                        width: GENERIC_SIZE * pixelRatio
+                    }
+                },
+                {
+                    selector: 'node.ancillary.unhandled',
+                    css: {
+                        display: 'none'
+                    }
+                },
+                {
                     selector: 'node.drawEdgeToMouse',
                     css: {
                         'background-opacity': 0,

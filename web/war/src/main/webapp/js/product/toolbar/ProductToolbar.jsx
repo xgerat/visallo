@@ -166,7 +166,7 @@ define([
                 } else if (activeItem === identifier) {
                     this.setActiveItem();
                 } else {
-                    this.setActiveItem(activeItem, true);
+                    this.setActiveItem(identifier, true);
                 }
             } else if (identifier) {
                 this.setActiveItem(identifier, true);

@@ -46,7 +46,7 @@ it('Should not preview after starting if already has preview', () => {
 })
 
 it('Should fit when nodes are added without position', () => {
-    cy.trigger = jest.fn()
+    cy.emit = jest.fn()
     cy.add = jest.fn()
     cy.png = jest.fn()
     cy.nodes = jest.fn()
@@ -62,11 +62,11 @@ it('Should fit when nodes are added without position', () => {
     const component = render({ initialProductDisplay: false, elements: { nodes: [node] } })
     expect(cy.png).toHaveBeenCalledTimes(1)
     expect(cy.add).toHaveBeenCalledWith(node)
-    expect(cy.trigger).toHaveBeenCalledWith('pan zoom viewport')
+    expect(cy.emit).toHaveBeenCalledWith('pan zoom viewport')
 })
 
 it('Should not fit when nodes are added with position', () => {
-    cy.trigger = jest.fn()
+    cy.emit = jest.fn()
     cy.add = jest.fn()
     cy.png = jest.fn()
     cy.nodes = jest.fn()
@@ -82,7 +82,7 @@ it('Should not fit when nodes are added with position', () => {
     const component = render({ initialProductDisplay: false, elements: { nodes: [node] } })
     expect(cy.png).toHaveBeenCalledTimes(1)
     expect(cy.add).toHaveBeenCalledWith(node)
-    expect(cy.trigger).not.toHaveBeenCalled()
+    expect(cy.emit).not.toHaveBeenCalled()
 })
 
 it('should cleanup cytoscape instance on unmount', () => {
@@ -110,7 +110,7 @@ function comp(props = {}) {
     return <Cytoscape
         {...props}
         onCollapseSelectedNodes={() => {}}
-        reapplyGraphStylesheet={() => {}}
+        requestUpdate={() => {}}
         _disablePreviewDelay={true}
     />
 }

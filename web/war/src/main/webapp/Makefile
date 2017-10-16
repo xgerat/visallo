@@ -11,6 +11,7 @@ all: node_modules/npm-install
 
 node_modules/npm-install: package.json
 	$(YARN) install
+	$(NODE) node_modules/.bin/grunt deps
 	touch node_modules/npm-install
 
 clean:

@@ -19,6 +19,7 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.formula.FormulaEvaluator;
 import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
 import org.visallo.core.ingest.video.VideoFrameInfo;
+import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
@@ -28,9 +29,7 @@ import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.model.workspace.product.GetExtendedDataParams;
-import org.visallo.core.model.workspace.product.Product;
-import org.visallo.core.model.workspace.product.WorkProductService;
+import org.visallo.core.model.workspace.product.*;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.trace.Traced;
@@ -54,7 +53,9 @@ import static org.visallo.core.util.StreamUtil.stream;
 public abstract class WorkspaceRepository {
     public static final String TO_ENTITY_ID_SEPARATOR = "_TO_ENTITY_";
     public static final String VISIBILITY_STRING = "workspace";
+    public static final String VISIBILITY_PRODUCT_STRING = "workspace_product";
     public static final VisalloVisibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING);
+    public static final VisalloVisibility VISIBILITY_PRODUCT = new VisalloVisibility(VISIBILITY_PRODUCT_STRING);
     public static final String WORKSPACE_CONCEPT_IRI = WorkspaceProperties.WORKSPACE_CONCEPT_IRI;
     public static final String WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI = WorkspaceProperties.WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI;
     public static final String WORKSPACE_TO_USER_RELATIONSHIP_IRI = WorkspaceProperties.WORKSPACE_TO_USER_RELATIONSHIP_IRI;
@@ -1097,6 +1098,10 @@ public abstract class WorkspaceRepository {
     public abstract Product findProductById(String workspaceId, String productId, GetExtendedDataParams params, boolean includeExtended, User user);
 
     public abstract InputStream getProductPreviewById(String workspaceId, String productId, User user);
+
+    public abstract WorkProductAncillaryResponse addOrUpdateProductAncillaryVertex(String workspaceId, String productId, String vertexId, User user, UpdateProductEdgeOptions productEdgeOptions, GraphUpdateContext.Update<Vertex> updateVertexFn);
+
+    public abstract WorkProductAncillaryResponse addOrUpdateProductAncillaryVertex(String workspaceId, String productId, String vertexId, User user, String sourceGuid, UpdateProductEdgeOptions productEdgeOptions, GraphUpdateContext.Update<Vertex> updateVertexFn);
 
     protected VisibilityTranslator getVisibilityTranslator() {
         return visibilityTranslator;

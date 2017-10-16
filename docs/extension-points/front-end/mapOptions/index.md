@@ -19,7 +19,7 @@ Register the plugin, and component scripts. Then register a file reference to th
 
 ### Register Extension
 
-Register the map options extension and point the path the the React component.
+Register the map options extension and point the path to the React component.
 
 {% github_embed "https://github.com/visallo/doc-examples/blob/6e8b6766/extension-map-options/src/main/resources/org/visallo/examples/map_options/plugin.js#L3-L6" %}{% endgithub_embed %}
 

@@ -9,6 +9,7 @@
   @padding: 10px;
   @bg: #eee;
   @active-bg: #ddd;
+  @hover-bg: #e5e5e5;
   @border-color: #bbb;
 
   .toolbar-list {
@@ -24,13 +25,11 @@
       border-right: 1px solid @active-bg;
 
       .toolbar-item {
-        margin-right: 0.25em;
-        padding: 2px;
+        padding: 2px 0.2em;
         border: 1px solid transparent;
 
         &:hover {
-          background: @active-bg;
-          border: 1px solid @border-color;
+          background: @hover-bg;
         }
         &.active {
           background-color: @active-bg;
@@ -80,8 +79,7 @@
       }
 
       &:hover {
-        background-color: @active-bg;
-        border: 1px solid @border-color;
+        background-color: @hover-bg;
       }
 
       &:after {

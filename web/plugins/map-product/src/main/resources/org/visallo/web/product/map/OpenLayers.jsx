@@ -53,59 +53,122 @@ define([
         },
 
         componentDidUpdate() {
-            if (this.state.cluster) {
-                const existingFeatures = _.indexBy(this.state.cluster.source.getFeatures(), f => f.getId());
-                const newFeatures = [];
-                const { source } = this.state.cluster;
-                var changed = false;
-                this.props.features.forEach(data => {
-                    const { id, geoLocations, element, ...rest } = data;
-                    const featureValues = {
-                        ...rest,
-                        element,
-                        geoLocations,
-                        geometry: new ol.geom.MultiPoint(geoLocations.map(function(geo) {
-                            return ol.proj.fromLonLat(geo);
-                        }))
-                    };
+            const { cluster, below, above } = this.state;
 
-                    if (id in existingFeatures) {
-                        const existingFeature = existingFeatures[id];
-                        const existingValues = _.omit(data, 'geometry', 'element')
-                        const newValues = _.omit(featureValues, 'geometry', 'element')
-                        if (!_.isEqual(existingValues, newValues)) {
-                            changed = true
-                            existingFeature.setProperties(featureValues)
-                        }
-                        delete existingFeatures[id];
-                    } else {
-                        var feature = new ol.Feature(featureValues);
-                        feature.setId(data.id);
-                        newFeatures.push(feature);
+            let changed = false;
+            let fit = [];
+
+            if (cluster) {
+                const { changed: c, fitFeatures } = this._syncLayer(this.props.features, cluster);
+                changed = changed || c;
+                if (fitFeatures) fit.push(...fitFeatures)
+            }
+            if (below) {
+                const { changed: c, fitFeatures } = this._syncLayer(this.props.below, below);
+                changed = changed || c;
+                if (fitFeatures) fit.push(...fitFeatures)
+            }
+            if (above) {
+                const { changed: c, fitFeatures } = this._syncLayer(this.props.above, above);
+                changed = changed || c;
+                if (fitFeatures) fit.push(...fitFeatures)
+            }
+            if (fit.length) {
+                this.fit({ limitToFeatures: fit });
+            }
+
+            if (this.props.viewport && !_.isEmpty(this.props.viewport)) {
+                this.state.map.getView().setCenter(this.props.viewport.pan);
+                this.state.map.getView().setResolution(this.props.viewport.zoom);
+            }
+
+            if (this.props.generatePreview) {
+                this._updatePreview({ fit: !this.props.viewport });
+            } else if (changed) {
+                this.updatePreview();
+            }
+        },
+
+        _syncLayer(features, { source }) {
+            const existingFeatures = _.indexBy(source.getFeatures(), f => f.getId());
+            const newFeatures = [];
+            var changed = false;
+
+            if (features) {
+                for (let featureIndex = 0; featureIndex < features.length; featureIndex++) {
+                    const data = features[featureIndex];
+                    const { id, styles, geometry: geometryFn, geoLocations, element, ...rest } = data;
+                    let geometry = null;
+
+                    if (geometryFn) {
+                        geometry = geometryFn(ol);
+                    } else if (geoLocations) {
+                        geometry = new ol.geom.MultiPoint(geoLocations.map(geo => ol.proj.fromLonLat(geo)))
                     }
-                })
 
-                if (this.props.viewport && !_.isEmpty(this.props.viewport)) {
-                    this.state.map.getView().setCenter(this.props.viewport.pan);
-                    this.state.map.getView().setResolution(this.props.viewport.zoom);
-                }
+                    if (geometry) {
+                        let featureValues = {
+                            ...rest,
+                            element,
+                            geoLocations,
+                            geometry
+                        };
 
-                if (newFeatures.length) {
-                    changed = true
-                    source.addFeatures(newFeatures);
-                    this.fit({ limitToFeatures: newFeatures });
-                }
-                if (!_.isEmpty(existingFeatures)) {
-                    changed = true
-                    _.forEach(existingFeatures, feature => source.removeFeature(feature));
-                }
+                        if (styles) {
+                            const { normal, selected } = styles;
+                            if (normal && normal.length) {
+                                const radius = getRadiusFromStyles(normal);
+                                featureValues._nodeRadius = radius
+                                if (selected.length === 0) {
+                                    const newSelected = normal[0].clone();
+                                    const newStroke = new ol.style.Stroke({
+                                        color: '#0088cc',
+                                        width: normal[0].getImage().getStroke().getWidth() || 1
+                                    })
+                                    newSelected.image_ = normal[0].getImage().clone({
+                                        stroke: newStroke,
+                                        opacity: 1
+                                    });
 
-                if (this.props.generatePreview) {
-                    this._updatePreview({ fit: !this.props.viewport });
-                } else if (changed) {
-                    this.updatePreview();
+                                    featureValues.styles = {
+                                        normal,
+                                        selected: [newSelected]
+                                    }
+                                } else {
+                                    featureValues.styles = styles;
+                                }
+                            }
+                        }
+
+                        if (id in existingFeatures) {
+                            const existingFeature = existingFeatures[id];
+                            const existingValues = _.omit(existingFeature.getProperties(), 'geometry', 'element')
+                            const newValues = _.omit(featureValues, 'geometry', 'element')
+                            if (!_.isEqual(existingValues, newValues)) {
+                                changed = true
+                                existingFeature.setProperties(featureValues)
+                            }
+                            delete existingFeatures[id];
+                        } else {
+                            var feature = new ol.Feature(featureValues);
+                            feature.setId(data.id);
+                            newFeatures.push(feature);
+                        }
+                    }
                 }
             }
+
+            let fitFeatures;
+            if (newFeatures.length) {
+                changed = true
+                source.addFeatures(newFeatures);
+                fitFeatures = newFeatures;
+            }
+            if (!_.isEmpty(existingFeatures)) {
+                changed = true
+                _.forEach(existingFeatures, feature => source.removeFeature(feature));
+            }
+            return { changed, fitFeatures };
         },
 
         _updatePreview(options = {}) {
@@ -132,30 +195,22 @@ define([
                     doFit();
 
                     map.once('postrender', () => {
-                        const mapData = mapCanvas.toDataURL('image/png');
-                        const ctx = this._canvasPreviewBuffer.getContext('2d');
-                        const image = new Image();
-
+                        if (!this._canvasPreviewBuffer) return;
+                        var newCanvas = this._canvasPreviewBuffer;
+                        var context = newCanvas.getContext('2d');
+                        var hRatio = PREVIEW_WIDTH / mapCanvas.width;
+                        var vRatio = PREVIEW_HEIGHT / mapCanvas.height;
+                        var ratio = Math.min(hRatio, vRatio);
+                        newCanvas.width = Math.trunc(mapCanvas.width * ratio);
+                        newCanvas.height = Math.trunc(mapCanvas.height * ratio);
+                        context.drawImage(mapCanvas,
+                            0, 0, mapCanvas.width, mapCanvas.height,
+                            0, 0, newCanvas.width, newCanvas.height
+                        );
                         if (events) {
                             events.forEach(key => ol.Observable.unByKey(key));
                         }
-
-                        image.onload = () => {
-                            if (!this._canvasPreviewBuffer) return;
-
-                            var hRatio = PREVIEW_WIDTH / image.width;
-                            var vRatio = PREVIEW_HEIGHT / image.height;
-                            var ratio = Math.min(hRatio, vRatio);
-                            this._canvasPreviewBuffer.width = Math.trunc(image.width * ratio);
-                            this._canvasPreviewBuffer.height = Math.trunc(image.height * ratio);
-                            ctx.drawImage(
-                                image, 0, 0, image.width, image.height,
-                                0, 0, this._canvasPreviewBuffer.width, this._canvasPreviewBuffer.height
-                            );
-                            this.props.onUpdatePreview(this._canvasPreviewBuffer.toDataURL('image/png'));
-                        };
-                        image.onerror = (e) => console.error(e)
-                        image.src = mapData;
+                        this.props.onUpdatePreview(newCanvas.toDataURL('image/png'));
                     });
                     map.renderSync();
                 }, 100)
@@ -188,8 +243,8 @@ define([
             this.olEvents = [];
             this.domEvents = [];
             this.updatePreview = _.debounce(this._updatePreview, PREVIEW_DEBOUNCE_SECONDS * 1000);
-            const { map, cluster, baseLayerSource } = this.configureMap();
-            this.setState({ map, cluster, baseLayerSource })
+            const { map, cluster, baseLayerSource, below, above } = this.configureMap();
+            this.setState({ map, cluster, baseLayerSource, below, above })
         },
 
         componentWillUnmount() {
@@ -356,6 +411,7 @@ define([
         getDefaultViewParameters() {
             return {
                 zoom: 2,
+                minZoom: 2,
                 center: [0, 0]
             };
         },
@@ -363,6 +419,7 @@ define([
         configureMap() {
             const { source, sourceOptions = {} } = this.props;
             const cluster = this.configureCluster()
+            const { below, above } = this.configureAncillary();
             const map = new ol.Map({
                 loadTilesWhileInteracting: true,
                 keyboardEventTarget: document,
@@ -385,7 +442,13 @@ define([
             }
 
             map.addLayer(new ol.layer.Tile({ source: baseLayerSource }));
+            if (below) {
+                map.addLayer(below.layer);
+            }
             map.addLayer(cluster.layer)
+            if (above) {
+                map.addLayer(above.layer);
+            }
 
             const view = new ol.View(this.getDefaultViewParameters());
             this.olEvents.push(view.on('change:center', (event) => this.props.onPan(event)));
@@ -393,13 +456,26 @@ define([
 
             map.setView(view);
 
-            return { map, cluster, baseLayerSource }
+            return { map, cluster, baseLayerSource, below, above }
+        },
+
+        configureAncillary() {
+            const createLayer = type => {
+                const source = new ol.source.Vector({ features: [] });
+                const layer = new ol.layer.Vector({ id: `${type}Layer`, source });
+                return { source, layer }
+            }
+
+            return {
+                below: createLayer('below'),
+                above: createLayer('above')
+            };
         },
 
         configureCluster() {
             const source = new ol.source.Vector({ features: [] });
             const clusterSource = new MultiPointCluster({
-                distance: Math.max(FEATURE_CLUSTER_HEIGHT, FEATURE_HEIGHT),
+                distance: Math.max(FEATURE_CLUSTER_HEIGHT, FEATURE_HEIGHT) / 2,
                 source
             });
             const layer = new ol.layer.Vector({
@@ -411,85 +487,87 @@ define([
             return { source, clusterSource, layer }
         },
 
-        clusterStyle() {
-            if (!this._clusterStyleWithCache) {
-                this._clusterStyleWithCache = _.memoize(
-                    this._clusterStyle,
-                    function clusterStateHash(cluster, options = { selected: false }) {
-                        var count = cluster.get('count'),
-                            selectionState = cluster.get('selectionState') || 'none',
-                            key = [count, selectionState, JSON.stringify(options)];
+        clusterStyle(cluster, options = { selected: false }) {
+            const self = this;
+            const count = cluster.get('count');
+            const selectionState = cluster.get('selectionState') || 'none';
+            const selected = options.selected || selectionState !== 'none';
 
-                        if (count === 1) {
-                            const feature = cluster.get('features')[0];
-                            const compare = _.omit(feature.getProperties(), 'geoLocations', 'geometry', 'element');
-                            key.push(JSON.stringify(compare, null, 0))
-                        }
-                        return key.join('')
-                    }
-                );
+            if (count > 1) {
+                return this._clusterStyle(cluster, { selected });
+            } else {
+                return this._featureStyle(cluster.get('features')[0], { selected })
             }
-
-            return this._clusterStyleWithCache.apply(this, arguments);
         },
 
-        _clusterStyle(cluster, options = { selected: false }) {
-            var count = cluster.get('count'),
-                selectionState = cluster.get('selectionState') || 'none',
-                selected = options.selected || selectionState !== 'none';
+        _featureStyle(feature, { selected = false } = {}) {
+            const isSelected = selected || feature.get('selected');
+            const extensionStyles = feature.get('styles')
 
-            if (count === 1) {
-                const feature = cluster.get('features')[0];
-                const isSelected = options.selected || feature.get('selected');
-
-                return [new ol.style.Style({
-                    image: new ol.style.Icon({
-                        src: feature.get(isSelected ? 'iconUrlSelected' : 'iconUrl'),
-                        imgSize: feature.get('iconSize'),
-                        scale: 1 / feature.get('pixelRatio'),
-                        anchor: feature.get('iconAnchor')
-                    })
-                })]
-            } else {
-                var radius = Math.min(count || 0, FEATURE_CLUSTER_HEIGHT / 2) + 10,
-                    unselectedFill = 'rgba(241,59,60, 0.8)',
-                    unselectedStroke = '#AD2E2E',
-                    stroke = selected ? '#08538B' : unselectedStroke,
-                    strokeWidth = Math.round(radius * 0.1),
-                    textStroke = stroke,
-                    fill = selected ? 'rgba(0,112,195, 0.8)' : unselectedFill;
-
-                if (selected && selectionState === 'some') {
-                    fill = unselectedFill;
-                    textStroke = unselectedStroke;
-                    strokeWidth *= 2;
+            if (extensionStyles) {
+                const { normal: normalStyle, selected: selectedStyle } = extensionStyles;
+                let style;
+                if (normalStyle.length && (!selected || !selectedStyle.length)) {
+                    style = normalStyle;
+                } else if (selectedStyle.length && selected) {
+                    style = selectedStyle;
                 }
 
-                return [new ol.style.Style({
-                    image: new ol.style.Circle({
-                        radius: radius,
-                        stroke: new ol.style.Stroke({
-                            color: stroke,
-                            width: strokeWidth
-                        }),
-                        fill: new ol.style.Fill({
-                            color: fill
-                        })
-                    }),
-                    text: new ol.style.Text({
-                        text: count.toString(),
-                        font: `bold condensed ${radius}px sans-serif`,
-                        textAlign: 'center',
-                        fill: new ol.style.Fill({
-                            color: '#fff',
-                        }),
-                        stroke: new ol.style.Stroke({
-                            color: textStroke,
-                            width: 2
-                        })
-                    })
-                })];
+                if (style) {
+                    return style;
+                }
             }
+            return [new ol.style.Style({
+                image: new ol.style.Icon({
+                    src: feature.get(isSelected ? 'iconUrlSelected' : 'iconUrl'),
+                    imgSize: feature.get('iconSize'),
+                    scale: 1 / feature.get('pixelRatio'),
+                    anchor: feature.get('iconAnchor')
+                })
+            })]
+        },
+
+        _clusterStyle(cluster, { selected = false } = {}) {
+            var count = cluster.get('count'),
+                selectionState = cluster.get('selectionState') || 'none',
+                radius = Math.min(count || 0, FEATURE_CLUSTER_HEIGHT / 2) + 10,
+                unselectedFill = 'rgba(241,59,60, 0.8)',
+                unselectedStroke = '#AD2E2E',
+                stroke = selected ? '#08538B' : unselectedStroke,
+                strokeWidth = Math.round(radius * 0.1),
+                textStroke = stroke,
+                fill = selected ? 'rgba(0,112,195, 0.8)' : unselectedFill;
+
+            if (selected && selectionState === 'some') {
+                fill = unselectedFill;
+                textStroke = unselectedStroke;
+                strokeWidth *= 2;
+            }
+
+            return [new ol.style.Style({
+                image: new ol.style.Circle({
+                    radius: radius,
+                    stroke: new ol.style.Stroke({
+                        color: stroke,
+                        width: strokeWidth
+                    }),
+                    fill: new ol.style.Fill({
+                        color: fill
+                    })
+                }),
+                text: new ol.style.Text({
+                    text: count.toString(),
+                    font: `bold condensed ${radius}px sans-serif`,
+                    textAlign: 'center',
+                    fill: new ol.style.Fill({
+                        color: '#fff',
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: textStroke,
+                        width: 2
+                    })
+                })
+            })];
         },
 
         configureEvents({ map, cluster }) {
@@ -526,7 +604,7 @@ define([
                 }
             }));
 
-            this.olEvents.push(cluster.clusterSource.on(ol.events.EventType.CHANGE, _.debounce(function() {
+            this.olEvents.push(cluster.clusterSource.on('change', _.debounce(function() {
                 var selected = selectInteraction.getFeatures(),
                     clusters = this.getFeatures(),
                     newSelection = [],
@@ -585,6 +663,9 @@ define([
          * Map work product toolbar item component
          *
          * @typedef org.visallo.product.toolbar.item~MapComponent
+         * @property {function} requestUpdate Reload the maps extensions and styles.
+         * Call when the result of extensions will change from variables
+         * outside of inputs (preferences, etc).
          * @property {object} product The map product
          * @property {object} ol The [Openlayers Api](http://openlayers.org/en/latest/apidoc/)
          * @property {object} map [map](http://openlayers.org/en/latest/apidoc/ol.Map.html) instance
@@ -594,17 +675,29 @@ define([
          * @property {object} cluster.layer The [`ol.layer.Vector`](http://openlayers.org/en/latest/apidoc/ol.layer.Vector.html) pin layer
          */
         getInjectedToolProps() {
+            const { clearCaches: requestUpdate, product } = this.props;
             const { map, cluster } = this.state;
             let props = {};
 
             if (map && cluster) {
-                props = { product: this.props.product, ol, map, cluster };
+                props = { product, ol, map, cluster, requestUpdate }
             }
 
-            return {};
+            return props;
         }
     })
 
     return OpenLayers;
+
+    function getRadiusFromStyles(styles) {
+        for (let i = styles.length - 1; i >= 0; i--) {
+            const image = styles[i].getImage();
+            const radius = image && image.getRadius();
+            if (radius) {
+                const nodeRadius = radius / devicePixelRatio
+                return nodeRadius;
+            }
+        }
+    }
 })
 

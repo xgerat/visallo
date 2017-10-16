@@ -17,6 +17,7 @@ var VisalloAmdExternals = [
     'org/visallo/web/product/map/dist/actions-impl',
     'data/web-worker/util/ajax',
     'public/v1/api',
+    'util/deepObjectCache',
     'util/dnd',
     'util/formatters',
     'util/popovers/fileImport/fileImport',
@@ -68,7 +69,7 @@ var baseConfig = {
   devtool: 'source-map',
   plugins: [
     new webpack.optimize.UglifyJsPlugin({
-        mangle: false,
+        mangle: true,
         sourceMap: true,
         compress: {
             drop_debugger: false,

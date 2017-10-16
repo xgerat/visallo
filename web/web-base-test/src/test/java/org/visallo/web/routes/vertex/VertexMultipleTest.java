@@ -59,7 +59,7 @@ public class VertexMultipleTest extends RouteTestBase {
         when(authorizationRepository.getGraphAuthorizations(user)).thenReturn(userAuthorizations);
         when(request.getAttribute(eq(WORKSPACE_ID_ATTRIBUTE_NAME))).thenReturn(null);
 
-        ClientApiVertexMultipleResponse response = route.handle(request, new String[]{publicVertex.getId()}, true, user);
+        ClientApiVertexMultipleResponse response = route.handle(request, new String[]{publicVertex.getId()}, true, false, user);
 
         assertFalse(response.isRequiredFallback());
         assertEquals(1, response.getVertices().size());
@@ -72,7 +72,7 @@ public class VertexMultipleTest extends RouteTestBase {
         when(request.getAttribute(USER_REQUEST_ATTRIBUTE_NAME)).thenReturn(user);
         when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user)).thenReturn(false);
 
-        route.handle(request, new String[]{publicVertex.getId()}, false, user);
+        route.handle(request, new String[]{publicVertex.getId()}, false, false, user);
     }
 
     @Test
@@ -81,7 +81,7 @@ public class VertexMultipleTest extends RouteTestBase {
         when(request.getAttribute(USER_REQUEST_ATTRIBUTE_NAME)).thenReturn(user);
         when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user)).thenReturn(false);
 
-        ClientApiVertexMultipleResponse response = route.handle(request, new String[]{publicVertex.getId(), sandboxedVertex.getId()}, true, user);
+        ClientApiVertexMultipleResponse response = route.handle(request, new String[]{publicVertex.getId(), sandboxedVertex.getId()}, true, false, user);
 
         assertTrue(response.isRequiredFallback());
         assertEquals(1, response.getVertices().size());
@@ -94,7 +94,7 @@ public class VertexMultipleTest extends RouteTestBase {
         when(request.getAttribute(USER_REQUEST_ATTRIBUTE_NAME)).thenReturn(user);
         when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user)).thenReturn(true);
 
-        ClientApiVertexMultipleResponse response = route.handle(request, new String[]{publicVertex.getId(), sandboxedVertex.getId()}, true, user);
+        ClientApiVertexMultipleResponse response = route.handle(request, new String[]{publicVertex.getId(), sandboxedVertex.getId()}, true, false, user);
 
         assertFalse(response.isRequiredFallback());
         assertEquals(2, response.getVertices().size());
@@ -108,7 +108,7 @@ public class VertexMultipleTest extends RouteTestBase {
         when(request.getAttribute(USER_REQUEST_ATTRIBUTE_NAME)).thenReturn(user);
         when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user)).thenReturn(true);
 
-        ClientApiVertexMultipleResponse response = route.handle(request, new String[]{"no-vertex-id"}, true, user);
+        ClientApiVertexMultipleResponse response = route.handle(request, new String[]{"no-vertex-id"}, true, false, user);
 
         assertFalse(response.isRequiredFallback());
         assertEquals(0, response.getVertices().size());
@@ -119,7 +119,7 @@ public class VertexMultipleTest extends RouteTestBase {
         when(request.getAttribute(USER_REQUEST_ATTRIBUTE_NAME)).thenReturn(user);
         when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user)).thenReturn(true);
 
-        ClientApiVertexMultipleResponse response = route.handle(request, new String[]{}, true, user);
+        ClientApiVertexMultipleResponse response = route.handle(request, new String[]{}, true, false, user);
 
         assertFalse(response.isRequiredFallback());
         assertEquals(0, response.getVertices().size());

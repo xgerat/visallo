@@ -598,15 +598,25 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
-    public void broadcastWorkProductChange(String workProductId, ClientApiWorkspace workspace, User user, String skipSourceGuid) {
+    public void broadcastWorkProductAncillaryChange(String workProductId, String workspaceId, String ancillaryId, User user, String skipSourceGuid) {
         JSONObject json = new JSONObject();
-        json.put("type", "workProductChange");
-        json.put("permissions", getPermissionsWithUsers(workspace, null));
+        json.put("type", "workProductAncillaryChange");
+        json.put("permissions", getPermissionsWithWorkspace(workspaceId));
         JSONObject dataJson = new JSONObject();
-        dataJson.put("id", workProductId);
-        dataJson.putOpt("skipSourceGuid", skipSourceGuid);
+        dataJson.put("id", ancillaryId);
+        dataJson.put("workspaceId", workspaceId);
+        dataJson.put("productId", workProductId);
+        dataJson.putOpt("sourceGuid", skipSourceGuid);
         json.put("data", dataJson);
         broadcastJson(json);
+    }
+
+    public void broadcastWorkProductChange(String workProductId, String workspaceId, User user, String skipSourceGuid) {
+        broadcastWorkProductChange(workProductId, skipSourceGuid, getPermissionsWithWorkspace(workspaceId));
+    }
+
+    public void broadcastWorkProductChange(String workProductId, ClientApiWorkspace workspace, User user, String skipSourceGuid) {
+        broadcastWorkProductChange(workProductId, skipSourceGuid, getPermissionsWithUsers(workspace, null));
     }
 
     public void broadcastWorkProductPreviewChange(String workProductId, String workspaceId, User user, String md5) {
@@ -882,6 +892,18 @@ public abstract class WorkQueueRepository {
             String changedBySourceGuid
     ) {
         broadcastWorkspace(workspace, previousUsers, changedByUserId, changedBySourceGuid);
+    }
+
+
+    protected void broadcastWorkProductChange(String workProductId, String skipSourceGuid, JSONObject permissions) {
+        JSONObject json = new JSONObject();
+        json.put("type", "workProductChange");
+        json.put("permissions", permissions);
+        JSONObject dataJson = new JSONObject();
+        dataJson.put("id", workProductId);
+        dataJson.putOpt("sourceGuid", skipSourceGuid);
+        json.put("data", dataJson);
+        broadcastJson(json);
     }
 
     protected void broadcastUserWorkspaceChange(User user, String workspaceId) {

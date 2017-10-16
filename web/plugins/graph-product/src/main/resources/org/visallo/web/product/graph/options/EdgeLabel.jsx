@@ -8,7 +8,6 @@ define([
         onChange(event) {
             const checked = event.target.checked;
             visalloData.currentUser.uiPreferences[preferenceName] = '' + checked;
-            $(event.target).trigger('reapplyGraphStylesheet');
             this.props.visalloApi.v1.dataRequest('user', 'preference', preferenceName, checked);
         },
 

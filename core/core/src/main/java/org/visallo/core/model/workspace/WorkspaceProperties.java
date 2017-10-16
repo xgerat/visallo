@@ -16,7 +16,10 @@ public class WorkspaceProperties {
     public static final String WORKSPACE_TO_USER_RELATIONSHIP_IRI = "http://visallo.org/workspace#toUser";
     public static final String WORKSPACE_TO_DASHBOARD_RELATIONSHIP_IRI = "http://visallo.org/workspace#toDashboard";
     public static final String WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI = "http://visallo.org/workspace#toProduct";
+
     public static final String PRODUCT_TO_ENTITY_RELATIONSHIP_IRI = "http://visallo.org/workspace/product#toEntity";
+    public static final BooleanSingleValueVisalloProperty PRODUCT_TO_ENTITY_IS_ANCILLARY = new BooleanSingleValueVisalloProperty("http://visallo.org/workspace/product#toEntity/ancillary");
+
     public static final String DASHBOARD_TO_DASHBOARD_ITEM_RELATIONSHIP_IRI = "http://visallo.org/workspace#toDashboardItem";
 
     public static final StringSingleValueVisalloProperty TITLE = new StringSingleValueVisalloProperty("http://visallo.org/workspace#workspace/title");
@@ -30,4 +33,5 @@ public class WorkspaceProperties {
     public static final StringVisalloProperty PRODUCT_DATA = new StringVisalloProperty("http://visallo.org/product#data");
     public static final StringVisalloProperty PRODUCT_EXTENDED_DATA = new StringVisalloProperty("http://visallo.org/product#extendedData");
     public static final StreamingVisalloProperty PRODUCT_PREVIEW_DATA_URL = new StreamingVisalloProperty("http://visallo.org/product#previewDataUrl");
+
 }

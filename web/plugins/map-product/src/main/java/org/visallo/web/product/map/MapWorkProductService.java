@@ -6,7 +6,6 @@ import org.vertexium.*;
 import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.workspace.WorkspaceProperties;
 import org.visallo.core.model.workspace.product.UpdateProductEdgeOptions;
 import org.visallo.core.model.workspace.product.WorkProductEdge;
 import org.visallo.core.model.workspace.product.WorkProductServiceHasElementsBase;
@@ -37,12 +36,14 @@ public class MapWorkProductService extends WorkProductServiceHasElementsBase<Wor
     }
 
     @Override
-    protected void updateProductEdge(ElementUpdateContext<Edge> elemCtx, UpdateProductEdgeOptions update, Visibility visibility) {
+    protected void populateCustomProductVertexWithWorkspaceEdge(Edge propertyVertexEdge, WorkProductVertex vertex) {
+
     }
 
     @Override
-    protected void populateVertexWithWorkspaceEdge(Edge propertyVertexEdge, WorkProductVertex vertex) {
+    protected void updateProductEdge(ElementUpdateContext<Edge> elemCtx, UpdateProductEdgeOptions update, Visibility visibility) {
     }
+
 
     public void updateVertices(
             GraphUpdateContext ctx,
@@ -55,15 +56,8 @@ public class MapWorkProductService extends WorkProductServiceHasElementsBase<Wor
             Set<String> vertexIds = updateVertices.keySet();
             for (String id : vertexIds) {
                 UpdateProductEdgeOptions updateData = updateVertices.get(id);
-                String edgeId = getEdgeId(productVertex.getId(), id);
-                EdgeBuilderByVertexId edgeBuilder = ctx.getGraph().prepareEdge(
-                        edgeId,
-                        productVertex.getId(),
-                        id,
-                        WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                        visibility
-                );
-                ctx.update(edgeBuilder, elemCtx -> updateProductEdge(elemCtx, updateData, visibility));
+
+                addOrUpdateProductEdgeToEntity(ctx, productVertex, id, updateData, visibility);
             }
         }
     }

@@ -35,7 +35,7 @@ define([], function() {
     }
 
     PopoverHelper.prototype.destroy = function() {
-        this.cy.off('pan zoom position', this.onViewportChangesForPositionChanges);
+        this.cy.removeListener('pan zoom position', this.onViewportChangesForPositionChanges);
         this.viewportPositionChanges = null;
         this.$node
             .off('registerForPositionChanges')
@@ -159,7 +159,7 @@ define([], function() {
                 self.viewportPositionChanges.splice(index, 1);
             }
             if (self.viewportPositionChanges.length === 0) {
-                cy.off('pan zoom position', self.onViewportChangesForPositionChanges);
+                cy.removeListener('pan zoom position', self.onViewportChangesForPositionChanges);
                 self.viewportPositionChanges = null;
             }
         }

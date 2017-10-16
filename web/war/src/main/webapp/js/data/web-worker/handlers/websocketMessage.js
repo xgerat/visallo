@@ -29,13 +29,6 @@ define([
                 })
             },
             workProductChange: function(data) {
-                const guid = publicData.socketSourceGuid;
-                if ('skipSourceGuid' in data) {
-                    if (guid === data.skipSourceGuid) {
-                        return;
-                    }
-                }
-
                 require(['../store/product/actions-impl'], function(actions) {
                     store.getStore().dispatch(actions.changedOnServer(data.id));
                 })
@@ -44,6 +37,17 @@ define([
                 require(['../store/product/actions-impl'], function(actions) {
                     store.getStore().dispatch(actions.remove(data.id))
                 })
+            },
+            workProductAncillaryChange: function({ workspaceId, productId, id }) {
+                require([
+                    '../store/element/actions-impl',
+                    '../store/product/actions-impl'
+                ], function(elementActions, productActions) {
+                    const dispatch = store.getStore().dispatch;
+
+                    dispatch(elementActions.ancillaryChange({ workspaceId, id }))
+                    dispatch(productActions.get({ productId, invalidate: true }))
+                });
             },
             sessionExpiration: function(data) {
                 dispatchMain('rebroadcastEvent', {
@@ -184,7 +188,17 @@ define([
     }
 
     function messageFromUs(json) {
-        return json.sourceGuid && json.sourceGuid === publicData.socketSourceGuid;
+        const { data } = json;
+        if (!_.isObject(data)) {
+            return false;
+        }
+
+        const { sourceGuid } = data;
+        if (!sourceGuid) {
+            return false;
+        }
+
+        return sourceGuid === publicData.socketSourceGuid;
     }
 
     function isBatchMessage(json) {

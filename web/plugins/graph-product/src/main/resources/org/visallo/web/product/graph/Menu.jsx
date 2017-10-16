@@ -3,7 +3,7 @@ define([
     'prop-types',
     'util/withContextMenu',
     'util/formatters',
-    './node_modules/cytoscape/src/index',
+    'cytoscape',
     'components/RegistryInjectorHOC'
 ], function(createReactClass, PropTypes, withContextMenu, F, cytoscape, RegistryInjectorHOC) {
     'use strict';

@@ -160,13 +160,21 @@ function setupRequireJs(data, callback) {
     importScripts(BASE_URL + '/jsc/require.config.js?' + data.cacheBreaker);
     require.baseUrl = BASE_URL + '/jsc/';
     require.urlArgs = data.cacheBreaker;
-    require.deps = data.webWorkerResources;
-    require.callback = callback;
     importScripts(BASE_URL + '/libs/requirejs/require.js?' + data.cacheBreaker);
-
     if (visalloEnvironment.prod) {
         require.load = asyncRequireJSLoader
     }
+
+    Promise.all(
+        data.webWorkerResources.map(src => {
+            return new Promise(function(done, error) {
+                require([src], done, error)
+            })
+        })
+    ).then(callback).catch(error => {
+        console.error(error);
+        throw error;
+    })
 }
 
 function onMessageHandler(event) {

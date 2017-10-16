@@ -200,10 +200,10 @@ define([
      *
      *     // Must call ready and stop callbacks
      *     cy.one("layoutready", options.ready);
-     *     cy.trigger("layoutready");
+     *     cy.emit("layoutready");
      *
      *     cy.one("layoutstop", options.stop);
-     *     cy.trigger("layoutstop");
+     *     cy.emit("layoutstop");
      *
      *     return this;
      * };

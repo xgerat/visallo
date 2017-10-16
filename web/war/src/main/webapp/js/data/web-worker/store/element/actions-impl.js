@@ -15,7 +15,7 @@ define(['../actions', 'data/web-worker/util/ajax'], function(actions, ajax) {
 
 
     const api = {
-        get: ({ workspaceId, vertexIds = [], edgeIds = [], invalidate }) => (dispatch, getState) => {
+        get: ({ workspaceId, vertexIds = [], edgeIds = [], invalidate, includeAncillary}) => (dispatch, getState) => {
             if (vertexIds.length || edgeIds.length) {
                 const state = getState();
                 if (!workspaceId) {
@@ -34,7 +34,7 @@ define(['../actions', 'data/web-worker/util/ajax'], function(actions, ajax) {
                     const resultType = type === 'vertex' ? 'vertices' : 'edges';
 
                     if (toRequest[typeIds].length) {
-                        ajax('POST', `/${type}/multiple`, { workspaceId, [typeIds]: toRequest[typeIds] })
+                        ajax('POST', `/${type}/multiple`, { workspaceId, [typeIds]: toRequest[typeIds], includeAncillary })
                             .then((result) => {
                                 const byId = _.indexBy(result[resultType], 'id');
                                 const elements = toRequest[typeIds].map(id => {
@@ -124,6 +124,18 @@ define(['../actions', 'data/web-worker/util/ajax'], function(actions, ajax) {
             ajax('GET', `/${type}/properties`, params).then(element => {
                 dispatch(api.updateElement(workspaceId, element));
             });
+        },
+
+        ancillaryChange: ({ workspaceId, id }) => (dispatch, getState) => {
+            const currentWorkspaceId = getState().workspace.currentId;
+            if (currentWorkspaceId === workspaceId) {
+                dispatch(api.get({
+                    invalidate: true,
+                    includeAncillary: true,
+                    workspaceId,
+                    vertexIds: [id]
+                }));
+            }
         },
 
         propertyChange: (change) => (dispatch, getState) => {

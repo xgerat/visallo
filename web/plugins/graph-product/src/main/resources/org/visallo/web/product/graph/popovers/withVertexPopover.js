@@ -7,8 +7,8 @@ define([], function() {
     function withVertexPopover() {
 
         this.before('teardown', function() {
-            this.attr.cy.off('pan zoom position', this.onViewportChanges);
-            this.attr.cy.off('tap', this.onTap);
+            this.attr.cy.removeListener('pan zoom position', this.onViewportChanges);
+            this.attr.cy.removeListener('tap', this.onTap);
         });
 
         this.after('teardown', function() {

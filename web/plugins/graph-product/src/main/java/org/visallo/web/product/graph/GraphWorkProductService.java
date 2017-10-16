@@ -103,7 +103,7 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
             if (!othersById.getOrDefault(otherId, false)) {
                 vertexOrNode.setUnauthorized(true);
             }
-            populateVertexWithWorkspaceEdge(propertyVertexEdge, vertexOrNode);
+            populateProductVertexWithWorkspaceEdge(propertyVertexEdge, vertexOrNode);
             if ("vertex".equals(vertexOrNode.getType())) {
                 vertices.put(otherId, vertexOrNode);
             } else {
@@ -212,6 +212,7 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
         graph.flush();
     }
 
+
     public WorkProductVertex addCompoundNode(
             GraphUpdateContext ctx,
             Vertex productVertex,
@@ -230,13 +231,7 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
             });
             vertexId = vertexFuture.get().getId();
 
-            String edgeId = getEdgeId(productVertex.getId(), vertexId);
-            ctx.getOrCreateEdgeAndUpdate(edgeId, productVertex.getId(),
-                    vertexId,
-                    WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                    visibility,
-                    elemCtx -> updateProductEdge(elemCtx, params, visibility)
-            );
+            Edge edge = addOrUpdateProductEdgeToEntity(ctx, productVertex, vertexId, params, visibility).get();
 
             ctx.flush();
 
@@ -245,11 +240,7 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
                 updateParent(ctx, productVertex, childId, vertexId, visibility, authorizations);
             }
 
-            GraphWorkProductVertex results = new GraphWorkProductVertex();
-            results.setId(vertexId);
-            results.setVisible(true);
-            populateVertexWithWorkspaceEdge(ctx.getGraph().getEdge(edgeId, authorizations), results);
-            return results;
+            return populateProductVertexWithWorkspaceEdge(ctx.getGraph().getEdge(edge.getId(), authorizations));
         } catch (Exception ex) {
             throw new VisalloException("Could not add compound node", ex);
         }
@@ -274,14 +265,7 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
                 addCompoundNode(ctx, productVertex, updateData, user, visibility, authorizations);
             }
 
-            EdgeBuilderByVertexId edgeBuilder = ctx.getGraph().prepareEdge(
-                    edgeId,
-                    productVertex.getId(),
-                    id,
-                    WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                    visibility
-            );
-            ctx.update(edgeBuilder, elemCtx -> updateProductEdge(elemCtx, updateData, visibility));
+            addOrUpdateProductEdgeToEntity(ctx, productVertex, id, updateData, visibility);
         }
     }
 
@@ -352,24 +336,13 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
         if (!children.contains(childId)) {
             children.add(childId);
 
-            EdgeBuilderByVertexId parentEdgeBuilder = ctx.getGraph().prepareEdge(
-                    parentEdgeId,
-                    productVertex.getId(),
-                    childId,
-                    WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                    visibility
-            );
-            ctx.update(parentEdgeBuilder, elemCtx -> GraphProductOntology.NODE_CHILDREN.updateProperty(elemCtx, children, visibility));
+            GraphUpdateProductEdgeOptions parentOptions = new GraphUpdateProductEdgeOptions();
+            parentOptions.getChildren().addAll(children);
+            addOrUpdateProductEdgeToEntity(ctx, parentEdgeId, productVertex, childId, parentOptions, visibility);
 
-            String childEdgeId = getEdgeId(productVertex.getId(), childId);
-            EdgeBuilderByVertexId childEdgeBuilder = ctx.getGraph().prepareEdge(
-                    childEdgeId,
-                    productVertex.getId(),
-                    childId,
-                    WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                    visibility
-            );
-            ctx.update(childEdgeBuilder, elemCtx -> GraphProductOntology.PARENT_NODE.updateProperty(elemCtx, parentId, visibility));
+            GraphUpdateProductEdgeOptions childOptions = new GraphUpdateProductEdgeOptions();
+            childOptions.setParent(parentId);
+            addOrUpdateProductEdgeToEntity(ctx, productVertex, childId, childOptions, visibility);
         }
     }
 
@@ -435,14 +408,8 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
 
         updateData.setPos(graphPosition);
         updateData.setParent(parentId);
-        EdgeBuilderByVertexId edgeBuilder = ctx.getGraph().prepareEdge(
-                edgeId,
-                productVertex.getId(),
-                childId,
-                WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
-                visibility
-        );
-        ctx.update(edgeBuilder, elemCtx -> updateProductEdge(elemCtx, updateData, visibility));
+
+        addOrUpdateProductEdgeToEntity(ctx, productVertex, childId, updateData, visibility);
 
         removeChild(ctx, productVertex, childId, oldParentId, visibility, authorizations);
         addChild(ctx, productVertex, childId, parentId, visibility, authorizations);
@@ -515,8 +482,9 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
         }
     }
 
+
     @Override
-    protected void populateVertexWithWorkspaceEdge(Edge propertyVertexEdge, GraphWorkProductVertex vertex) {
+    protected void populateCustomProductVertexWithWorkspaceEdge(Edge propertyVertexEdge, GraphWorkProductVertex vertex) {
         GraphPosition position = ENTITY_POSITION.getPropertyValue(propertyVertexEdge);
         String parent = GraphProductOntology.PARENT_NODE.getPropertyValue(propertyVertexEdge, ROOT_NODE_ID);
         List<String> children = GraphProductOntology.NODE_CHILDREN.getPropertyValue(propertyVertexEdge);

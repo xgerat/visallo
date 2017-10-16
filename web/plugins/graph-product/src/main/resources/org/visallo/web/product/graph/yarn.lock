@@ -1217,9 +1217,12 @@ cytoscape-dagre@^1.6.0:
   dependencies:
     dagre "~0.7.4"
 
-cytoscape@3.1.2:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/cytoscape/-/cytoscape-3.1.2.tgz#873684332e43c144017de5e1143c8e5dab738f8e"
+cytoscape@3.2.4:
+  version "3.2.4"
+  resolved "https://registry.yarnpkg.com/cytoscape/-/cytoscape-3.2.4.tgz#19832dfe621c279c6b4340a736128dce09399314"
+  dependencies:
+    heap "^0.2.6"
+    lodash.debounce "^4.0.8"
 
 d@1:
   version "1.0.0"
@@ -1987,6 +1990,10 @@ hawk@~3.1.3:
 he@1.1.x:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/he/-/he-1.1.1.tgz#93410fd21b009735151f8868c2f271f3427e23fd"
+
+heap@^0.2.6:
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/heap/-/heap-0.2.6.tgz#087e1f10b046932fc8594dd9e6d378afc9d1e5ac"
 
 hmac-drbg@^1.0.0:
   version "1.0.1"
@@ -2765,6 +2772,10 @@ lodash.clonedeep@^3.0.0:
   dependencies:
     lodash._baseclone "^3.0.0"
     lodash._bindcallback "^3.0.0"
+
+lodash.debounce@^4.0.8:
+  version "4.0.8"
+  resolved "https://registry.yarnpkg.com/lodash.debounce/-/lodash.debounce-4.0.8.tgz#82d79bff30a67c4005ffd5e2515300ad9ca4d7af"
 
 lodash.isarguments@^3.0.0:
   version "3.1.0"
