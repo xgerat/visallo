@@ -61,7 +61,13 @@ define([
         if (!this._options.preferDirectReactChildren) {
             if (react) ReactDOM.unmountComponentAtNode(this._node);
         }
-        if (flight && this._flightComponent) $(this._node).teardownComponent(this._flightComponent);
+        if (flight) {
+            if (this._flightComponent) {
+                $(this._node).teardownComponent(this._flightComponent);
+            } else {
+                $(this._node).teardownAllComponents();
+            }
+        }
         return this;
     };
 
