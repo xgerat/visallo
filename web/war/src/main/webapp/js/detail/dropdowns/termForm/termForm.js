@@ -1,7 +1,7 @@
 define([
     'flight/lib/component',
     'util/withDropdown',
-    'tpl!./termForm',
+    './termForm.hbs',
     'tpl!util/alert',
     'util/vertex/formatters',
     'util/ontology/conceptSelect',
@@ -117,6 +117,8 @@ define([
                 this.select('helpSelector').hide();
                 this.select('visibilitySelector').show();
 
+                this.$node.find('.visibility').teardownAllComponents();
+
                 require(['util/visibility/edit'], function(Visibility) {
                     Visibility.attachTo(self.$node.find('.visibility'), {
                         value: '',
@@ -125,6 +127,7 @@ define([
                 });
 
                 if (!this.unresolve) {
+                    this.$node.find('.justification').teardownAllComponents();
                     require(['detail/dropdowns/propertyForm/justification'], function(Justification) {
                         Justification.attachTo(self.$node.find('.justification'));
                     });
@@ -372,12 +375,14 @@ define([
             }
 
             vertex.html(dropdownTemplate({
+                classNames: `form${this.unresolve ? ' unresolve' : ''}`,
                 sign: $.trim(objectSign),
-                graphVertexId: graphVertexId,
+                graphVertexId: graphVertexId || '',
                 objectSign: $.trim(objectSign) || '',
                 buttonText: existingEntity ?
                     i18n('detail.resolve.form.button.resolve.existing') :
-                    i18n('detail.resolve.form.button.resolve.new')
+                    i18n('detail.resolve.form.button.resolve.new'),
+                unresolve: this.unresolve
             }));
 
             ConceptSelector.attachTo(this.select('conceptContainerSelector').toggle(!!graphVertexId), {
@@ -387,7 +392,8 @@ define([
             VertexSelector.attachTo(this.select('vertexContainerSelector'), {
                 value: objectSign || '',
                 filterResultsToTitleField: true,
-                defaultText: i18n('detail.resolve.form.entity_search.placeholder')
+                defaultText: i18n('detail.resolve.form.entity_search.placeholder'),
+                allowNew: true
             });
 
             this.graphVertexChanged(graphVertexId, data, true);
