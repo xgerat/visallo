@@ -4,14 +4,15 @@ set -eu
 DIR=$(cd $(dirname "$0") && pwd)
 VISALLO_DIR=${DIR}/..
 ARCHETYPE_JAR_DIR=$VISALLO_DIR/archetype/target
-VERSION=$(find "${ARCHETYPE_JAR_DIR}" -name "visallo-plugin-archetype-*.jar" | sed -e 's/.*visallo-plugin-archetype-//' -e 's/\.jar$//')
-echo "Using ${VERSION}"
 
-(
 cd ${VISALLO_DIR}
 
 mvn clean package -am -pl archetype
 
+VERSION=$(find "${ARCHETYPE_JAR_DIR}" -name "visallo-plugin-archetype-*.jar" | sed -e 's/.*visallo-plugin-archetype-//' -e 's/\.jar$//')
+echo "Using ${VERSION}"
+
+(
 cd ${DIR}
 
 mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file \
