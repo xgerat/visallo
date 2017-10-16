@@ -683,14 +683,16 @@ define([
 
                 this.select('.property-name strong')
                     .attr('title', getDisplayName)
-                    .text(getDisplayName);
+                    .text((p) => {
+                        if (previousPropertyName === p.name) {
+                            return '';
+                        } else {
+                            previousPropertyName = p.name;
+                            return getDisplayName(p)
+                        }
+                    });
 
                 function getDisplayName(property) {
-                    if (previousPropertyName === property.name) {
-                        return '';
-                    }
-                    previousPropertyName = property.name;
-
                     if (isVisibility(property)) {
                         return i18n('visibility.label');
                     }
