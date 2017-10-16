@@ -93,7 +93,7 @@ define([
                 onlySearchable,
                 onlySortable,
                 onlyDataTypes,
-                showAdminConcepts,
+                showAdminProperties,
                 limitParentConceptId
             } = this.attr;
 
@@ -103,7 +103,7 @@ define([
             if (onlySearchable === true) {
                 filter.searchable = true;
             }
-            if (showAdminConcepts === true) {
+            if (showAdminProperties === true) {
                 filter.userVisible = undefined;
             }
             if (onlySortable === true) {

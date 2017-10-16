@@ -119,9 +119,19 @@ define([
 
     return redux.connect(
         (state, props) => {
+            var otherFilters = props.filter,
+                properties = ontologySelectors.getVisiblePropertiesWithHeaders(state);
+            if (otherFilters) {
+                const { userVisible, ...rest } = otherFilters;
+                otherFilters = rest;
+                const showAdmin = userVisible === undefined;
+                if (showAdmin) {
+                    properties = ontologySelectors.getPropertiesWithHeaders(state);
+                }
+            }
             return {
                 privileges: userSelectors.getPrivileges(state),
-                properties: ontologySelectors.getVisiblePropertiesWithHeaders(state),
+                properties,
                 propertiesByConcept: ontologySelectors.getPropertiesByConcept(state),
                 propertiesByRelationship: ontologySelectors.getPropertiesByRelationship(state),
                 iriKeys: ontologySelectors.getPropertyKeyIris(state),

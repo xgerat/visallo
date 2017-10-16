@@ -60,6 +60,28 @@ define(['reselect'], function(reselect) {
         }
     }
 
+    const _propertiesWithHeaders = (properties) => {
+        let lastGroup;
+        return properties.reduce(
+            (properties, property) => {
+                const { propertyGroup } = property;
+                if (propertyGroup && lastGroup !== propertyGroup) {
+                    lastGroup = propertyGroup;
+                    return [
+                        ...properties,
+                        {
+                            displayName: propertyGroup,
+                            header: true
+                        },
+                        property
+                    ];
+                }
+                return [...properties, property];
+            },
+            []
+        );
+    }
+
     const getWorkspace = (state) => state.workspace.currentId;
 
     const getOntologyRoot = (state) => state.ontology;
@@ -186,7 +208,6 @@ define(['reselect'], function(reselect) {
 
     const getConceptsList = createSelector([getConcepts], concepts => {
         return _.chain(concepts)
-            .filter(c => _visible(c, { rootItemsHidden: false }))
             .sortBy('fullPath')
             .value()
     })
@@ -247,40 +268,30 @@ define(['reselect'], function(reselect) {
         return dependentToCompounds;
     })
 
-    const getVisibleProperties = createSelector([getProperties], properties => {
+    const getPropertiesList = createSelector([getProperties], properties => {
         const compareNameAndGroup = ({ displayName, propertyGroup }) => {
             const displayNameLC = displayName.toLowerCase();
             return propertyGroup ? `1${propertyGroup}${displayNameLC}` : `0${displayNameLC}`;
         };
 
         return _.chain(properties)
-            .filter(_visible)
             .sortBy(compareNameAndGroup)
             .value()
+    })
+
+    const getVisiblePropertiesList = createSelector([getPropertiesList], properties => {
+        return _.filter(properties, _visible);
     });
 
     const getPropertyKeyIris = state => state.ontology.iris && state.ontology.iris.property;
 
-    const getVisiblePropertiesWithHeaders = createSelector([getVisibleProperties], properties => {
-        let lastGroup;
-        return properties.reduce(
-            (properties, property) => {
-                const { propertyGroup } = property;
-                if (propertyGroup && lastGroup !== propertyGroup) {
-                    lastGroup = propertyGroup;
-                    return [
-                        ...properties,
-                        {
-                            displayName: propertyGroup,
-                            header: true
-                        },
-                        property
-                    ];
-                }
-                return [...properties, property];
-            },
-            []
-        );
+    const getPropertiesWithHeaders = createSelector([getPropertiesList], properties => {
+        return _propertiesWithHeaders(properties);
+
+    })
+
+    const getVisiblePropertiesWithHeaders = createSelector([getVisiblePropertiesList], properties => {
+        return _propertiesWithHeaders(properties);
     });
 
     return {
@@ -299,7 +310,9 @@ define(['reselect'], function(reselect) {
         getPropertiesByConcept,
         getPropertiesByRelationship,
         getPropertiesByDependentToCompound,
-        getVisibleProperties,
+        getPropertiesList,
+        getVisiblePropertiesList,
+        getPropertiesWithHeaders,
         getVisiblePropertiesWithHeaders,
 
         getRelationships,
