@@ -35,6 +35,21 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>src/main/webapp</directory>
+                            <includes>
+                                <include>libs/</include>
+                                <include>node_modules/</include>
+                                <include>imgc/</include>
+                                <include>jsc/</include>
+                                <include>css/</include>
+                                <include>build/</include>                                     
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -140,6 +155,16 @@
                             <installDirectory>${frontend.installDirectory}</installDirectory>
                         </configuration>
                         <executions>
+                            <execution>
+                                <id>install-node-and-yarn</id>
+                                <goals>
+                                    <goal>install-node-and-yarn</goal>
+                                </goals>
+                                <configuration>
+                                    <nodeVersion>${node.version}</nodeVersion>
+                                    <yarnVersion>${yarnjs.version}</yarnVersion>
+                                </configuration>
+                            </execution>
                             <execution>
                                 <id>yarn install</id>
                                 <goals>
