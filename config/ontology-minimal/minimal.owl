@@ -182,6 +182,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <visallo:intent>media.metadata</visallo:intent>
         <rdfs:label xml:lang="en">Metadata</rdfs:label>
+        <visallo:userVisible rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</visallo:userVisible>
     </owl:DatatypeProperty>
     
 
