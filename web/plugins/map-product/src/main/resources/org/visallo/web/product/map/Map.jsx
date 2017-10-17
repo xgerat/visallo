@@ -270,20 +270,24 @@ define([
                     return;
                 }
 
-                const geoLocations = geoLocationProperties &&
-                    _.chain(geoLocationProperties)
-                        .map(function(geoLocationProperty) {
-                            return F.vertex.props(el, geoLocationProperty.title);
+                const geoLocations = geoLocationProperties && geoLocationProperties.reduce((props, { title }) => {
+                        const geoProps = F.vertex.props(el, title);
+                        geoProps.forEach(geoProp => {
+                            const { value } = geoProp;
+                            if (value) {
+                                const { latitude, longitude } = value;
+                                if (!isNaN(latitude) && !isNaN(longitude)) {
+                                    const validCoordinates = (latitude >= -90 && longitude <= 90) && (longitude >= -180 && longitude <= 180);
+                                    if (validCoordinates) {
+                                        props.push([longitude, latitude])
+                                    } else {
+                                        console.warn('Vertex has geoLocation with invalid coordinates', value, el)
+                                    }
+                                }
+                            }
                         })
-                        .compact()
-                        .flatten()
-                        .filter(function(g) {
-                            return g.value && g.value.latitude && g.value.longitude;
-                        })
-                        .map(function(g) {
-                            return [g.value.longitude, g.value.latitude];
-                        })
-                        .value(),
+                        return props;
+                    }, []),
                     // TODO: check with edges
                     conceptType = F.vertex.prop(el, 'conceptType'),
                     selected = el.id in elementsSelectedById,
