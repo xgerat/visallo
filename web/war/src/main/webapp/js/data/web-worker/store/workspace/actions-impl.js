@@ -13,7 +13,7 @@ define(['../actions', '../../util/ajax', 'require'], function(actions, ajax, req
         setCurrent: ({ workspaceId }) => (dispatch, getState) => {
             if (!workspaceId) {
                 var workspaces = getState().workspace;
-                Promise.try(() => {
+                return Promise.try(() => {
                     if (workspaces.allLoaded) {
                         return Promise.resolve(sort(Object.values(workspaces.byId)));
                     } else {
@@ -32,21 +32,27 @@ define(['../actions', '../../util/ajax', 'require'], function(actions, ajax, req
                         return workspace.workspaceId;
                     })
                 }).then(workspaceId => {
-                    require(['../ontology/actions-impl'], ontologyActions => {
-                        const getOntology = ontologyActions.get({ workspaceId })(dispatch, getState)
-                        Promise.resolve(getOntology).then(() => {
-                            dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
-                            pushSocketMessage({ type: 'setActiveWorkspace', data: { workspaceId } });
+                    return new Promise(f => {
+                        require(['../ontology/actions-impl'], ontologyActions => {
+                            const getOntology = ontologyActions.get({ workspaceId })(dispatch, getState)
+                            Promise.resolve(getOntology).then(() => {
+                                dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
+                                pushSocketMessage({ type: 'setActiveWorkspace', data: { workspaceId } });
+                                f();
+                            })
                         })
                     })
                 })
             } else {
-                require(['../ontology/actions-impl'], ontologyActions => {
-                    const getOntology = ontologyActions.get({ workspaceId })(dispatch, getState)
-                    Promise.resolve(getOntology).then(() => {
-                        dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
-                        dispatch(api.get({ workspaceId }))
-                        pushSocketMessage({ type: 'setActiveWorkspace', data: { workspaceId } });
+                return new Promise(f => {
+                    require(['../ontology/actions-impl'], ontologyActions => {
+                        const getOntology = ontologyActions.get({ workspaceId })(dispatch, getState)
+                        Promise.resolve(getOntology).then(() => {
+                            dispatch({ type: 'WORKSPACE_SETCURRENT', payload: { workspaceId } })
+                            dispatch(api.get({ workspaceId }))
+                            pushSocketMessage({ type: 'setActiveWorkspace', data: { workspaceId } });
+                            f();
+                        })
                     })
                 })
             }

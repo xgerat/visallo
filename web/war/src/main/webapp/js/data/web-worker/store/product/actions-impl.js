@@ -3,10 +3,11 @@ define([
     '../../util/ajax',
     '../element/actions-impl',
     '../element/selectors',
+    '../workspace/actions-impl',
     '../selection/actions-impl',
     './selectors',
     'configuration/plugins/registry'
-], function(actions, ajax, elementActions, elementSelectors, selectionActions, selectors, registry) {
+], function(actions, ajax, elementActions, elementSelectors, workspaceActions, selectionActions, selectors, registry) {
     actions.protectFromMain();
 
     const api = {
@@ -145,26 +146,37 @@ define([
             }));
         },
 
-        list: ({ initialProductId }) => function handler(dispatch, getState) {
-            const state = getState();
-            const workspaceId = state.workspace.currentId;
-            const workspaceProduct = state.product.workspaces[workspaceId];
+        list: (initial) => function handler(dispatch, getState) {
+            const { productId: initialProductId, workspaceId: initialWorkspaceId } = initial;
+
+            let workspaceId = getState().workspace.currentId;
 
             if (!workspaceId) {
                 _.delay(handler, 250, dispatch, getState);
                 return
             }
 
-            if (!workspaceProduct || (!workspaceProduct.loaded && !workspaceProduct.loading)) {
-                dispatch({ type: 'PRODUCT_LIST', payload: { loading: true, loaded: false, workspaceId } });
-                ajax('GET', '/product/all').then(({types, products}) => {
-                    dispatch({type: 'PRODUCT_UPDATE_TYPES', payload: { types }});
-                    dispatch({type: 'PRODUCT_LIST', payload: { workspaceId, loading: false, loaded: true, products }});
-                    if (initialProductId) {
-                        dispatch(api.select({ productId: initialProductId }))
-                    }
-                })
-            }
+            Promise.try(() => {
+                if (initialWorkspaceId && initialWorkspaceId !== workspaceId) {
+                    return dispatch(workspaceActions.setCurrent({ workspaceId: initialWorkspaceId }))
+                }
+            }).then(() => {
+                const state = getState();
+                const workspaceId = state.workspace.currentId;
+                const workspaceProduct = state.product.workspaces[workspaceId];
+                if (!workspaceProduct || (!workspaceProduct.loaded && !workspaceProduct.loading)) {
+                    dispatch({ type: 'PRODUCT_LIST', payload: { loading: true, loaded: false, workspaceId } });
+                    ajax('GET', '/product/all', {
+                        workspaceId
+                    }).then(({types, products}) => {
+                        dispatch({type: 'PRODUCT_UPDATE_TYPES', payload: { types }});
+                        dispatch({type: 'PRODUCT_LIST', payload: { workspaceId, loading: false, loaded: true, products }});
+                        if (initialProductId) {
+                            dispatch(api.select({ productId: initialProductId }))
+                        }
+                    })
+                }
+            })
         },
 
         create: ({title, kind}) => (dispatch, getState) => {

@@ -75,7 +75,10 @@ define([], function() {
                             var options = {};
                             if (optionsIndex > 0) {
                                 name = tool.substring(0, optionsIndex);
-                                options = unserialize(tool.substring(optionsIndex + 1))
+                                options = unserialize(tool.substring(optionsIndex + 1)) || {};
+                            }
+                            if (match[3]) {
+                                options.workspaceId = match[3];
                             }
                             return [name, options || {}]
                         }))
