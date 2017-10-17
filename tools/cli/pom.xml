@@ -22,11 +22,6 @@
         </dependency>
         <dependency>
             <groupId>org.visallo</groupId>
-            <artifactId>visallo-tools-rdf-import</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
             <artifactId>visallo-tools-owl</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -35,16 +30,7 @@
             <artifactId>visallo-tools-run-gpw</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-tools-migration-workspace-to-workproduct</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.visallo</groupId>
-            <artifactId>visallo-tools-migration-graph-version-bump</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-tools-graph-check</artifactId>

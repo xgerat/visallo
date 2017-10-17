@@ -14,7 +14,6 @@
     <name>Visallo: Web: Plugins</name>
 
     <modules>
-        <module>admin-import-rdf</module>
         <module>admin-user-property-auth</module>
         <module>admin-user-property-privileges</module>
         <module>admin-user-tools</module>

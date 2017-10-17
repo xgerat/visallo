@@ -77,11 +77,11 @@ public class SampleIngest extends CommandLineTool {
 
 If you are writing java code to ingest data, you will need to ensure that you have the visallo-tools-ontology-ingest jar on your classpath in order to get the implementation of the IngestRepository. After running the code snippet, you will have a single phone number in the system. 
 
-The advantages of using Java to ingest things into the system is that it can make more complicated decisions about what to put in the system in real time. For example, if for some reason, you want to have a near real-time ingest into your system of only tweets from specific people that have specific hashtags, you can set up a java program to filter out the data and look at live tweets much more easily than [creating an RDF File](./rdfimport.md) and importing it at some later date.
+The advantages of using Java to ingest things into the system is that it can make more complicated decisions about what to put in the system in real time.
 
 ### Create a relationship
 
-Relationships can be created through your java code just as easily as you created an entity. Look at the following code snippet (Only the run method has been changed, the rest has been ommitted for brevity)
+Relationships can be created through your java code just as easily as you created an entity. Look at the following code snippet (Only the run method has been changed, the rest has been omitted for brevity)
 
 ```java
     @Override

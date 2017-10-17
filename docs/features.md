@@ -8,7 +8,6 @@ The following web plugins come with Visallo, but not all are [installed](#viewin
 
 | Feature | Description |
 | ------- | -------------------|
-| [admin-import-rdf](extension-points/back-end/ingestion/rdfimport.md#through-the-webapp-ui) | import RDF formatted data from the admin console |
 | auth-username-only | authentication via username only; useful during development |
 | auth-username-password | standard username password authentication |
 | change-email | UI plugin allowing users to change their email address |

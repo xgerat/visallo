@@ -21,7 +21,6 @@
 
     <modules>
         <module>archetype</module>
-        <module>common</module>
         <module>config</module>
         <module>core</module>
         <module>dev</module>
