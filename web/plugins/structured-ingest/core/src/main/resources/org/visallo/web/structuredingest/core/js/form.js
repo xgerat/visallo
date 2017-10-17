@@ -113,7 +113,7 @@ define([
             _.defer(this.loadInfo.bind(this));
 
             this.dataRequest('config', 'properties').done(function(properties) {
-                self.runningUserGuide = properties["userGuide.enabled"] !== "false";
+                self.runningUserGuide = properties['userGuide.enabled'] !== 'false';
             });
         });
 
@@ -1064,7 +1064,11 @@ define([
                                 delete moveHints.hints;
                                 if (('columnLatitude' in moveHints) ||
                                     ('columnLongitude' in moveHints)) {
-                                    delete moveHints.column;
+                                    delete moveHints.key;
+                                    if (self.sendColumnIndices) {
+                                        moveHints.columnLatitude = self.headers.indexOf(moveHints.columnLatitude)
+                                        moveHints.columnLongitude = self.headers.indexOf(moveHints.columnLongitude)
+                                    }
                                 }
                                 return moveHints;
                             })
@@ -1132,7 +1136,7 @@ define([
                 .catch(function(error) {
                     var $errorElement;
 
-                    if(self.runningUserGuide){
+                    if (self.runningUserGuide){
                         $errorElement = $('<a />')
                             .attr('href', 'user-guide/csv/index.html#problems')
                             .attr('target', '_blank')

@@ -260,7 +260,6 @@ define([
                         var ontologyProperty = property && _.findWhere(properties.list, { title: property.name });
                         var type = self.attr.type;
                         var onlyDataTypes = headerTypeToDataTypes(type);
-                        
                         FieldSelection.attachTo(self.$node.find('.field').teardownComponent(FieldSelection).show(), {
                             placeholder: i18n('csv.file_import.mapping.properties.placeholder'),
                             onlyDataTypes: onlyDataTypes,
