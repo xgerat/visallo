@@ -1,5 +1,8 @@
 package org.visallo.web.routes.vertex;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -7,10 +10,8 @@ import com.v5analytics.webster.ParameterizedHandler;
 import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.Metadata;
-import org.vertexium.Vertex;
+import org.vertexium.*;
+import org.vertexium.util.IterableUtils;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.GraphRepository;
@@ -19,25 +20,24 @@ import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.ACLProvider;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
-import org.visallo.core.util.ClientApiConverter;
-import org.visallo.core.util.VertexiumMetadataUtil;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.core.util.*;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.ClientApiVertex;
+import org.visallo.web.clientapi.model.SandboxStatus;
+import org.visallo.web.clientapi.model.VisibilityJson;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.JustificationText;
 import org.visallo.web.routes.SetPropertyBase;
 import org.visallo.web.util.VisibilityValidator;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.io.IOException;
 
 @Singleton
 public class VertexSetProperty extends SetPropertyBase implements ParameterizedHandler {
@@ -46,25 +46,28 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
     private final OntologyRepository ontologyRepository;
     private final WorkspaceRepository workspaceRepository;
     private final WorkQueueRepository workQueueRepository;
+    private final WorkspaceHelper workspaceHelper;
     private final GraphRepository graphRepository;
     private final ACLProvider aclProvider;
     private final boolean autoPublishComments;
 
     @Inject
     public VertexSetProperty(
-            final OntologyRepository ontologyRepository,
-            final Graph graph,
-            final VisibilityTranslator visibilityTranslator,
-            final WorkspaceRepository workspaceRepository,
-            final WorkQueueRepository workQueueRepository,
-            final GraphRepository graphRepository,
-            final ACLProvider aclProvider,
-            final Configuration configuration
+            OntologyRepository ontologyRepository,
+            Graph graph,
+            VisibilityTranslator visibilityTranslator,
+            WorkspaceRepository workspaceRepository,
+            WorkQueueRepository workQueueRepository,
+            WorkspaceHelper workspaceHelper,
+            GraphRepository graphRepository,
+            ACLProvider aclProvider,
+            Configuration configuration
     ) {
         super(graph, visibilityTranslator);
         this.ontologyRepository = ontologyRepository;
         this.workspaceRepository = workspaceRepository;
         this.workQueueRepository = workQueueRepository;
+        this.workspaceHelper = workspaceHelper;
         this.graphRepository = graphRepository;
         this.aclProvider = aclProvider;
         this.autoPublishComments = configuration.getBoolean(
@@ -80,7 +83,7 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
             @Optional(name = "propertyKey") String propertyKey,
             @Required(name = "propertyName") String propertyName,
             @Optional(name = "value") String valueStr,
-            @Optional(name = "value[]") String[] valuesStr,
+            @Optional(name = "values") String valuesStr,
             @Required(name = "visibilitySource") String visibilitySource,
             @Optional(name = "oldVisibilitySource") String oldVisibilitySource,
             @Optional(name = "sourceInfo") String sourceInfoString,
@@ -92,7 +95,7 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
             Authorizations authorizations
     ) throws Exception {
         if (valueStr == null && valuesStr == null) {
-            throw new VisalloException("Parameter: 'value' or 'value[]' is required in the request");
+            throw new VisalloException("Parameter: 'value' or 'values' is required in the request");
         }
 
         VisibilityValidator.validate(graph, visibilityTranslator, resourceBundle, visibilitySource, user, authorizations);
@@ -159,7 +162,7 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
             String propertyKey,
             String propertyName,
             String valueStr,
-            String[] valuesStr,
+            String valuesStr,
             String justificationText,
             String oldVisibilitySource,
             String visibilitySource,
@@ -169,14 +172,6 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
             String workspaceId,
             Authorizations authorizations
     ) {
-        if (valueStr == null && valuesStr != null && valuesStr.length == 1) {
-            valueStr = valuesStr[0];
-        }
-        if (valuesStr == null && valueStr != null) {
-            valuesStr = new String[1];
-            valuesStr[0] = valueStr;
-        }
-
         Object value;
         if (isCommentProperty(propertyName)) {
             value = valueStr;
@@ -184,37 +179,61 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
             OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName, workspaceId);
 
             if (property.hasDependentPropertyIris()) {
-                if (valuesStr == null) {
-                    throw new VisalloException("properties with dependent properties must contain a value");
-                }
-                if (property.getDependentPropertyIris().size() != valuesStr.length) {
-                    throw new VisalloException("properties with dependent properties must contain the same number of values. expected " + property.getDependentPropertyIris().size() + " found " + valuesStr.length);
+                Map<String, String> values;
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    values = mapper.readValue(valuesStr, new TypeReference<Map<String,String>>(){});
+                } catch(IOException e){
+                    throw new VisalloException("Unable to parse values", e);
                 }
 
-                int valuesIndex = 0;
+                if (values.size() == 0) {
+                    return new ArrayList<SavePropertyResults>();
+                }
+
                 List<SavePropertyResults> results = new ArrayList<>();
                 for (String dependentPropertyIri : property.getDependentPropertyIris()) {
-                    results.addAll(saveProperty(
-                            vertex,
-                            propertyKey,
-                            dependentPropertyIri,
-                            valuesStr[valuesIndex++],
-                            null,
-                            justificationText,
-                            oldVisibilitySource,
-                            visibilitySource,
-                            metadata,
-                            sourceInfo,
-                            user,
-                            workspaceId,
-                            authorizations
-                    ));
+                    if (values.get(dependentPropertyIri) == null) {
+                        VisibilityJson oldVisibilityJson = new VisibilityJson(oldVisibilitySource);
+                        oldVisibilityJson.addWorkspace(workspaceId);
+                        Visibility oldVisibility = visibilityTranslator.toVisibility(oldVisibilityJson).getVisibility();
+
+                        Property oldProperty = vertex.getProperty(propertyKey, dependentPropertyIri, oldVisibility);
+
+                        if (oldProperty != null) {
+                            List<Property> properties = IterableUtils.toList(vertex.getProperties());
+                            SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
+                            boolean isPropertyPublic = sandboxStatuses[properties.indexOf(oldProperty)] == SandboxStatus.PUBLIC;
+
+                            workspaceHelper.deleteProperty(
+                                    vertex,
+                                    oldProperty,
+                                    isPropertyPublic,
+                                    workspaceId,
+                                    Priority.HIGH,
+                                    authorizations
+                            );
+                        }
+                    } else {
+                        results.addAll(saveProperty(
+                                vertex,
+                                propertyKey,
+                                dependentPropertyIri,
+                                values.get(dependentPropertyIri),
+                                null,
+                                justificationText,
+                                oldVisibilitySource,
+                                visibilitySource,
+                                metadata,
+                                sourceInfo,
+                                user,
+                                workspaceId,
+                                authorizations
+                        ));
+                    }
                 }
                 return results;
             } else {
-                if (valuesStr != null && valuesStr.length > 1) {
-                    throw new VisalloException("properties without dependent properties must not contain more than one value.");
-                }
                 if (valueStr == null) {
                     throw new VisalloException("properties without dependent properties must have a value");
                 }
