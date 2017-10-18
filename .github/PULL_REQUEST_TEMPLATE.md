@@ -1,6 +1,5 @@
 - [ ] joeferner
-- [ ] sfeng88
-- [ ] mwizeman joeybrk372 jharwig
+- [ ] mwizeman joeybrk372 jharwig sfeng88
 
 Testing Instructions:
 
