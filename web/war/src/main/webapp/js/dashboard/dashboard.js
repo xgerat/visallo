@@ -75,9 +75,9 @@ define([
      * @param {boolean} [options.flushContent=false] By default all cards get some default content padding, settings this to `true` will remove the padding.
      * @param {boolean} [options.preventDefaultConfig=false] Set to `true` to disable the system adding a title configuration form.
      *
-     * @example <caption>Report of Concept Type Counts</caption>
+     * @example <caption>Report of Entity Type Counts</caption>
      * registry.registerExtension('org.visallo.dashboard.item', {
-     *     title: 'Concept Type Counts',
+     *     title: 'Entity Type Counts',
      *     description: 'Show total counts for entity types',
      *     identifier: 'org-example-concept-counts',
      *     report: {

@@ -515,7 +515,7 @@
     },
     {
       "title": "http://visallo.org#conceptType",
-      "displayName": "Concept Type",
+      "displayName": "Entity Type",
       "userVisible": false,
       "searchable": true,
       "dataType": "string"
