@@ -142,8 +142,10 @@ define([
                 } else {
                     handle(true);
                 }
-            } else if (!this._markedInvalid) {
+            } else if (result === false || (this._markedInvalid === undefined && self._previousValue)) {
                 handle(false);
+            } else {
+                handle(true);
             }
 
             function handle(isValid) {
