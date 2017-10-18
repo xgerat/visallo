@@ -8,7 +8,7 @@ define([], function() {
     function snapPosition(p) {
         return {
             x: snapCoordinate(p.x, GRAPH_SNAP_TO_GRID),
-            y: snapCoordinate(p.y, GRAPH_SNAP_TO_GRID_Y) + (GRAPH_SNAP_TO_GRID_Y - GRAPH_NODE_HEIGHT) / 2
+            y: snapCoordinate(p.y, GRAPH_SNAP_TO_GRID_Y) + Math.trunc((GRAPH_SNAP_TO_GRID_Y - GRAPH_NODE_HEIGHT) / 2)
         }
     }
 

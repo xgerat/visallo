@@ -249,7 +249,7 @@ describe('graph plugin actions', () => {
                         productId: 'PRODUCT1',
                         workspaceId: 'WORKSPACE1',
                         updateVertices: {
-                            VERTEX1: { id: 'VERTEX1', pos: { x: 0, y: -12.5 }}
+                            VERTEX1: { id: 'VERTEX1', pos: { x: 0, y: -12 }}
                         }
                     }
                 }
@@ -339,7 +339,7 @@ describe('graph plugin actions', () => {
                         productId,
                         workspaceId: 'WORKSPACE1',
                         updateVertices: {
-                            VERTEX1: { id: 'VERTEX1', pos: { x: 0, y: -12.5 }}
+                            VERTEX1: { id: 'VERTEX1', pos: { x: 0, y: -12 }}
                         }
                     }
                 },
