@@ -35,7 +35,9 @@ define([
             onTap: PropTypes.func,
             onContextTap: PropTypes.func,
             onZoom: PropTypes.func,
-            onPan: PropTypes.func
+            onPan: PropTypes.func,
+            onMouseOver: PropTypes.func,
+            onMouseOut: PropTypes.func
         },
 
         getInitialState() {
@@ -249,6 +251,7 @@ define([
 
         componentWillUnmount() {
             this._canvasPreviewBuffer = null;
+            clearTimeout(this._handleMouseMoveTimeout);
             if (this.state.cluster) {
                 this.olEvents.forEach(key => ol.Observable.unByKey(key));
                 this.olEvents = null;
@@ -488,7 +491,6 @@ define([
         },
 
         clusterStyle(cluster, options = { selected: false }) {
-            const self = this;
             const count = cluster.get('count');
             const selectionState = cluster.get('selectionState') || 'none';
             const selected = options.selected || selectionState !== 'none';
@@ -643,12 +645,14 @@ define([
                     //self.handleContextMenu(event);
                 }
             });
-            this.domEvent(viewport, 'mousemove', function(event) {
+            this.domEvent(viewport, 'mousemove', event => {
                 const pixel = map.getEventPixel(event);
                 const hit = map.getFeaturesAtPixel(pixel);
                 if (hit) {
+                    this.handleMouseMove(hit);
                     map.getTarget().style.cursor = 'pointer';
                 } else {
+                    this.handleMouseMove();
                     map.getTarget().style.cursor = '';
                 }
             });
@@ -657,6 +661,38 @@ define([
         domEvent(el, type, handler) {
             this.domEvents.push(() => el.removeEventListener(type, handler));
             el.addEventListener(type, handler, false);
+        },
+
+        handleMouseMove(features) {
+            const { onMouseOver, onMouseOut } = this.props;
+            const { map } = this.state;
+
+            if (!onMouseOver && !onMouseOut ) {
+                return;
+            }
+
+            const stillHoveringSameFeature = features &&
+                this._handleMouseMoveFeatures &&
+                this._handleMouseMoveFeatures.length === features.length &&
+                this._handleMouseMoveFeatures[0] === features[0];
+
+            if (!stillHoveringSameFeature) {
+                clearTimeout(this._handleMouseMoveTimeout);
+
+                if (features && features.length) {
+                    this._handleMouseMoveTimeout = setTimeout(() => {
+                        this._handleMouseMoveFeatures = features;
+                        if (onMouseOver) {
+                            onMouseOver(ol, map, this._handleMouseMoveFeatures)
+                        }
+                    }, 250);
+                } else if (this._handleMouseMoveFeatures) {
+                    if (onMouseOut) {
+                        onMouseOut(ol, map, this._handleMouseMoveFeatures)
+                    }
+                    this._handleMouseMoveFeatures = null;
+                }
+            }
         },
 
         /**

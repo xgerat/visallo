@@ -143,6 +143,7 @@ define(['openlayers'], function(ol) {
             average = centers.map(val => val / coords.length),
             cluster = new ol.Feature(new ol.geom.Point(average));
         cluster.set('features', features);
+        cluster.set('coordinates', coords);
         cluster.set('count', count);
         return cluster;
     };

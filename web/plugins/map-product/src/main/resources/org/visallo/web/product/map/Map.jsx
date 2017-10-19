@@ -2,12 +2,13 @@ define([
     'create-react-class',
     'prop-types',
     './OpenLayers',
+    './clusterHover',
     'configuration/plugins/registry',
     'components/RegistryInjectorHOC',
     'util/vertex/formatters',
     'util/deepObjectCache',
     'util/mapConfig'
-], function(createReactClass, PropTypes, OpenLayers, registry, RegistryInjectorHOC, F, DeepObjectCache, mapConfig) {
+], function(createReactClass, PropTypes, OpenLayers, clusterHover, registry, RegistryInjectorHOC, F, DeepObjectCache, mapConfig) {
     'use strict';
 
     const REQUEST_UPDATE_DEBOUNCE = 300;
@@ -83,6 +84,7 @@ define([
             return (
                 <div style={{height:'100%'}} ref={r => {this.wrap = r}}>
                 <OpenLayers
+                    ref={c => {this._openlayers = c}}
                     product={product}
                     features={clusterFeatures}
                     below={ancillaryFeatures}
@@ -95,6 +97,8 @@ define([
                     onZoom={this.onViewport}
                     onContextTap={this.onContextTap}
                     onSelectElements={onSelectElements}
+                    onMouseOver={this.onMouseOver}
+                    onMouseOut={this.onMouseOut}
                     onUpdatePreview={onUpdatePreview.bind(this, this.props.product.id)}
                     {...mapConfig()}
                 />
@@ -152,6 +156,17 @@ define([
             if (!map.hasFeatureAtPixel(pixel)) {
                 this.props.onClearSelection();
             }
+        },
+
+        onMouseOver(ol, map, features) {
+            const cluster = features && features[0];
+            if (cluster.get('coordinates').length > 1) {
+                clusterHover.show(ol, map, cluster, this._openlayers._featureStyle)
+            }
+        },
+
+        onMouseOut(ol, map, features) {
+            clusterHover.hide(ol, map, features);
         },
 
         onContextTap({map, pixel, originalEvent}) {
@@ -313,69 +328,6 @@ define([
             })
 
             return { ancillaryFeatures, clusterFeatures };
-        },
-
-        getTilePropsFromConfiguration() {
-            const config = {...this.props.configProperties};
-            const getOptions = function(providerName) {
-                try {
-                    var obj,
-                        prefix = `map.provider.${providerName}.`,
-                        options = _.chain(config)
-                        .pick((val, key) => key.indexOf(`map.provider.${providerName}.`) === 0)
-                        .tap(o => { obj = o })
-                        .pairs()
-                        .map(([key, value]) => {
-                            if (/^[\d.-]+$/.test(value)) {
-                                value = parseFloat(value, 10);
-                            } else if ((/^(true|false)$/).test(value)) {
-                                value = value === 'true'
-                            } else if ((/^\[[^\]]+\]$/).test(value) || (/^\{[^\}]+\}$/).test(value)) {
-                                value = JSON.parse(value)
-                            }
-                            return [key.replace(prefix, ''), value]
-                        })
-                        .object()
-                        .value()
-                    return options;
-                } catch(e) {
-                    console.error(`${prefix} options could not be parsed. input:`, obj)
-                    throw e;
-                }
-            };
-
-            var source = config['map.provider'] || 'osm';
-            var sourceOptions;
-
-            if (source === 'google') {
-                console.warn('google map.provider is no longer supported, switching to OpenStreetMap provider');
-                source = 'osm';
-            }
-
-            if (source === 'osm') {
-                // Legacy configs accepted csv urls, warn and pick first
-                var osmURL = config['map.provider.osm.url'];
-                if (osmURL && osmURL.indexOf(',') >= 0) {
-                    console.warn('Comma-separated Urls not supported, using first url. Use urls with {a-c} for multiple CDNS');
-                    console.warn('For Example: https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-                    config['map.provider.osm.url'] = osmURL.split(',')[0].trim().replace(/[$][{]/g, '{');
-                }
-                sourceOptions = getOptions('osm');
-                source = 'OSM';
-            } else if (source === 'ArcGIS93Rest') {
-                var urlKey = 'map.provider.ArcGIS93Rest.url';
-                // New OL3 ArcGIS Source will throw an error if url doesn't end
-                // with [Map|Image]Server
-                if (config[urlKey]) {
-                    config[urlKey] = config[urlKey].replace(/\/export(Image)?\/?\s*$/, '');
-                }
-                sourceOptions = { params: { layers: 'show:0,1,2' }, ...getOptions(source) };
-                source = 'TileArcGISRest'
-            } else {
-                sourceOptions = getOptions(source)
-            }
-
-            return { source, sourceOptions };
         },
 
         legacyListeners(map) {
