@@ -17,7 +17,6 @@
 * [Extension Points](extension-points/index.md)
     * [Back End](extension-points/back-end/index.md)
         * [Ingestion](extension-points/back-end/ingestion/index.md)
-            * [Rdf Import](extension-points/back-end/ingestion/rdfimport.md)
             * [Code Generation](extension-points/back-end/ingestion/codegen.md)
             * [REST](extension-points/back-end/ingestion/rest.md)
             * [Vertexium](extension-points/back-end/ingestion/vertexium.md)
