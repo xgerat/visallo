@@ -4,7 +4,10 @@
  * @module services/dashboard
  * @see module:dataRequest
  */
-define(['../util/ajax'], function(ajax) {
+define([
+    '../util/ajax',
+    './storeHelper'
+], function(ajax, storeHelper) {
     'use strict';
 
     /**
@@ -17,7 +20,8 @@ define(['../util/ajax'], function(ajax) {
         },
 
         postData: function(endpoint, params) {
-            return ajax('POST', endpoint, params);
+            return ajax('POST', endpoint, params)
+                .then(storeHelper.indexSearchResultsProperties);
         },
 
         /**

@@ -443,10 +443,10 @@ define([
             it('should return longest userVisible property value if no params', function() {
                 var vertex = vertexFactory([
                         propertyFactory(PROPERTY_NAME_TITLE, 'k1', 'a'),
-                        propertyFactory(PROPERTY_NAME_GENDER, 'k1', 'aa')
+                        propertyFactory(PROPERTY_NAME_GENDER, 'k1', 'M')
                     ]);
 
-                expect(V.longestProp(vertex)).to.equal('aa')
+                expect(V.longestProp(vertex)).to.equal('Male')
             })
             it('should return longest userVisible property value restricted to name', function() {
                 var vertex = vertexFactory([

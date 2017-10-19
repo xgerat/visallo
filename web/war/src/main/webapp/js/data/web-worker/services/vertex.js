@@ -80,6 +80,7 @@ define([
                 .then(function(query) {
                     return ajax('POST', query.url, query.parameters);
                 })
+                .then(storeHelper.indexSearchResultsProperties)
                 .tap(function({ elements, referencedElements }) {
                     if (options.disableResultCache !== true) {
                         storeHelper.putSearchResults(elements)
@@ -195,7 +196,16 @@ define([
                 if (options.direction) parameters.direction = options.direction;
             }
 
-            return ajax('GET', '/vertex/edges', parameters);
+            return ajax('GET', '/vertex/edges', parameters)
+                .then(function(response) {
+                    if (response.relationships) {
+                        response.relationships.forEach(function(relationship) {
+                            storeHelper.indexElementProperties(relationship.relationship);
+                            storeHelper.indexElementProperties(relationship.vertex);
+                        });
+                    }
+                    return response;
+                });
         },
 
         /**

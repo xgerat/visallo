@@ -87,10 +87,10 @@ define([
                 nextState.should.deep.equal({
                     [workspaceId]: {
                         vertices: {
-                            v1: { id: 'v1' },
+                            v1: { id: 'v1', propertiesByName: {} },
                         },
                         edges: {
-                            e1: { id: 'e1' }
+                            e1: { id: 'e1', propertiesByName: {} }
                         }
                     }
                 });
@@ -130,7 +130,7 @@ define([
                 nextState.should.deep.equal({
                     [workspaceId]: {
                         vertices: {
-                            v1: { id: 'v1', title: 'b' },
+                            v1: { id: 'v1', title: 'b', propertiesByName: {} },
                         },
                         edges: {}
                     }
@@ -138,13 +138,24 @@ define([
             });
 
             it('should return the same element if there are no changes', () => {
-                const state = genState({ vertices: { v1: { id: 'v1', properties: [1,2,3] }}});
+                const state = genState({
+                    vertices: {
+                        v1: {
+                            id: 'v1',
+                            properties: [{ name: 'p1' }, { name: 'p2' }, { name: 'p3' }],
+                            propertiesByName:  { p1: [{ name: 'p1' }], p2: [{ name: 'p2' }], p3: [{ name: 'p3' }]}
+                        }
+                    }
+                });
                 const previousVertex = state[workspaceId].vertices['v1'];
                 const nextState = reducer(state, {
                     type: 'ELEMENT_UPDATE',
                     payload: {
                         workspaceId,
-                        vertices: [{ id: 'v1', properties: [1,2,3] }]
+                        vertices: [{
+                            id: 'v1',
+                            properties: [{ name: 'p1' }, { name: 'p2' }, { name: 'p3' }]
+                        }]
                     }
                 });
                 const nextVertex = nextState[workspaceId].vertices['v1'];
@@ -152,7 +163,10 @@ define([
                 nextState.should.deep.equal({
                     [workspaceId]: {
                         vertices: {
-                            v1: { id: 'v1', properties: [1,2,3] }
+                            v1: {
+                                id: 'v1',
+                                properties: [{ name: 'p1' }, { name: 'p2' }, { name: 'p3' }],
+                                propertiesByName:  { p1: [{ name: 'p1' }], p2: [{ name: 'p2' }], p3: [{ name: 'p3' }]}}
                         },
                         edges: {}
                     }

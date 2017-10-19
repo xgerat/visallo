@@ -980,17 +980,8 @@ define([
 
                 var ontologyProperty = getProperty(name),
                     dependentIris = ontologyProperty && ontologyProperty.dependentPropertyIris,
-                    foundProperties = _.filter(vertex.properties, function(p) {
-                        if (dependentIris) {
-                            return ~dependentIris.indexOf(p.name) && (
-                                hasKey ? optionalKey === p.key : true
-                            );
-                        }
-
-                        return name === p.name && (
-                            hasKey ? optionalKey === p.key : true
-                        );
-                    });
+                    foundProperties = transformMatchingVertexProperties(vertex, dependentIris || [name])
+                            .filter(function(p) { return hasKey ? optionalKey === p.key : true; });
 
                 if (name === 'http://visallo.org#visibilityJson' && foundProperties.length === 0) {
                     // Protect against no visibility, just set to empty
@@ -1327,12 +1318,28 @@ define([
 
     function transformMatchingVertexProperties(vertex, propertyNames) {
         var CONFIDENCE = 'http://visallo.org#confidence';
+        var properties = [];
 
-        return vertex.properties.filter(function(p) {
-            return _.contains(propertyNames, p.name);
-        })
-            // Use native sort for performance
-            .sort(function(p1, p2) {
+        if (vertex.propertiesByName) {
+            for (var i = 0; i < propertyNames.length; i++) {
+                var propValues = vertex.propertiesByName[propertyNames[i]];
+                if (propValues && propValues.length) {
+                    Array.prototype.push.apply(properties, propValues);
+                }
+            }
+        } else {
+            properties = vertex.properties.filter(function(p) { return _.contains(propertyNames, p.name); });
+        }
+
+        return _.forEach(properties, function(p) {
+                if (!p.tranformSortValue) {
+                    var pDisplay = V.propDisplay(p.name, p.value);
+                    if (_.isString(pDisplay)) {
+                        p.tranformSortValue = pDisplay.toLowerCase();
+                    }
+                }
+            })
+            .sort(function(p1, p2) { // Use native sort for performance
                 const c1 = p1.metadata && p1.metadata[CONFIDENCE];
                 const c2 = p2.metadata && p2.metadata[CONFIDENCE];
                 const p1HasCon = !_.isUndefined(c1);
@@ -1342,16 +1349,14 @@ define([
                     p2HasCon ? 1 : 0;
 
                 if (compareConf === 0) {
-                    var v1 = V.propDisplay(p1.name, p1.value);
-                    var v2 = V.propDisplay(p2.name, p2.value);
-                    if (_.isString(v1) && _.isString(v2)) {
-                        return v1.toLowerCase().localeCompare(v2.toLowerCase());
+                    if (_.isString(p1.tranformSortValue) && _.isString(p2.tranformSortValue)) {
+                        return p1.tranformSortValue.localeCompare(p2.tranformSortValue);
                     }
                     return 0;
                 }
 
                 return compareConf;
-            })
+            });
     }
 
     function checkVertexAndPropertyNameArguments(vertex, propertyName) {

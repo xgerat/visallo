@@ -9,9 +9,9 @@ define([], function() {
         }
         optionalOpts = _.extend({}, optionalOpts, { ignoreDisplayFormula: true });
 
-        var prop = _.partial(V.prop, vertex, _, optionalKey, optionalOpts),
-            propRaw = _.partial(V.propRaw, vertex, _, optionalKey, optionalOpts),
-            longestProp = _.partial(V.longestProp, vertex);
+        var prop = function(name) { return V.prop(vertex, name, optionalKey, optionalOpts); },
+            propRaw = function(name) { return V.propRaw(vertex, name, optionalKey, optionalOpts); },
+            longestProp = function(optionalName) { return V.longestProp(vertex, optionalName); };
 
         try {
 

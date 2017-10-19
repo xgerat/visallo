@@ -11,6 +11,12 @@ define([
             (property.name === 'http://visallo.org/comment#entry' ? 'comment' : 'property');
     }
 
+    function indexElementProperties(element) {
+        if (element) {
+            element.propertiesByName = element.properties ? _.groupBy(element.properties, 'name') : {};
+        }
+    }
+
     registerStoreListenerAndFireVerticesUpdated();
 
     return {
@@ -29,6 +35,15 @@ define([
                 store.getStore().dispatch(elementActions.putSearchResults(elements))
             }
         },
+
+        indexSearchResultsProperties(results) {
+            if (results.elements) {
+                _.forEach(results.elements, indexElementProperties);
+            }
+            return results;
+        },
+
+        indexElementProperties,
 
         createStoreAccessorOrDownloader: (type) => (options) => {
             const key = type + 'Ids';

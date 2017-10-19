@@ -42,7 +42,13 @@ define(['updeep'], function(u) {
 
     function update(previous, { vertices, edges }) {
         const updates = {};
-        const updater = e => e._DELETED ? null : u.constant(e);
+        const updater = e => {
+            if (e._DELETED) {
+                return null;
+            }
+            e.propertiesByName = e.propertiesByName ? e.propertiesByName : _.groupBy(e.properties, 'name');
+            return u.constant(e);
+        }
 
         if (vertices && vertices.length) {
             updates.vertices = _.mapObject(_.indexBy(vertices, 'id'), updater);

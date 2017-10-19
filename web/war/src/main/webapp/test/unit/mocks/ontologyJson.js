@@ -22,9 +22,9 @@ define(['text!/base/test/unit/mocks/ontology.json'], function(json) {
     });
 
     var first = _.findWhere(ontologyJson.properties, { title: 'http://visallo.org/dev#firstName' })
-    first.validationFormula = "propRaw('http://visallo.org/dev#firstName').length > 1";
+    first.validationFormula = "propRaw('http://visallo.org/dev#firstName') && propRaw('http://visallo.org/dev#firstName').length > 1";
     var last = _.findWhere(ontologyJson.properties, { title: 'http://visallo.org/dev#lastName' })
-    last.validationFormula = "propRaw('http://visallo.org/dev#lastName').length > 2";
+    last.validationFormula = "propRaw('http://visallo.org/dev#lastName') && propRaw('http://visallo.org/dev#lastName').length > 2";
 
     // Add compound field that dependends on another compound
     ontologyJson.properties.push({
