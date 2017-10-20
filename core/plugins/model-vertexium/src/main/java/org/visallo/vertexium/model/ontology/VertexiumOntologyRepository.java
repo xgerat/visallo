@@ -759,6 +759,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 }
             }).get();
 
+
+            validateRelationship(relationshipIRI, domainConcepts, rangeConcepts);
+
             for (Concept domainConcept : domainConcepts) {
                 findOrAddEdge(ctx, ((VertexiumConcept) domainConcept).getVertex(), relationshipVertex, LabelName.HAS_EDGE.toString());
             }

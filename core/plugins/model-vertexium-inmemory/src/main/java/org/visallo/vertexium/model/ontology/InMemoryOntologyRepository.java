@@ -690,6 +690,8 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             return relationship;
         }
 
+        validateRelationship(relationshipIRI, domainConcepts, rangeConcepts);
+
         List<String> domainConceptIris = toList(new ConvertingIterable<Concept, String>(domainConcepts) {
             @Override
             protected String convert(Concept o) {

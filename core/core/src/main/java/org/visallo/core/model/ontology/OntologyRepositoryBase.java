@@ -28,6 +28,7 @@ import org.vertexium.query.GraphQuery;
 import org.vertexium.query.Query;
 import org.vertexium.util.CloseableUtils;
 import org.vertexium.util.ConvertingIterable;
+import org.vertexium.util.IterableUtils;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.cache.CacheOptions;
 import org.visallo.core.cache.CacheService;
@@ -2140,7 +2141,16 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     protected abstract void deleteChangeableProperties(OntologyProperty property, Authorizations authorizations);
 
-    protected boolean isPublic(String worksapceId) {
-        return worksapceId == null || PUBLIC.equals(worksapceId);
+    protected boolean isPublic(String workspaceId) {
+        return workspaceId == null || PUBLIC.equals(workspaceId);
+    }
+
+    protected void validateRelationship (String relationshipIRI,
+                                         Iterable<Concept> domainConcepts,
+                                         Iterable<Concept> rangeConcepts) {
+        if (!relationshipIRI.equals(TOP_OBJECT_PROPERTY_IRI)
+                && (IterableUtils.isEmpty(domainConcepts) || IterableUtils.isEmpty(rangeConcepts))) {
+            throw new VisalloException(relationshipIRI + " must have at least one domain and range ");
+        }
     }
 }
