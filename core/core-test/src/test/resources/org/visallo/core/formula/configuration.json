@@ -141,7 +141,7 @@
       "graph.contextmenu.layout.force_directed":"Force Directed",
       "time.day":"a day",
       "popovers.add_related.button.search":"Search Related",
-      "detail.entity.relationships.paging":"Page {0} of {1}",
+      "detail.paging":"Page {0} of {1}",
       "visallo.help.escape":"Close all open panes and deselect objects",
       "popovers.loading.message":"Loading...",
       "popovers.file_import.title":"Import",

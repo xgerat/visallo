@@ -120,7 +120,7 @@ define([
                         $('<p>')
                             .addClass('paging')
                             .text(i18n(
-                                'detail.entity.relationships.paging',
+                                'detail.paging',
                                 F.number.pretty(paging.offset / paging.size + 1),
                                 F.number.pretty(Math.ceil(result.totalReferences / paging.size))
                             ))
