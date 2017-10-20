@@ -20,6 +20,8 @@ define([
      * @param {string} identifier Unique id for this item
      * @param {string} itemComponentPath Path to {@link org.visallo.product.toolbar.item~Component} to render
      * @param {func} canHandle Given `product` should this item be placed
+     * @param {func} [initialize] Allows configuration of the product environment with same parameters passed to
+     *   {@link org.visallo.product.toolbar.item~Component}.
      * @param {string} [placementHint=menu] How this item should be displayed in the toolbar
      * * `menu` inside the hamburger menu list
      * * `popover` as a button that will expand a popover where the component is rendered.
@@ -76,11 +78,12 @@ define([
         },
 
         componentDidMount() {
-            $(document).on('keydown.org-visallo-graph-product-toolbar', (event) => {
+            $(document).on('keydown.org-visallo-product-toolbar', (event) => {
                 if (event.which === 27) { //esc
                     this.setState({ activeItem: null, stayOpen: false });
                 }
             });
+            this.triggerInitialize()
         },
 
         componentDidUpdate(prevState, prevProps) {
@@ -88,10 +91,12 @@ define([
                 clearTimeout(this.openItemTimeout);
                 this.openItemTimeout = null;
             }
+            this.triggerInitialize()
         },
 
         componentWillUnmount() {
-            $(document).off('keydown.org-visallo-graph-product-toolbar');
+            this.triggerTeardown()
+            $(document).off('keydown.org-visallo-product-toolbar');
         },
 
         render() {
@@ -119,10 +124,16 @@ define([
                 ...this.mapDeprecatedItems()
             ];
 
-            items
-                .map(item => ({ ...item, props: { ...item.props, ...injectedProductProps}}))
-                .filter(item => item.canHandle(product))
-                .forEach(groupByPlacement);
+            this.eligibleForInitialize = [];
+            items.forEach(_item => {
+                const item = { ..._item, props: { ..._item.props, ...injectedProductProps}}
+                if (item.canHandle(product)) {
+                    if (_.isFunction(item.initialize)) {
+                        this.eligibleForInitialize.push(item)
+                    }
+                    groupByPlacement(item);
+                }
+            });
 
             return (
                 <div className="product-toolbar" style={{transform: `translate(-${rightOffset}px, 0)`}}>
@@ -254,6 +265,40 @@ define([
             });
 
             return items;
+        },
+
+        // Trigger initialize/teardown on extensions only once per product change
+        triggerInitialize() {
+            if (this.eligibleForInitialize) {
+                if (!this.initializedById) {
+                    this.initializedById = {};
+                }
+                this.eligibleForInitialize.forEach(item => {
+                    const { identifier, initialize, props } = item;
+                    const { product } = props;
+
+                    if (!_.isEmpty(props)) {
+                        const previous = this.initializedById[identifier];
+                        if (!previous || previous.props.product.id !== product.id) {
+                            if (previous && _.isFunction(previous.teardown)) {
+                                previous.teardown(previous.props)
+                            }
+                            this.initializedById[identifier] = item;
+                            initialize(props);
+                        }
+                    }
+                })
+            }
+        },
+
+        triggerTeardown() {
+            if (this.eligibleForInitialize) {
+                this.eligibleForInitialize.forEach(({ teardown, props }) => {
+                    if (_.isFunction(teardown)) {
+                        teardown(props)
+                    }
+                })
+            }
         }
     });
 
