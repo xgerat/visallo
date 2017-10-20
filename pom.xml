@@ -62,11 +62,6 @@
             <artifactId>powermock-module-junit4</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>net.sourceforge.cobertura</groupId>
-            <artifactId>cobertura</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -102,39 +97,6 @@
                         </plugin>
                     </plugins>
                 </pluginManagement>
-            </build>
-        </profile>
-        <profile>
-            <id>test-coverage</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${plugin.maven.surefire.version}</version>
-                        <configuration>
-                            <skipTests>true</skipTests>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>${plugin.maven.exec.version}</version>
-                        <inherited>false</inherited>
-                        <executions>
-                            <execution>
-                                <id>test-coverage</id>
-                                <phase>test</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>bin/testCoverage.sh</executable>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
             </build>
         </profile>
     </profiles>
