@@ -81,7 +81,7 @@ define([
 
                 self.$node.find('input:not([type=checkbox])').each(function() {
                     var $this = $(this);
-                    if ($this.data('optional') !== true) {
+                    if ($this.data('optional') !== true && self.attr.composite !== true) {
                         $this.attr('required', true)
                     }
                 });
@@ -140,15 +140,15 @@ define([
                 if (_.isFunction(result.then)) {
                     result.then(handle);
                 } else {
-                    handle(true);
+                    handle(true, self.attr.composite);
                 }
             } else if (result === false || (this._markedInvalid === undefined && self._previousValue)) {
-                handle(false);
+                handle(false, self.attr.composite);
             } else {
-                handle(true);
+                handle(true, self.attr.composite);
             }
 
-            function handle(isValid) {
+            function handle(isValid, handleCompoundField) {
                 var inputs = self.select('inputSelector');
                 if (isValid) {
                     if (!self._previousValue || (self._previousValue && !_.isEqual(self._previousValue, value))) {
@@ -170,7 +170,7 @@ define([
                     self.trigger('propertyinvalid', {
                         propertyId: self.attr.property.title
                     });
-                    if (inputs.length === 1) {
+                    if (inputs.length === 1 && !handleCompoundField) {
                         inputs.addClass('invalid');
                     }
                     self._previousValue = null;
