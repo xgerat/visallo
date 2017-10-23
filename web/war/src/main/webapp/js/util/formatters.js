@@ -767,7 +767,7 @@ define([
                 if (_.isDate(numberOrString)) {
                     dateInLocale = numberOrString;
                 } else {
-                    dateInLocale = new Date(moment.tz(numberOrString, tz.name).toISOString());
+                    dateInLocale = new Date(moment.tz(numberOrString, tz.name).format(dateFormat + ' ' + timeFormat));
                     if (isNaN(dateInLocale.getTime())) {
                         console.warn('Unable to parse date: ' + str);
                         return '';
