@@ -1557,8 +1557,8 @@ define([
     };
 
     const vertexToCyNode = (vertex, transformers, hovering) => {
-        const title = F.vertex.title(vertex);
         const result = memoizeFor('vertexToCyNode', vertex, function() {
+            const title = F.vertex.title(vertex);
             const truncatedTitle = F.string.truncate(title, 3);
             const conceptType = F.vertex.prop(vertex, 'conceptType');
             const imageSrc = F.vertex.image(vertex, null, 150);
@@ -1590,7 +1590,7 @@ define([
         });
 
         if (hovering === vertex.id) {
-            return { ...result, truncatedTitle: title }
+            return { ...result, truncatedTitle: F.vertex.title(vertex) }
         }
 
         return result;
