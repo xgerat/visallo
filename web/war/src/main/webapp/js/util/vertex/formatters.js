@@ -980,8 +980,7 @@ define([
 
                 var ontologyProperty = getProperty(name),
                     dependentIris = ontologyProperty && ontologyProperty.dependentPropertyIris,
-                    foundProperties = transformMatchingVertexProperties(vertex, dependentIris || [name])
-                            .filter(function(p) { return hasKey ? optionalKey === p.key : true; });
+                    foundProperties = transformMatchingVertexProperties(vertex, dependentIris || [name], optionalKey);
 
                 if (name === 'http://visallo.org#visibilityJson' && foundProperties.length === 0) {
                     // Protect against no visibility, just set to empty
@@ -1153,7 +1152,7 @@ define([
                 var ontologyProperty = getProperty(name),
                     dependentIris = ontologyProperty && ontologyProperty.dependentPropertyIris || [],
                     iris = dependentIris.length ? dependentIris : [name],
-                    properties = transformMatchingVertexProperties(vertex, iris);
+                    properties = transformMatchingVertexProperties(vertex, iris, optionalKey);
 
                 if (dependentIris.length) {
                     if (options.throwErrorIfCompoundProperty) {
@@ -1169,10 +1168,6 @@ define([
                     return _.map(dependentIris, _.partial(V.propRaw, vertex, _, optionalKey, options));
                 } else {
                     var firstFoundProp = properties[0];
-                    if (hasKey) {
-                        firstFoundProp = _.findWhere(properties, { key: optionalKey });
-                    }
-
                     var hasValue = firstFoundProp && !_.isUndefined(firstFoundProp.value);
 
                     if (!hasValue &&
@@ -1316,19 +1311,25 @@ define([
         return result;
     }
 
-    function transformMatchingVertexProperties(vertex, propertyNames) {
-        var CONFIDENCE = 'http://visallo.org#confidence';
-        var properties = [];
+    function transformMatchingVertexProperties(vertex, propertyNames, optionalKey) {
+        var CONFIDENCE = 'http://visallo.org#confidence',
+            properties = [],
+            hasKey = !_.isUndefined(optionalKey);
 
         if (vertex.propertiesByName) {
             for (var i = 0; i < propertyNames.length; i++) {
                 var propValues = vertex.propertiesByName[propertyNames[i]];
+                if (hasKey) {
+                    propValues = propValues.filter(function(p) { return p.key === optionalKey; })
+                }
                 if (propValues && propValues.length) {
                     Array.prototype.push.apply(properties, propValues);
                 }
             }
         } else {
-            properties = vertex.properties.filter(function(p) { return _.contains(propertyNames, p.name); });
+            properties = vertex.properties.filter(function(p) {
+                return _.contains(propertyNames, p.name) && (!hasKey || p.key === optionalKey);
+            });
         }
 
         return _.forEach(properties, function(p) {
