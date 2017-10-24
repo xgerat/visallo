@@ -15,7 +15,7 @@ define([
     ontologySelectors,
     ontologyActions) {
 
-    const FilterProps = ['dataType', 'deleteable', 'searchable', 'sortable', 'updateable', 'userVisible'];
+    const FilterProps = ['dataType', 'deleteable', 'searchable', 'sortable', 'updateable', 'userVisible', 'addable'];
     const FilterPropDefaults = {
         userVisible: true
     };
