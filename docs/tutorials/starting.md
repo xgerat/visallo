@@ -26,11 +26,11 @@ The project will be generated and will ask you a couple of questions before it f
 
 Great!  You have your project set up for development.  At this point, cd into the directory ```visallo-helloworld```
 
-Now run ```mvn package```.  We need to do this so that maven will download all of our dependencies.  This could take a while since it needs to download a lot, so grab some coffee or water while it finishes.  Fortunately for us, it will be much faster once all of the dependencies are downloaded.
+Run ```mvn package``` to download all required Visallo dependencies. 
 
-Now run the command ```./run.sh```  Congratulations!  Visallo is running and you can work with the app.  If you have problems, make sure that your port 8080 is clear and try to run the script again.
+Now run the command ```./run.sh```  Congratulations!  Visallo is running and you can work with the app. 
 
-Point your browser to localhost:8080 and Visallo will load the login page.  Use username: ```admin``` and password: ```admin``` to log in and you will be presented with your Visallo Dashboard.
+Point your browser to `https://localhost:8443` and Visallo will load the login page.  Use username: ```admin``` and password: ```admin``` to log in and you will be presented with your Visallo Dashboard.
 
 ## Working with the app
 
@@ -58,7 +58,7 @@ Now that we have some people in our system, we can use the example web plugin to
 
 ### Example Command Line Tool
 
-Alternativly you can look at the command line tool example. This example will import two people and link them together with an edge. To see the code that makes up this plugin, look inside of the ```./cli``` folder in your project.
+Alternativly you can look at the command line tool example. This example will import two people and link them together with an edge. To see the code that makes up this plugin, look inside of the ```./plugins/cli``` folder in your project.
 
 ## Now What?
 
