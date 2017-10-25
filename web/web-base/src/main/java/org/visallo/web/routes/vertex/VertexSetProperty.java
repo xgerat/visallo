@@ -2,7 +2,6 @@ package org.visallo.web.routes.vertex;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -36,8 +35,11 @@ import org.visallo.web.routes.SetPropertyBase;
 import org.visallo.web.util.VisibilityValidator;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 @Singleton
 public class VertexSetProperty extends SetPropertyBase implements ParameterizedHandler {
@@ -177,62 +179,19 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
             value = valueStr;
         } else {
             OntologyProperty property = ontologyRepository.getRequiredPropertyByIRI(propertyName, workspaceId);
-
             if (property.hasDependentPropertyIris()) {
-                Map<String, String> values;
-                try {
-                    ObjectMapper mapper = new ObjectMapper();
-                    values = mapper.readValue(valuesStr, new TypeReference<Map<String,String>>(){});
-                } catch(IOException e){
-                    throw new VisalloException("Unable to parse values", e);
-                }
-
-                if (values.size() == 0) {
-                    return new ArrayList<SavePropertyResults>();
-                }
-
-                List<SavePropertyResults> results = new ArrayList<>();
-                for (String dependentPropertyIri : property.getDependentPropertyIris()) {
-                    if (values.get(dependentPropertyIri) == null) {
-                        VisibilityJson oldVisibilityJson = new VisibilityJson(oldVisibilitySource);
-                        oldVisibilityJson.addWorkspace(workspaceId);
-                        Visibility oldVisibility = visibilityTranslator.toVisibility(oldVisibilityJson).getVisibility();
-
-                        Property oldProperty = vertex.getProperty(propertyKey, dependentPropertyIri, oldVisibility);
-
-                        if (oldProperty != null) {
-                            List<Property> properties = IterableUtils.toList(vertex.getProperties());
-                            SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
-                            boolean isPropertyPublic = sandboxStatuses[properties.indexOf(oldProperty)] == SandboxStatus.PUBLIC;
-
-                            workspaceHelper.deleteProperty(
-                                    vertex,
-                                    oldProperty,
-                                    isPropertyPublic,
-                                    workspaceId,
-                                    Priority.HIGH,
-                                    authorizations
-                            );
-                        }
-                    } else {
-                        results.addAll(saveProperty(
-                                vertex,
-                                propertyKey,
-                                dependentPropertyIri,
-                                values.get(dependentPropertyIri),
-                                null,
-                                justificationText,
-                                oldVisibilitySource,
-                                visibilitySource,
-                                metadata,
-                                sourceInfo,
-                                user,
-                                workspaceId,
-                                authorizations
-                        ));
-                    }
-                }
-                return results;
+                return saveDependentProperties(valuesStr,
+                        property,
+                        oldVisibilitySource,
+                        vertex,
+                        propertyKey,
+                        justificationText,
+                        visibilitySource,
+                        metadata,
+                        sourceInfo,
+                        workspaceId,
+                        user,
+                        authorizations);
             } else {
                 if (valueStr == null) {
                     throw new VisalloException("properties without dependent properties must have a value");
@@ -262,6 +221,74 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
         );
         Vertex save = setPropertyResult.elementMutation.save(authorizations);
         return Lists.newArrayList(new SavePropertyResults(save, propertyKey, propertyName));
+    }
+
+    private List<SavePropertyResults> saveDependentProperties(String valuesStr,
+                                                              OntologyProperty property,
+                                                              String oldVisibilitySource,
+                                                              Vertex vertex,
+                                                              String propertyKey,
+                                                              String justificationText,
+                                                              String visibilitySource,
+                                                              Metadata metadata,
+                                                              ClientApiSourceInfo sourceInfo,
+                                                              String workspaceId,
+                                                              User user,
+                                                              Authorizations authorizations) {
+        if (valuesStr == null || valuesStr.length() == 0) {
+            throw new VisalloException("ValuesStr must contain at least one property value for saving dependent properties");
+        }
+        Map<String, String> values;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            values = mapper.readValue(valuesStr, new TypeReference<Map<String, String>>() {
+            });
+        } catch (IOException e) {
+            throw new VisalloException("Unable to parse values", e);
+        }
+
+        List<SavePropertyResults> results = new ArrayList<>();
+        for (String dependentPropertyIri : property.getDependentPropertyIris()) {
+            if (values.get(dependentPropertyIri) == null) {
+                VisibilityJson oldVisibilityJson = new VisibilityJson(oldVisibilitySource);
+                oldVisibilityJson.addWorkspace(workspaceId);
+                Visibility oldVisibility = visibilityTranslator.toVisibility(oldVisibilityJson).getVisibility();
+
+                Property oldProperty = vertex.getProperty(propertyKey, dependentPropertyIri, oldVisibility);
+
+                if (oldProperty != null) {
+                    List<Property> properties = IterableUtils.toList(vertex.getProperties());
+                    SandboxStatus[] sandboxStatuses = SandboxStatusUtil.getPropertySandboxStatuses(properties, workspaceId);
+                    boolean isPropertyPublic = sandboxStatuses[properties.indexOf(oldProperty)] == SandboxStatus.PUBLIC;
+
+                    workspaceHelper.deleteProperty(
+                            vertex,
+                            oldProperty,
+                            isPropertyPublic,
+                            workspaceId,
+                            Priority.HIGH,
+                            authorizations
+                    );
+                }
+            } else {
+                results.addAll(saveProperty(
+                        vertex,
+                        propertyKey,
+                        dependentPropertyIri,
+                        values.get(dependentPropertyIri),
+                        null,
+                        justificationText,
+                        oldVisibilitySource,
+                        visibilitySource,
+                        metadata,
+                        sourceInfo,
+                        user,
+                        workspaceId,
+                        authorizations
+                ));
+            }
+        }
+        return results;
     }
 
     private static class SavePropertyResults {

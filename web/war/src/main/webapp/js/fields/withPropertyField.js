@@ -140,15 +140,15 @@ define([
                 if (_.isFunction(result.then)) {
                     result.then(handle);
                 } else {
-                    handle(true, self.attr.composite);
+                    handle(true);
                 }
             } else if (result === false || (this._markedInvalid === undefined && self._previousValue)) {
-                handle(false, self.attr.composite);
+                handle(false);
             } else {
-                handle(true, self.attr.composite);
+                handle(true);
             }
 
-            function handle(isValid, handleCompoundField) {
+            function handle(isValid) {
                 var inputs = self.select('inputSelector');
                 if (isValid) {
                     if (!self._previousValue || (self._previousValue && !_.isEqual(self._previousValue, value))) {
@@ -170,7 +170,7 @@ define([
                     self.trigger('propertyinvalid', {
                         propertyId: self.attr.property.title
                     });
-                    if (inputs.length === 1 && !handleCompoundField) {
+                    if (inputs.length === 1 && !self.attr.composite) {
                         inputs.addClass('invalid');
                     }
                     self._previousValue = null;
