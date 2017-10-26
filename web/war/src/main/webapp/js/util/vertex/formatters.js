@@ -246,7 +246,7 @@ define([
             /**
              * Define/override specific displayTransformers for
              * properties. These are used to transform property json into
-             * displayed versions in the Element Inspector.
+             * displayed versions in the Inspector.
              *
              * All functions receive: `function(HtmlElement, property, element)` and
              * should populate the dom element with a value.
@@ -643,7 +643,7 @@ define([
             /**
              * Larger version of vertex image. 800 pixels.
              *
-             * Used in the Element Inspector.
+             * Used in the Inspector.
              *
              * @param {object} vertex
              * @param {object} [optionalWorkspaceId=]
