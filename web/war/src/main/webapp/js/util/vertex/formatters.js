@@ -1319,10 +1319,10 @@ define([
         if (vertex.propertiesByName) {
             for (var i = 0; i < propertyNames.length; i++) {
                 var propValues = vertex.propertiesByName[propertyNames[i]];
-                if (hasKey) {
-                    propValues = propValues.filter(function(p) { return p.key === optionalKey; })
-                }
                 if (propValues && propValues.length) {
+                    if (hasKey) {
+                        propValues = propValues.filter(function(p) { return p.key === optionalKey; })
+                    }
                     Array.prototype.push.apply(properties, propValues);
                 }
             }
