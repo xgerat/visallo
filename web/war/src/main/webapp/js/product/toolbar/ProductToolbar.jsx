@@ -119,7 +119,7 @@ define([
                }
             };
             const items = [
-                ...registry['org.visallo.product.toolbar.item'],
+                ..._.sortBy(registry['org.visallo.product.toolbar.item'], 'identifier'),
                 ...this.getDefaultItems(),
                 ...this.mapDeprecatedItems()
             ];
