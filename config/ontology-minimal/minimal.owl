@@ -137,6 +137,7 @@
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
         <visallo:intent xml:lang="en">media.fileSize</visallo:intent>
         <rdfs:label xml:lang="en">File Size</rdfs:label>
+	<visallo:displayType>bytes</visallo:displayType>
     </owl:DatatypeProperty>
 
     <!-- http://visallo.org/minimal#pageCount -->
