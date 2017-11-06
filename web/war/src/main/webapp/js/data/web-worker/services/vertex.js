@@ -411,7 +411,6 @@ define([
             return ajax('POST', url, _.tap({
                  graphVertexId: vertexId,
                  propertyName: property.name,
-                 value: property.value,
                  visibilitySource: property.visibilitySource,
                  oldVisibilitySource: property.oldVisibilitySource
             }, function(params) {
@@ -428,6 +427,12 @@ define([
                 }
                 if (optionalWorkspaceId) {
                     params.workspaceId = optionalWorkspaceId;
+                }
+
+                if (_.isObject(property.value)) {
+                    params.values = property.value;
+                } else {
+                    params.value = property.value;
                 }
             })).tap(storeHelper.updateElement);
         },

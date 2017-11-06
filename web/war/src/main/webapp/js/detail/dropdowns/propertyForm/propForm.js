@@ -499,14 +499,11 @@ define([
                 var valid = !this.propertyInvalid &&
                     (this.visibilitySource && this.visibilitySource.valid) &&
                     (!_.isEmpty(this.justification) ? this.justification.valid : true);
-                var empty = _.reject(this.$node.find('.configuration input'), function(input) {
-                    return !input.required || !!input.value;
-                }).length > 0;
 
-                this.valid = valid && !empty && _.some(this.modified);
+                this.valid = valid;
             }
 
-            if (this.valid) {
+            if (this.valid && _.some(this.modified)) {
                 this.select('saveButtonSelector').removeAttr('disabled');
             } else {
                 this.select('saveButtonSelector').attr('disabled', true);
@@ -604,17 +601,29 @@ define([
 
             if (!this.valid) return;
 
-            var vertexId = this.attr.data.id,
-                propertyKey = this.currentProperty.key,
-                propertyName = this.currentProperty.title,
-                value = this.currentValue,
-                oldMetadata = this.currentProperty.metadata,
-                { sourceInfo, justificationText } = this.justification,
-                justification = sourceInfo ? { sourceInfo } : justificationText ? { justificationText } : {},
-                oldVisibilitySource = oldMetadata && oldMetadata['http://visallo.org#visibilityJson']
-                    ? oldMetadata['http://visallo.org#visibilityJson'].source
-                    : undefined;
+            const vertexId = this.attr.data.id;
+            const propertyKey = this.currentProperty.key;
+            const propertyName = this.currentProperty.title;
+            const oldMetadata = this.currentProperty.metadata;
+            const { sourceInfo, justificationText } = this.justification;
+            const justification = sourceInfo ? { sourceInfo } : justificationText ? { justificationText } : {};
+            const oldVisibilitySource = oldMetadata && oldMetadata['http://visallo.org#visibilityJson']
+                ? oldMetadata['http://visallo.org#visibilityJson'].source
+                : undefined;
+            const dependentPropertyIris = this.currentPropertyDetails.dependentPropertyIris;
+            let value = this.currentValue;
 
+
+            if (dependentPropertyIris) {
+                value = value.reduce((valueMap, val, i) => {
+                    if (!val && val !== false) {
+                        val = null;
+                    }
+
+                    valueMap[dependentPropertyIris[i]] = val;
+                    return valueMap;
+                }, {})
+            }
 
             _.defer(this.buttonLoading.bind(this, this.attr.saveButtonSelector));
 

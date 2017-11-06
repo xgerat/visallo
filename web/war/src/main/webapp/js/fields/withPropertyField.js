@@ -81,7 +81,7 @@ define([
 
                 self.$node.find('input:not([type=checkbox])').each(function() {
                     var $this = $(this);
-                    if ($this.data('optional') !== true) {
+                    if ($this.data('optional') !== true && self.attr.composite !== true) {
                         $this.attr('required', true)
                     }
                 });
@@ -142,8 +142,10 @@ define([
                 } else {
                     handle(true);
                 }
-            } else if (!this._markedInvalid) {
+            } else if (result === false || (this._markedInvalid === undefined && self._previousValue)) {
                 handle(false);
+            } else {
+                handle(true);
             }
 
             function handle(isValid) {
@@ -168,7 +170,7 @@ define([
                     self.trigger('propertyinvalid', {
                         propertyId: self.attr.property.title
                     });
-                    if (inputs.length === 1) {
+                    if (inputs.length === 1 && !self.attr.composite) {
                         inputs.addClass('invalid');
                     }
                     self._previousValue = null;
