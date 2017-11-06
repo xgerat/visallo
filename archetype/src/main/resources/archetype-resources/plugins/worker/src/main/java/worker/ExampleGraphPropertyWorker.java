@@ -74,7 +74,9 @@ public class ExampleGraphPropertyWorker extends GraphPropertyWorker {
                         Vertex personVertex = createPersonVertex(ctx, contact, visibilityJson, visibility).get();
                         Edge edge = createFileToPersonEdge(ctx, fileVertex, personVertex, visibilityJson, visibility).get();
                         newElements.add(personVertex);
-                        newElements.add(edge);
+                        if (edge != null) {
+                            newElements.add(edge);
+                        }
                     } catch (Exception ex) {
                         throw new VisalloException("Could not import contact", ex);
                     }
@@ -134,9 +136,13 @@ public class ExampleGraphPropertyWorker extends GraphPropertyWorker {
         String edgeId = "HAS_ENTITY_" + UUID.randomUUID();
         String fromVertexId = fileVertex.getId();
         String toVertexId = personVertex.getId();
-        return ctx.getOrCreateEdgeAndUpdate(edgeId, fromVertexId, toVertexId, HAS_ENTITY_EDGE_LABEL, visibility, elemCtx -> {
-            elemCtx.updateBuiltInProperties(propertyMetadata(visibilityJson));
-        });
+        if (!getGraph().doesEdgeExist(edgeId, getAuthorizations())){
+            EdgeBuilderByVertexId e = getGraph().prepareEdge(edgeId, fromVertexId, toVertexId, HAS_ENTITY_EDGE_LABEL, visibility);
+            return ctx.update(e, elemCtx -> {
+                elemCtx.updateBuiltInProperties(propertyMetadata(visibilityJson));
+            });
+        }
+        return null;
     }
 
     private PropertyMetadata propertyMetadata(VisibilityJson visibilityJson) {
