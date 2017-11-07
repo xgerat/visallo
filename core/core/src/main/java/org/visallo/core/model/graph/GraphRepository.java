@@ -9,7 +9,6 @@ import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.ingest.graphProperty.ElementOrPropertyStatus;
 import org.visallo.core.model.PropertyJustificationMetadata;
-import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionFor;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -99,24 +98,7 @@ public class GraphRepository {
         Visibility visibility = visalloVisibility.getVisibility();
 
         ExistingElementMutation<T> m = element.<T>prepareMutation().alterElementVisibility(visibility);
-
-        if (VisalloProperties.VISIBILITY_JSON.hasProperty(element)) {
-            Property visibilityJsonProperty = VisalloProperties.VISIBILITY_JSON.getProperty(element);
-            m.alterPropertyVisibility(
-                    visibilityJsonProperty.getKey(), VisalloProperties.VISIBILITY_JSON.getPropertyName(),
-                    defaultVisibility
-            );
-        }
         VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, defaultVisibility);
-
-        if (VisalloProperties.CONCEPT_TYPE.hasProperty(element)) {
-            Property conceptTypeProperty = VisalloProperties.CONCEPT_TYPE.getProperty(element);
-            m.alterPropertyVisibility(
-                    conceptTypeProperty.getKey(), VisalloProperties.CONCEPT_TYPE.getPropertyName(), visibility);
-            Metadata metadata = conceptTypeProperty.getMetadata();
-            VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, defaultVisibility);
-        }
-
         m.save(authorizations);
         return new VisibilityAndElementMutation<>(visalloVisibility, m);
     }
