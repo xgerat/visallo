@@ -154,7 +154,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 Collections.emptyList(),
                 TOP_OBJECT_PROPERTY_IRI,
                 null,
-                true,
+                false,
                 user,
                 PUBLIC
         );
