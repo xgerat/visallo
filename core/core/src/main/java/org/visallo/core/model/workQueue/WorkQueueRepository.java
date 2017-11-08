@@ -612,11 +612,11 @@ public abstract class WorkQueueRepository {
     }
 
     public void broadcastWorkProductChange(String workProductId, String workspaceId, User user, String skipSourceGuid) {
-        broadcastWorkProductChange(workProductId, skipSourceGuid, getPermissionsWithWorkspace(workspaceId));
+        broadcastWorkProductChange(workProductId, skipSourceGuid, workspaceId, getPermissionsWithWorkspace(workspaceId));
     }
 
     public void broadcastWorkProductChange(String workProductId, ClientApiWorkspace workspace, User user, String skipSourceGuid) {
-        broadcastWorkProductChange(workProductId, skipSourceGuid, getPermissionsWithUsers(workspace, null));
+        broadcastWorkProductChange(workProductId, skipSourceGuid, workspace.getWorkspaceId(), getPermissionsWithUsers(workspace, null));
     }
 
     public void broadcastWorkProductPreviewChange(String workProductId, String workspaceId, User user, String md5) {
@@ -895,12 +895,13 @@ public abstract class WorkQueueRepository {
     }
 
 
-    protected void broadcastWorkProductChange(String workProductId, String skipSourceGuid, JSONObject permissions) {
+    protected void broadcastWorkProductChange(String workProductId, String skipSourceGuid, String workspaceId, JSONObject permissions) {
         JSONObject json = new JSONObject();
         json.put("type", "workProductChange");
         json.put("permissions", permissions);
         JSONObject dataJson = new JSONObject();
         dataJson.put("id", workProductId);
+        dataJson.put("workspaceId", workspaceId);
         dataJson.putOpt("sourceGuid", skipSourceGuid);
         json.put("data", dataJson);
         broadcastJson(json);
