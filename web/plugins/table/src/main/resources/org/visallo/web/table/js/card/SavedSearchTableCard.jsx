@@ -644,7 +644,7 @@ define([
             const column = tabSettings.columns.find(({ title }) => title === header);
 
             if (!column.sortPropertyIri) {
-                column.sortPropertyIri = getSortPropertyIri(header);
+                column.sortPropertyIri = getSortPropertyIri(this.props.properties[header], header);
             }
             const sortPropertyIri = column.sortPropertyIri;
             const isSortable = this.props.properties[sortPropertyIri].sortable !== false;
@@ -661,8 +661,7 @@ define([
             this.setState({ tableData: tableData });
             this.loadRows(0, PAGE_SIZE);
 
-            function getSortPropertyIri(title) {
-                const ontologyProperty = this.props.properties[title];
+            function getSortPropertyIri(ontologyProperty, title) {
                 const isCompoundField = !!ontologyProperty.dependentPropertyIris;
 
                 if (!isCompoundField) {
