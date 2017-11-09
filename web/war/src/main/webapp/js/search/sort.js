@@ -114,7 +114,7 @@ define([
             if (!hasSort) {
                 this.sortFields.push({
                     field: data.property.title,
-                    direction: 'ASCENDING'
+                    direction: 'DESCENDING'
                 });
                 this.updateSortFields();
             }
