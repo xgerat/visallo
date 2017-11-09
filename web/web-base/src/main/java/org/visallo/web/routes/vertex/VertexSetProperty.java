@@ -193,11 +193,11 @@ public class VertexSetProperty extends SetPropertyBase implements ParameterizedH
                         user,
                         authorizations);
             } else {
-                if (valueStr == null) {
+                if (valueStr == null && valuesStr == null) {
                     throw new VisalloException("properties without dependent properties must have a value");
                 }
                 try {
-                    value = property.convertString(valueStr);
+                    value = (valuesStr == null ? property.convertString(valueStr) : property.convertString(valuesStr));
                 } catch (Exception ex) {
                     LOGGER.warn(String.format("Validation error propertyName: %s, valueStr: %s", propertyName, valueStr), ex);
                     throw new VisalloException(ex.getMessage(), ex);
