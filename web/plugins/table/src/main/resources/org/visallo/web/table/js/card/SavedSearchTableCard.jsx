@@ -14,7 +14,7 @@ define([
     const COLUMN_WIDTH = 100;
     const DEFAULT_ROW_NUMBERS = true;
     const DEFAULT_TAB_SETTINGS = {
-        direction: 'ASCENDING',
+        direction: 'DESCENDING',
         sortPropertyIri: '',
         columns: [],
         active: false
@@ -640,13 +640,13 @@ define([
             const { searchId } = this.props.item.configuration;
             const activeTab = _.findKey(tableView, (tab) => tab.active || false);
             let tabSettings = tableView[activeTab];
-            const sortDirection = tabSettings.direction === 'ASCENDING' ? 'DESCENDING' : 'ASCENDING';
             const column = tabSettings.columns.find(({ title }) => title === header);
 
             if (!column.sortPropertyIri) {
                 column.sortPropertyIri = getSortPropertyIri(this.props.properties[header], header);
             }
             const sortPropertyIri = column.sortPropertyIri;
+            const sortDirection = (!tabSettings.sortPropertyIri || tabSettings.direction === 'ASCENDING') ? 'DESCENDING' : 'ASCENDING';
             const isSortable = this.props.properties[sortPropertyIri].sortable !== false;
 
             if (!isSortable) return;
