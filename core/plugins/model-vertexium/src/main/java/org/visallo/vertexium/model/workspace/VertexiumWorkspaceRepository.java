@@ -47,9 +47,9 @@ import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.vertexium.model.user.VertexiumUserRepository;
-import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.clientapi.model.ClientApiWorkspaceDiff;
+import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
 
 import javax.annotation.Nullable;
@@ -157,6 +157,25 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                     WorkspaceProperties.WORKSPACE_TO_PRODUCT_RELATIONSHIP_IRI,
                     authorizations
             ).forEach(productId -> deleteProduct(workspaceVertex.getId(), productId, user));
+
+            // Delete all sandboxed entities
+            Iterable<EdgeInfo> edgeInfos = workspaceVertex.getEdgeInfos(Direction.OUT, WorkspaceProperties.WORKSPACE_TO_ENTITY_RELATIONSHIP_IRI, authorizations);
+            edgeInfos.forEach(edgeInfo -> {
+                getGraph().softDeleteEdge(edgeInfo.getEdgeId(), authorizations);
+            });
+
+            // Clean up all sandboxed vertices
+            List<String> connectedVertexIds = stream(edgeInfos)
+                    .map(edgeInfo -> edgeInfo.getVertexId())
+                    .collect(Collectors.toList());
+
+            Iterable<Vertex> vertices = getGraph().getVertices(connectedVertexIds, authorizations);
+            vertices.forEach(v -> {
+                SandboxStatus sandboxStatus = SandboxStatus.getFromVisibilityString(v.getVisibility().getVisibilityString(), workspace.getWorkspaceId());
+                if (sandboxStatus == SandboxStatus.PRIVATE) {
+                    getGraph().softDeleteVertex(v, authorizations);
+                }
+            });
 
             getGraph().softDeleteVertex(workspaceVertex, authorizations);
 
@@ -1157,7 +1176,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         WorkProductService workProductService = getWorkProductServiceByKind(kind);
 
         if (workProductService instanceof WorkProductServiceHasElements) {
-            ((WorkProductServiceHasElements) workProductService).cleanUpElements(getGraph(), productVertex, authorizations);
+            ((WorkProductServiceHasElements) workProductService).cleanUpElements(getGraph(), productVertex,authorizations);
         }
 
         getGraph().softDeleteVertex(productId, authorizations);
