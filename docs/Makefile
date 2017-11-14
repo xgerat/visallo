@@ -100,6 +100,7 @@ link-check-external: build
 			--recursive \
 			--ordered \
 			--exclude "java/" \
+			--exclude "https://aws.amazon.com/marketplace/" \
 			--exclude "https://myvisalloinstance/" \
 			--exclude "http://docs.visallo.org/" \
 			--exclude "http://localhost:8888/" \
