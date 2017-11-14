@@ -13,7 +13,7 @@ if [ "${BUILD_DOCS}" ]; then
              -w /root/visallo \
              -e "VERSION_CURRENT=${TRAVIS_BRANCH}" \
              -e "GITBOOK_EMBED_GITHUB_API_TOKEN=${GITBOOK_EMBED_GITHUB_API_TOKEN}" \
-             --rm -it visallo/travis:visallo-4.0.0 \
+             --rm -it ${DOCKER_IMAGE} \
              /bin/sh -c "make -C docs link-check-external"
     else
       echo "Branch not found in VERSION_LIST for docs, skipping"
@@ -27,6 +27,6 @@ else
              -w /root/visallo \
              -e "MVN_REPO_USERNAME=${DEPLOY_USERNAME}" \
              -e "MVN_REPO_PASSWORD=${DEPLOY_PASSWORD}" \
-             --rm -it visallo/travis:visallo-4.0.0 \
+             --rm -it ${DOCKER_IMAGE} \
              /bin/sh -c "mvn -B -fae test -DlogQuiet"
 fi

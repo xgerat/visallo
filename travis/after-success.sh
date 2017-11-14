@@ -9,7 +9,7 @@ if [ "${BUILD_DOCS}" ]; then
          -e "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" \
          -e "TRAVIS_BRANCH=${TRAVIS_BRANCH}" \
          -e "VERSION_ROOT=${VERSION_ROOT}" \
-         --rm -it visallo/travis:visallo-4.0.0 \
+         --rm -it ${DOCKER_IMAGE} \
          /bin/sh -c "travis/publish-docs.sh"
   fi
 else
@@ -22,7 +22,7 @@ else
              -w /root/visallo \
              -e "MVN_REPO_USERNAME=${DEPLOY_USERNAME}" \
              -e "MVN_REPO_PASSWORD=${DEPLOY_PASSWORD}" \
-             --rm -it visallo/travis:visallo-4.0.0 \
+             --rm -it ${DOCKER_IMAGE} \
              /bin/sh -c "mvn -B -f root/pom.xml deploy && mvn -B -DskipTests deploy"
       fi
     fi

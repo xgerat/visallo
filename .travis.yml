@@ -3,11 +3,11 @@ services:
   - docker
 language: java
 env:
-  - BUILD_PROJECT=1
-  - BUILD_DOCS=1 VERSION_LIST="release-3.1 master" VERSION_ROOT="release-3.1" 
+  - BUILD_PROJECT=1 DOCKER_IMAGE="visallo/travis:visallo-4.0-SNAPSHOT"
+  - BUILD_DOCS=1 VERSION_LIST="release-3.1 master" VERSION_ROOT="release-3.1" DOCKER_IMAGE="visallo/travis:visallo-4.0-SNAPSHOT"
 before_install:
   - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-  - docker pull visallo/travis:visallo-4.0.0
+  - docker pull ${DOCKER_IMAGE}
 install: /bin/true
 script: ./travis/script.sh
 after_success: ./travis/after-success.sh
