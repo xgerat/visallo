@@ -88,7 +88,7 @@ repository.ontology.owl.default.dir=$VISALLO_DIR/config/ontology-sample
     ```xml
     <visallo:displayType>textarea</visallo:displayType>
     ```
-* **propertyGroup** - Allows multiple properties to be included under a unified collapsible header in the Inspector. All properties that match the value (case-sensitive) will be placed in a section.
+* **propertyGroup** - Allows multiple properties to be included under a unified collapsible header in the Inspector. All properties that match the value (<span class="no-glossary">case</span>-sensitive) will be placed in a section.
 
     ```xml
     <visallo:propertyGroup xml:lang="en">My Group</visallo:propertyGroup>

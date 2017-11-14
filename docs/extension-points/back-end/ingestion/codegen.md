@@ -75,7 +75,7 @@ public class SampleIngest extends CommandLineTool {
 
 ```
 
-If you are writing java code to ingest data, you will need to ensure that you have the visallo-tools-ontology-ingest jar on your classpath in order to get the implementation of the IngestRepository. After running the code snippet, you will have a single phone number in the system. 
+If you are writing java code to ingest data, you will need to ensure that you have the visallo-tools-<span class="no-glossary">ontology</span>-ingest jar on your classpath in order to get the implementation of the IngestRepository. After running the code snippet, you will have a single phone number in the system. 
 
 The advantages of using Java to ingest things into the system is that it can make more complicated decisions about what to put in the system in real time.
 
