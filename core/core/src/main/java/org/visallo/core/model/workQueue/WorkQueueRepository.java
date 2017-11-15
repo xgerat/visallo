@@ -1213,6 +1213,8 @@ public abstract class WorkQueueRepository {
 
     public abstract void subscribeToBroadcastMessages(BroadcastConsumer broadcastConsumer);
 
+    public abstract void unsubscribeFromBroadcastMessages(BroadcastConsumer broadcastConsumer);
+
     public abstract WorkerSpout createWorkerSpout(String queueName);
 
     public void broadcastPublishVertexDelete(Vertex vertex) {
@@ -1349,7 +1351,17 @@ public abstract class WorkQueueRepository {
     }
 
     public static abstract class BroadcastConsumer {
+        private String consumerKey;
+
         public abstract void broadcastReceived(JSONObject json);
+
+        public String getConsumerKey() {
+            return consumerKey;
+        }
+
+        public void setConsumerKey(String consumerKey) {
+            this.consumerKey = consumerKey;
+        }
     }
 
     protected WorkQueueNames getWorkQueueNames() {

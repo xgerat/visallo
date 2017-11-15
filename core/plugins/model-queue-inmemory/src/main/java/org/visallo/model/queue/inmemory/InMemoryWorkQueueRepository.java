@@ -70,6 +70,11 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
     }
 
     @Override
+    public void unsubscribeFromBroadcastMessages(BroadcastConsumer broadcastConsumer) {
+        broadcastConsumers.remove(broadcastConsumer);
+    }
+
+    @Override
     public WorkerSpout createWorkerSpout(String queueName) {
         final List<byte[]> queue = getQueue(queueName);
         return new WorkerSpout() {

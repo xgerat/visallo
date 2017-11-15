@@ -65,6 +65,11 @@ public class TestWorkQueueRepository extends WorkQueueRepository {
     }
 
     @Override
+    public void unsubscribeFromBroadcastMessages(BroadcastConsumer broadcastConsumer) {
+
+    }
+
+    @Override
     public WorkerSpout createWorkerSpout(String queueName) {
         return null;
     }
