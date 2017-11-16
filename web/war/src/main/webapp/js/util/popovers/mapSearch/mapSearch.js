@@ -3,13 +3,15 @@ define([
     '../withPopover',
     'openlayers',
     './featureMoveInteraction',
-    'util/mapConfig'
+    'util/mapConfig',
+    'data/web-worker/store/product/selectors'
 ], function(
     defineComponent,
     withPopover,
     ol,
     FeatureMoveInteraction,
-    mapConfig) {
+    mapConfig,
+    productSelectors) {
     'use strict';
 
     var MODE_REGION_SELECTION_MODE_POINT = 1,
@@ -34,7 +36,9 @@ define([
                 this.positionDialog();
                 this.mode = MODE_REGION_SELECTION_MODE_POINT;
                 this.setInfo();
-                this.setupMap();
+                visalloData.storePromise.then(store => {
+                    this.setupMap(store);
+                })
             });
         });
 
@@ -43,7 +47,9 @@ define([
             this.teardown();
         };
 
-        this.setupMap = function() {
+        this.setupMap = function(store) {
+            const state = store.getState();
+
             var currentValue = this.attr.currentValue;
             var { latitude, longitude, radius } = currentValue;
             var existing = true;
@@ -56,6 +62,18 @@ define([
                 longitude = 0;
             }
 
+            let center = ol.proj.transform(
+                [longitude, latitude], 'EPSG:4326', 'EPSG:3857'
+            );
+            let zoom = 1;
+            if (!existing) {
+                let viewport = productSelectors.getViewport(state);
+                if (viewport && _.isArray(viewport.pan)) {
+                    center = viewport.pan;
+                    zoom = viewport.zoom;
+                }
+            }
+
             var { source, sourceOptions } = mapConfig();
             var map = new ol.Map({
                 target: this.popover.find(this.attr.mapSelector)[0],
@@ -63,10 +81,7 @@ define([
                     new ol.layer.Tile({ source: new ol.source[source](sourceOptions) })
                 ],
                 controls: [new ol.control.Zoom()],
-                view: new ol.View({
-                    center: ol.proj.transform([longitude, latitude], 'EPSG:4326', 'EPSG:3857'),
-                    zoom: 1
-                })
+                view: new ol.View({ center, zoom })
             });
             this.map = map;
 
