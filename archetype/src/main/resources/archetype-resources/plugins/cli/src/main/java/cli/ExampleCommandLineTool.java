@@ -48,7 +48,6 @@ public class ExampleCommandLineTool extends CommandLineTool {
                 }
                 OntologyConstants.PERSON_FULL_NAME_PROPERTY.updateProperty(elemCtx, "Jane Doe", propertyMetadata);
             });
-            OntologyConstants.PERSON_FULL_NAME_PROPERTY.updateProperty(elemCtx, "Jane Doe", propertyMetadata);
 
             // create an edge
             if (!getGraph().doesEdgeExist("v1-to-v2", getAuthorizations())) {
