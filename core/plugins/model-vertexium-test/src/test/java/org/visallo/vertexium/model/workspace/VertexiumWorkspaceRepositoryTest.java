@@ -59,7 +59,7 @@ public class VertexiumWorkspaceRepositoryTest extends WorkspaceRepositoryTestBas
     }
 
     @Override
-    public void before() {
+    public void before() throws Exception {
         super.before();
         user = getUserRepository().findOrAddUser(
                 "vertexium-junit",

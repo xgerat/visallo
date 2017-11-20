@@ -23,7 +23,7 @@ public class DateVisalloPropertyTest extends VisalloInMemoryTestBase {
     private Authorizations authorizations;
 
     @Before
-    public void before() {
+    public void before() throws Exception {
         super.before();
         user = getUserRepository().getSystemUser();
         authorizations = getAuthorizationRepository().getGraphAuthorizations(user);

@@ -4,9 +4,8 @@ import com.google.common.base.Charsets;
 import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.properties.types.StringSingleValueVisalloProperty;
-import org.visallo.core.model.properties.types.VisibilityJsonVisalloProperty;
 import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.util.VisalloInMemoryGPWTestBase;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.ByteArrayInputStream;
@@ -17,7 +16,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.*;
 import static org.vertexium.util.IterableUtils.toList;
 
-public abstract class TermMentionGraphPropertyWorkerTestBase extends GraphPropertyWorkerTestBase {
+public abstract class TermMentionGraphPropertyWorkerTestBase extends VisalloInMemoryGPWTestBase {
     private static final String MULTI_VALUE_KEY = TermMentionGraphPropertyWorkerTestBase.class.getName();
     protected static final String CONCEPT_IRI = "http://visallo.org/test#regexGpwTest";
 
@@ -54,7 +53,7 @@ public abstract class TermMentionGraphPropertyWorkerTestBase extends GraphProper
 
         Vertex vertex = vertexBuilder.save(authorizations);
         Property property = vertex.getProperty(VisalloProperties.TEXT.getPropertyName());
-        run(getGpw(), getWorkerPrepareData(), vertex, property, asStream(text));
+        run(getGpw(), createWorkerPrepareData(), vertex, property, asStream(text));
 
         List<Vertex> termMentions = toList(vertex.getVertices(Direction.OUT,
                 VisalloProperties.TERM_MENTION_LABEL_HAS_TERM_MENTION, termMentionAuthorizations));

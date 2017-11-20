@@ -38,7 +38,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
     private Concept thingConcept;
 
     @Override
-    public void before() {
+    public void before() throws Exception {
         super.before();
         user = getUserRepository().findOrAddUser("base-junit", "Base Junit", "base-junit@visallo.com", "password");
 

@@ -6,13 +6,9 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
 import org.visallo.core.ingest.graphProperty.TermMentionGraphPropertyWorkerTestBase;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.vertexium.model.ontology.InMemoryConcept;
 
 import java.util.Arrays;
 
-import static org.mockito.Mockito.when;
-import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 import static org.visallo.zipcode.ZipCodeGraphPropertyWorker.ZIPCODE_CONCEPT_INTENT;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -22,16 +18,14 @@ public class ZipCodeGraphPropertyWorkerTest extends TermMentionGraphPropertyWork
     private static final String ZIPCODE_MISSING = "This is a sentence without any zip codes in it.";
 
     @Before
-    public void setup() {
-        InMemoryConcept concept = new InMemoryConcept(CONCEPT_IRI, VisalloProperties.CONCEPT_TYPE_THING, null);
-        when(ontologyRepository.getRequiredConceptByIntent(ZIPCODE_CONCEPT_INTENT, PUBLIC)).thenReturn(concept);
+    public void before() throws Exception {
+        super.before();
+        addConceptWithIntent(CONCEPT_IRI, ZIPCODE_CONCEPT_INTENT);
     }
 
     @Override
     public GraphPropertyWorker getGpw() throws Exception {
-        ZipCodeGraphPropertyWorker gpw = new ZipCodeGraphPropertyWorker();
-        prepare(gpw);
-        return gpw;
+        return new ZipCodeGraphPropertyWorker();
     }
 
     @Test

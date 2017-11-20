@@ -7,12 +7,8 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.config.HashMapConfigurationLoader;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerTestBase;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.workQueue.Priority;
+import org.visallo.core.util.VisalloInMemoryGPWTestBase;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -22,24 +18,22 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
-import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TikaTextExtractorGraphPropertyWorkerTest extends GraphPropertyWorkerTestBase {
+public class TikaTextExtractorGraphPropertyWorkerTest extends VisalloInMemoryGPWTestBase {
     private static final String DOCUMENT_TITLE_PROPERTY_IRI = "http://visallo.org/test#title";
     private TikaTextExtractorGraphPropertyWorker gpw;
     private Visibility visibility;
 
     @Before
     public void before() throws Exception {
-        when(ontologyRepository.getPropertyIRIByIntent("documentTitle", PUBLIC)).thenReturn(DOCUMENT_TITLE_PROPERTY_IRI);
+        super.before();
+        addPropertyWithIntent(DOCUMENT_TITLE_PROPERTY_IRI, "documentTitle");
 
-        Configuration config = new HashMapConfigurationLoader(getConfigurationMap()).createConfiguration();
-        TikaTextExtractorGraphPropertyWorkerConfiguration tikaConfig = new TikaTextExtractorGraphPropertyWorkerConfiguration(config);
+        TikaTextExtractorGraphPropertyWorkerConfiguration tikaConfig = new TikaTextExtractorGraphPropertyWorkerConfiguration(
+                getConfiguration()
+        );
         gpw = new TikaTextExtractorGraphPropertyWorker(tikaConfig);
-        prepare(gpw);
-
         visibility = new Visibility("");
     }
 
@@ -76,8 +70,7 @@ public class TikaTextExtractorGraphPropertyWorkerTest extends GraphPropertyWorke
         InputStream in = new ByteArrayInputStream(data.getBytes());
         Vertex vertex = getGraph().getVertex("v1", getGraphAuthorizations());
         Property property = vertex.getProperty(VisalloProperties.RAW.getPropertyName());
-        GraphPropertyWorkData workData = new GraphPropertyWorkData(getVisibilityTranslator(), vertex, property, null, null, Priority.NORMAL, false);
-        gpw.execute(in, workData);
+        run(gpw, createWorkerPrepareData(), vertex, property, in);
 
         vertex = getGraph().getVertex("v1", getGraphAuthorizations());
         assertEquals("Test Title", vertex.getPropertyValue(DOCUMENT_TITLE_PROPERTY_IRI));
@@ -115,7 +108,7 @@ public class TikaTextExtractorGraphPropertyWorkerTest extends GraphPropertyWorke
         InputStream in = new ByteArrayInputStream(data.getBytes());
         Vertex vertex = getGraph().getVertex("v1", getGraphAuthorizations());
         Property property = vertex.getProperty(VisalloProperties.RAW.getPropertyName());
-        run(gpw, getWorkerPrepareData(), vertex, property, in);
+        run(gpw, createWorkerPrepareData(), vertex, property, in);
 
         vertex = getGraph().getVertex("v1", getGraphAuthorizations());
         assertEquals("Test Title", vertex.getPropertyValue(DOCUMENT_TITLE_PROPERTY_IRI));
@@ -136,7 +129,7 @@ public class TikaTextExtractorGraphPropertyWorkerTest extends GraphPropertyWorke
         InputStream in = new ByteArrayInputStream(data.getBytes());
         Vertex vertex = getGraph().getVertex("v1", getGraphAuthorizations());
         Property property = vertex.getProperty(VisalloProperties.RAW.getPropertyName());
-        run(gpw, getWorkerPrepareData(), vertex, property, in);
+        run(gpw, createWorkerPrepareData(), vertex, property, in);
 
         vertex = getGraph().getVertex("v1", getGraphAuthorizations());
         assertEquals("Test Title", vertex.getPropertyValue(DOCUMENT_TITLE_PROPERTY_IRI));
@@ -156,7 +149,7 @@ public class TikaTextExtractorGraphPropertyWorkerTest extends GraphPropertyWorke
         InputStream in = new ByteArrayInputStream(data.getBytes("UTF-8"));
         Vertex vertex = getGraph().getVertex("v1", getGraphAuthorizations());
         Property property = vertex.getProperty(VisalloProperties.RAW.getPropertyName());
-        run(gpw, getWorkerPrepareData(), vertex, property, in);
+        run(gpw, createWorkerPrepareData(), vertex, property, in);
 
         vertex = getGraph().getVertex("v1", getGraphAuthorizations());
         String expected = "the Quita Suená bank ";
@@ -179,7 +172,7 @@ public class TikaTextExtractorGraphPropertyWorkerTest extends GraphPropertyWorke
         v.save(getGraphAuthorizations());
 
         Vertex vertex = getGraph().getVertex("v1", getGraphAuthorizations());
-        run(gpw, getWorkerPrepareData(), vertex);
+        run(gpw, createWorkerPrepareData(), vertex);
 
         Property text1Property = vertex.getProperty("key1", "http://visallo.org/test#text1");
         assertTrue(text1Property != null);
@@ -205,7 +198,7 @@ public class TikaTextExtractorGraphPropertyWorkerTest extends GraphPropertyWorke
         v.save(getGraphAuthorizations());
 
         Vertex vertex = getGraph().getVertex("v1", getGraphAuthorizations());
-        run(gpw, getWorkerPrepareData(), vertex);
+        run(gpw, createWorkerPrepareData(), vertex);
 
         Property text1Property = vertex.getProperty("http://visallo.org/test#text1");
         assertTrue(text1Property != null);

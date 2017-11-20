@@ -32,6 +32,7 @@ import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
+import org.visallo.core.util.VisalloInMemoryGPWTestBase;
 import org.visallo.model.queue.inmemory.InMemoryWorkQueueRepository;
 import org.visallo.vertexium.model.user.InMemoryUser;
 import org.visallo.web.clientapi.model.VisibilityJson;
@@ -44,6 +45,10 @@ import java.util.*;
 
 import static org.mockito.Mockito.mock;
 
+/**
+ * @deprecated Use {@link VisalloInMemoryGPWTestBase}
+ */
+@Deprecated
 public abstract class GraphPropertyWorkerTestBase {
     private InMemoryGraph graph;
     private IdGenerator graphIdGenerator;

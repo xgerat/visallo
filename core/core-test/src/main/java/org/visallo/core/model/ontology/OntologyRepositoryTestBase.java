@@ -68,7 +68,7 @@ public abstract class OntologyRepositoryTestBase extends VisalloInMemoryTestBase
     public ExpectedException thrown = ExpectedException.none();
 
     @Before
-    public void before() {
+    public void before() throws Exception {
         super.before();
         authorizations = getGraph().createAuthorizations();
         user = getUserRepository().findOrAddUser("junit", "Junit", "junit@visallo.com", "password");

@@ -6,13 +6,9 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
 import org.visallo.core.ingest.graphProperty.TermMentionGraphPropertyWorkerTestBase;
-import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.vertexium.model.ontology.InMemoryConcept;
 
 import java.util.Arrays;
 
-import static org.mockito.Mockito.when;
-import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 import static org.visallo.email.EmailGraphPropertyWorker.EMAIL_CONCEPT_INTENT;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -23,15 +19,12 @@ public class EmailGraphPropertyWorkerTest extends TermMentionGraphPropertyWorker
 
     @Before
     public void setup() {
-        InMemoryConcept concept = new InMemoryConcept(CONCEPT_IRI, VisalloProperties.CONCEPT_TYPE_THING, null);
-        when(ontologyRepository.getRequiredConceptByIntent(EMAIL_CONCEPT_INTENT, PUBLIC)).thenReturn(concept);
+        addConceptWithIntent(CONCEPT_IRI, EMAIL_CONCEPT_INTENT);
     }
 
     @Override
     public GraphPropertyWorker getGpw() throws Exception {
-        EmailGraphPropertyWorker gpw = new EmailGraphPropertyWorker();
-        prepare(gpw);
-        return gpw;
+        return new EmailGraphPropertyWorker();
     }
 
     @Test

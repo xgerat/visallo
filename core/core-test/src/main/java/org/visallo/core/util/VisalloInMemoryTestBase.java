@@ -3,6 +3,7 @@ package org.visallo.core.util;
 import com.v5analytics.simpleorm.InMemorySimpleOrmSession;
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.junit.Before;
+import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.TextIndexHint;
 import org.vertexium.inmemory.InMemoryGraph;
@@ -36,6 +37,7 @@ import org.visallo.core.time.TimeRepository;
 import org.visallo.core.user.User;
 import org.visallo.vertexium.model.longRunningProcess.VertexiumLongRunningProcessRepository;
 import org.visallo.vertexium.model.ontology.InMemoryOntologyRepository;
+import org.visallo.vertexium.model.user.InMemoryUser;
 import org.visallo.vertexium.model.user.VertexiumUserRepository;
 import org.visallo.vertexium.model.workspace.VertexiumWorkspaceRepository;
 
@@ -69,9 +71,10 @@ public abstract class VisalloInMemoryTestBase {
     private Map configurationMap;
     private ArtifactThumbnailRepository artifactThumbnailRepository;
     private AuditService auditService;
+    private User user;
 
     @Before
-    public void before() {
+    public void before() throws Exception {
         workspaceRepository = null;
         graph = null;
         graphRepository = null;
@@ -99,6 +102,7 @@ public abstract class VisalloInMemoryTestBase {
         cacheService = null;
         artifactThumbnailRepository = null;
         auditService = null;
+        user = null;
     }
 
     protected WorkspaceRepository getWorkspaceRepository() {
@@ -518,5 +522,24 @@ public abstract class VisalloInMemoryTestBase {
         }
         auditService = new LoggingAuditService();
         return auditService;
+    }
+
+    public Authorizations getGraphAuthorizations(String... authorizations) {
+        return getGraph().createAuthorizations(authorizations);
+    }
+
+    public Authorizations getGraphAuthorizations(User user, String... authorizations) {
+        return getAuthorizationRepository().getGraphAuthorizations(user, authorizations);
+    }
+
+    protected User getUser() {
+        if (user == null) {
+            user = new InMemoryUser("test", "Test User", "test@visallo.org", null);
+        }
+        return user;
+    }
+
+    protected List<byte[]> getGraphPropertyQueueItems() {
+        return getWorkQueueItems(getWorkQueueNames().getGraphPropertyQueueName());
     }
 }

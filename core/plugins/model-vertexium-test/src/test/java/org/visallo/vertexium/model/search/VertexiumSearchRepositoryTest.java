@@ -54,7 +54,7 @@ public class VertexiumSearchRepositoryTest extends VisalloInMemoryTestBase {
     private Injector injector;
 
     @Before
-    public void before() {
+    public void before() throws Exception {
         super.before();
 
         InjectHelper.setInjector(injector);

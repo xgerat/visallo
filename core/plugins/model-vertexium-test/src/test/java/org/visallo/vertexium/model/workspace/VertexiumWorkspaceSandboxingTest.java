@@ -81,7 +81,7 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
     }
 
     @Before
-    public void before() {
+    public void before() throws Exception {
         super.before();
 
         user1 = getUserRepository().findOrAddUser("user1", "user1", "user1@visallo.com", "password");

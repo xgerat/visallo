@@ -9,8 +9,6 @@ import org.visallo.core.ingest.graphProperty.TermMentionGraphPropertyWorkerTestB
 
 import java.util.Arrays;
 
-import static org.mockito.Mockito.when;
-import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 import static org.visallo.phoneNumber.PhoneNumberGraphPropertyWorker.PHONE_NUMBER_CONCEPT_INTENT;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -21,14 +19,12 @@ public class PhoneNumberGraphPropertyWorkerTest extends TermMentionGraphProperty
 
     @Before
     public void setup() {
-        when(ontologyRepository.getRequiredConceptIRIByIntent(PHONE_NUMBER_CONCEPT_INTENT, PUBLIC)).thenReturn(CONCEPT_IRI);
+        addConceptWithIntent(CONCEPT_IRI, PHONE_NUMBER_CONCEPT_INTENT);
     }
 
     @Override
     public GraphPropertyWorker getGpw() throws Exception {
-        PhoneNumberGraphPropertyWorker gpw = new PhoneNumberGraphPropertyWorker();
-        prepare(gpw);
-        return gpw;
+        return new PhoneNumberGraphPropertyWorker();
     }
 
     @Test
