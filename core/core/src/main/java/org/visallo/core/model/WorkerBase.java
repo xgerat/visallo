@@ -34,7 +34,7 @@ public abstract class WorkerBase<TWorkerItem extends WorkerItem> {
         this.metricsManager = metricsManager;
         this.exitOnNextTupleFailure = configuration.getBoolean(getClass().getName() + ".exitOnNextTupleFailure", true);
         this.tupleQueueSize = configuration.getInt(getClass().getName() + ".tupleQueueSize", 10);
-        this.queueSizeMetricName = metricsManager.getNamePrefix(this) + "queue-size-" + Thread.currentThread().getId();
+        this.queueSizeMetricName = metricsManager.createMetricName(this, "counter", "queue-size-" + Thread.currentThread().getId());
         this.queueSizeMetric = metricsManager.counter(queueSizeMetricName);
     }
 

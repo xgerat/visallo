@@ -36,10 +36,9 @@ public abstract class QueueExternalResourceWorker extends ExternalResourceWorker
     @Override
     protected void prepare(@SuppressWarnings("UnusedParameters") User user) {
         super.prepare(user);
-        String namePrefix = getMetricsManager().getNamePrefix(this);
-        this.totalProcessedCounter = getMetricsManager().counter(namePrefix + "total-processed");
-        this.totalErrorCounter = getMetricsManager().counter(namePrefix + "total-errors");
-        this.processingTimeTimer = getMetricsManager().timer(namePrefix + "processing-time");
+        this.totalProcessedCounter = getMetricsManager().counter(this, "total-processed");
+        this.totalErrorCounter = getMetricsManager().counter(this, "total-errors");
+        this.processingTimeTimer = getMetricsManager().timer(this, "processing-time");
 
         metrics = new ArrayList<>();
         metrics.add(new MetricEntry("totalProcessed", this.totalProcessedCounter));

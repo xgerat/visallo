@@ -17,11 +17,10 @@ public abstract class LongRunningProcessWorker {
     private Timer processingTimeTimer;
 
     public void prepare(LongRunningWorkerPrepareData workerPrepareData) {
-        String namePrefix = getMetricsManager().getNamePrefix(this);
-        totalProcessedCounter = getMetricsManager().counter(namePrefix + "total-processed");
-        processingCounter = getMetricsManager().counter(namePrefix + "processing");
-        totalErrorCounter = getMetricsManager().counter(namePrefix + "total-errors");
-        processingTimeTimer = getMetricsManager().timer(namePrefix + "processing-time");
+        totalProcessedCounter = getMetricsManager().counter(this, "total-processed");
+        processingCounter = getMetricsManager().counter(this, "processing");
+        totalErrorCounter = getMetricsManager().counter(this, "total-errors");
+        processingTimeTimer = getMetricsManager().timer(this, "processing-time");
     }
 
     public abstract boolean isHandled(JSONObject longRunningProcessQueueItem);

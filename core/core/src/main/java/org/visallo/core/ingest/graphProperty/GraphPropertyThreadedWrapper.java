@@ -126,11 +126,10 @@ public class GraphPropertyThreadedWrapper implements Runnable {
 
     private void ensureMetricsInitialized() {
         if (totalProcessedCounter == null) {
-            String namePrefix = metricsManager.getNamePrefix(this.worker);
-            totalProcessedCounter = metricsManager.counter(namePrefix + "total-processed");
-            processingCounter = metricsManager.counter(namePrefix + "processing");
-            totalErrorCounter = metricsManager.counter(namePrefix + "total-errors");
-            processingTimeTimer = metricsManager.timer(namePrefix + "processing-time");
+            totalProcessedCounter = metricsManager.counter(this.worker, "total-processed");
+            processingCounter = metricsManager.counter(this.worker, "processing");
+            totalErrorCounter = metricsManager.counter(this.worker, "total-errors");
+            processingTimeTimer = metricsManager.timer(this.worker, "processing-time");
         }
     }
 

@@ -1,6 +1,5 @@
 package org.visallo.core.ingest.graphProperty;
 
-import com.codahale.metrics.Counter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Before;
@@ -25,7 +24,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -39,6 +37,7 @@ public class GraphPropertyRunnerTest {
 
     private GraphPropertyRunner testSubject;
     private Graph graph;
+    private MetricsManager metricsManager = new JmxMetricsManager();
 
     @Mock
     private WorkQueueRepository workQueueRepository;
@@ -54,7 +53,7 @@ public class GraphPropertyRunnerTest {
         testSubject = new GraphPropertyRunner(
                 workQueueRepository,
                 configuration,
-                new JmxMetricsManager(),
+                metricsManager,
                 authorizationRepository
         );
         graph = mock(Graph.class);
@@ -204,11 +203,7 @@ public class GraphPropertyRunnerTest {
 
     private GraphPropertyThreadedWrapper createTestGPWThreadedWrapper(GraphPropertyWorker worker) {
         GraphPropertyThreadedWrapper stubGraphPropertyThreadedWrapper = new GraphPropertyThreadedWrapper(worker);
-        MetricsManager manager = mock(MetricsManager.class);
-        when(manager.counter(anyString())).thenReturn(mock(Counter.class));
-        when(manager.timer(anyString())).thenReturn(mock(com.codahale.metrics.Timer.class));
-
-        stubGraphPropertyThreadedWrapper.setMetricsManager(manager);
+        stubGraphPropertyThreadedWrapper.setMetricsManager(metricsManager);
         return stubGraphPropertyThreadedWrapper;
     }
 

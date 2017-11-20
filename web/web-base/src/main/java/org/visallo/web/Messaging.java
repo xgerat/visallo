@@ -306,9 +306,8 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
 
     @Inject
     public void setMetricsManager(JmxMetricsManager metricsManager) {
-        String namePrefix = metricsManager.getNamePrefix(this);
         for (AtmosphereResource.TRANSPORT transport : AtmosphereResource.TRANSPORT.values()) {
-            requestsCounters.put(transport, metricsManager.counter(namePrefix + transport.name()));
+            requestsCounters.put(transport, metricsManager.counter(this, transport.name()));
         }
     }
 }
