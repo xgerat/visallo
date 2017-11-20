@@ -49,10 +49,11 @@ public class TomcatWebServer extends WebServer {
 
         tomcat = new Tomcat();
         tomcat.setPort(super.getHttpPort());
-        tomcat.getService().addConnector(httpsConnector);
 
         Connector defaultConnector = tomcat.getConnector();
         defaultConnector.setRedirectPort(super.getHttpsPort());
+
+        tomcat.getService().addConnector(httpsConnector);
 
         Context context = tomcat.addWebapp(this.getContextPath(), getWebAppDir().getAbsolutePath());
 
