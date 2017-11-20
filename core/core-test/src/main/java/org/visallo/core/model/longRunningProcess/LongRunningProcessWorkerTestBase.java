@@ -61,8 +61,11 @@ public class LongRunningProcessWorkerTestBase {
     protected void before() {
         graph = InMemoryGraph.create();
         when(metricsManager.counter(any())).thenReturn(mockCounter);
+        when(metricsManager.counter(any(), any())).thenReturn(mockCounter);
         when(metricsManager.timer(any())).thenReturn(mockTimer);
+        when(metricsManager.timer(any(), any())).thenReturn(mockTimer);
         when(metricsManager.meter(any())).thenReturn(mockMeter);
+        when(metricsManager.meter(any(), any())).thenReturn(mockMeter);
         when(userRepository.getSystemUser()).thenReturn(systemUser);
         when(authorizationRepository.getGraphAuthorizations(systemUser)).thenReturn(systemUserAuthorizations);
     }
