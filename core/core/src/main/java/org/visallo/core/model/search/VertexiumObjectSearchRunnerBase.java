@@ -5,6 +5,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
 import org.vertexium.query.*;
+import org.vertexium.type.GeoShape;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.directory.DirectoryRepository;
@@ -283,7 +284,13 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
         for (int i = 0; i < filterJson.length(); i++) {
             JSONObject obj = filterJson.getJSONObject(i);
             if (obj.length() > 0) {
-                updateQueryWithFilter(queryAndData.getQuery(), obj, user, searchOptions);
+                if (obj.has("propertyName")) {
+                    updateQueryWithPropertyNameFilter(queryAndData.getQuery(), obj, user, searchOptions);
+                } else if (obj.has("dataType")) {
+                    updateQueryWithDataTypeFilter(queryAndData.getQuery(), obj, user, searchOptions);
+                } else {
+                    throw new VisalloException("Query filters must have either a propertyName or dataType field. Invalid filter: " + filterJson.toString());
+                }
             }
         }
     }
@@ -294,7 +301,24 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
         return filterJson;
     }
 
-    private void updateQueryWithFilter(Query graphQuery, JSONObject obj, User user, SearchOptions searchOptions) {
+    private void updateQueryWithDataTypeFilter(Query graphQuery, JSONObject obj, User user, SearchOptions searchOptions) {
+        String dataType = obj.getString("dataType");
+
+        try {
+            PropertyType propertyType = PropertyType.valueOf(dataType);
+            JSONArray values = obj.getJSONArray("values");
+            Object value0 = jsonValueToObject(values, propertyType, 0);
+            if (PropertyType.GEO_LOCATION.equals(propertyType)) {
+                graphQuery.has(GeoShape.class, GeoCompare.INTERSECTS, value0);
+            } else {
+                throw new UnsupportedOperationException("Data type queries are not yet supported for type: " + dataType);
+            }
+        } catch (ParseException ex) {
+            throw new VisalloException("Could not update query with filter:\n" + obj.toString(2), ex);
+        }
+    }
+
+    private void updateQueryWithPropertyNameFilter(Query graphQuery, JSONObject obj, User user, SearchOptions searchOptions) {
         try {
             String predicateString = obj.optString("predicate");
             String propertyName = obj.getString("propertyName");
@@ -316,7 +340,7 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
                 } else if (PropertyType.BOOLEAN.equals(propertyDataType)) {
                     graphQuery.has(propertyName, Compare.EQUAL, value0);
                 } else if (PropertyType.GEO_LOCATION.equals(propertyDataType)) {
-                    graphQuery.has(propertyName, GeoCompare.WITHIN, value0);
+                    graphQuery.has(propertyName, GeoCompare.INTERSECTS, value0);
                 } else if ("<".equals(predicateString)) {
                     graphQuery.has(propertyName, Compare.LESS_THAN, value0);
                 } else if (">".equals(predicateString)) {
