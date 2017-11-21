@@ -304,16 +304,24 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
     private void updateQueryWithDataTypeFilter(Query graphQuery, JSONObject obj, User user, SearchOptions searchOptions) {
         String dataType = obj.getString("dataType");
         String predicateString = obj.optString("predicate");
-
+        PropertyType propertyType = PropertyType.valueOf(dataType);
         try {
-            PropertyType propertyType = PropertyType.valueOf(dataType);
-            JSONArray values = obj.getJSONArray("values");
-            Object value0 = jsonValueToObject(values, propertyType, 0);
-            if (PropertyType.GEO_LOCATION.equals(propertyType)) {
-                GeoCompare geoComparePredicate = GeoCompare.valueOf(predicateString.toUpperCase());
-                graphQuery.has(GeoShape.class, geoComparePredicate, value0);
+            if ("has".equals(predicateString)) {
+                graphQuery.has(PropertyType.getTypeClass(propertyType));
+            } else if ("hasNot".equals(predicateString)) {
+                graphQuery.hasNot(PropertyType.getTypeClass(propertyType));
+            } else if ("in".equals(predicateString)) {
+                JSONArray values = obj.getJSONArray("values");
+                graphQuery.has(PropertyType.getTypeClass(propertyType), Contains.IN, JSONUtil.toList(values));
             } else {
-                throw new UnsupportedOperationException("Data type queries are not yet supported for type: " + dataType);
+                JSONArray values = obj.getJSONArray("values");
+                Object value0 = jsonValueToObject(values, propertyType, 0);
+                if (PropertyType.GEO_LOCATION.equals(propertyType)) {
+                    GeoCompare geoComparePredicate = GeoCompare.valueOf(predicateString.toUpperCase());
+                    graphQuery.has(GeoShape.class, geoComparePredicate, value0);
+                } else {
+                    throw new UnsupportedOperationException("Data type queries are not yet supported for type: " + dataType);
+                }
             }
         } catch (ParseException ex) {
             throw new VisalloException("Could not update query with filter:\n" + obj.toString(2), ex);
