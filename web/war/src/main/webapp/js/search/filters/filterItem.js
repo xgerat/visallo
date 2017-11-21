@@ -8,7 +8,7 @@ define([
     template) {
     'use strict';
 
-    var PREDICATES = {
+    const PREDICATES = {
             HAS: 'has',
             HAS_NOT: 'hasNot',
             CONTAINS: '~',
@@ -16,9 +16,23 @@ define([
             IN: 'in',
             LESS_THAN: '<',
             GREATER_THAN: '>',
-            BETWEEN: 'range',
-            WITHIN: 'within'
+            BETWEEN: 'range'
         };
+    const GEO_PREDICATES = {
+        INTERSECTS: 'intersects',
+        DISJOINT: 'disjoint',
+        WITHIN: 'within',
+        CONTAINS: 'contains'
+    }
+
+    const DATA_TYPES = [
+        {
+            title: 'dataType:geoLocation',
+            dataType: 'geoLocation',
+            displayName: 'All Geolocations'
+        }
+
+    ]
 
     return defineComponent(FilterItem);
 
@@ -63,7 +77,7 @@ define([
         };
 
         this.isValid = function() {
-            var hasPredicateAndProperty = this.filter.predicate && this.filter.propertyId;
+            var hasPredicateAndProperty = this.filter.predicate && (this.filter.propertyId || this.filter.dataType);
             if (hasPredicateAndProperty) {
                 var propertyFieldRequired = this.predicateNeedsValues(),
                     rangeFilter = this.filter.predicate === PREDICATES.BETWEEN;
@@ -80,12 +94,8 @@ define([
         };
 
         this.triggerChange = function() {
-            var valid = this.isValid(),
-                filter = {
-                    propertyId: this.filter.propertyId,
-                    predicate: this.filter.predicate,
-                    metadata: this.filter.metadata
-                };
+            let valid = this.isValid();
+            const { values, ...filter } = this.filter;
 
             if (this.predicateNeedsValues()) {
 
@@ -98,7 +108,7 @@ define([
                         }
                         return val;
                     });
-                } else if (this.filter.predicate === PREDICATES.WITHIN) {
+                } else if (this.filter.predicate === GEO_PREDICATES.WITHIN || this.filter.predicate === GEO_PREDICATES.INTERSECTS) {
                     var geo = _.first(this.filter.values);
                     filter.values = geo ? [geo.latitude, geo.longitude, geo.radius] : new Array(3);
                 } else if (this.filter.predicate === PREDICATES.IN) {
@@ -189,11 +199,22 @@ define([
             if (data.predicate === 'equal') {
                 data.predicate = '=';
             }
-            this.filter = {
+            const filter = {
                 predicate: data.predicate,
-                propertyId: property && property.title,
                 values: data.values || []
             };
+
+            if (property && property.title.startsWith('dataType:')) {
+                switch (property.dataType) {
+                    case 'geoLocation':
+                        filter.dataType = 'GEO_LOCATION';
+                        break;
+                }
+            } else {
+                filter.propertyId = property && property.title;
+            }
+
+            this.filter = filter;
 
             this.select('propertySelectionSelector')
                 .toggle(!hasProperty);
@@ -314,6 +335,13 @@ define([
                 return [PREDICATES.IN].concat(standardPredicates);
             }
 
+            if (property.title.startsWith('dataType:')) {
+                switch (property.dataType) {
+                    case 'geoLocation':
+                        return GEO_PREDICATES
+                }
+            }
+
             switch (property.dataType) {
                 case 'string': return [
                         PREDICATES.CONTAINS,
@@ -321,7 +349,7 @@ define([
                     ].concat(standardPredicates);
 
                 case 'geoLocation': return [
-                        PREDICATES.WITHIN
+                        ...GEO_PREDICATES
                     ].concat(standardPredicates);
 
                 case 'boolean': return [
@@ -371,8 +399,10 @@ define([
         };
 
         this.createFieldSelection = function() {
+            const properties = [ ...DATA_TYPES, ...this.attr.properties ];
+
             FieldSelection.attachTo(this.select('propertySelectionSelector'), {
-                properties: this.attr.properties,
+                properties,
                 onlySearchable: true,
                 creatable: false,
                 placeholder: i18n('search.filters.add_filter.placeholder'),

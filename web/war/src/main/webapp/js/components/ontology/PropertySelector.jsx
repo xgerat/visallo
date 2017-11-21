@@ -84,7 +84,7 @@ define([
                 if (test && filter && filter.rollupCompound && p.dependentPropertyIris) {
                     dependentPropertyIris.push(...p.dependentPropertyIris);
                 }
-                if (test) {
+                if (test && !p.title.startsWith('dataType:')) {
                     FilterProps.forEach(fp => {
                         if (filter && fp in filter) {
                             // otherwise any value is valid
@@ -135,11 +135,11 @@ define([
             }
             return {
                 privileges: userSelectors.getPrivileges(state),
-                properties,
                 propertiesByConcept: ontologySelectors.getPropertiesByConcept(state),
                 propertiesByRelationship: ontologySelectors.getPropertiesByRelationship(state),
                 iriKeys: ontologySelectors.getPropertyKeyIris(state),
-                ...props
+                ...props,
+                properties: props.properties || properties
             };
         },
 

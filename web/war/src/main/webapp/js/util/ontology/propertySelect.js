@@ -121,7 +121,14 @@ define([
             this.attacher = attacher()
                 .node(this.node)
                 .params({
-                    filter: { ...filter, rollupCompound, hideCompound },
+                    properties: this.attr.properties,
+                    filter: {
+                        ...filter,
+                        rollupCompound,
+                        hideCompound,
+                        userVisible: true,
+                        searchable: true
+                    },
                     value: this.attr.selectedProperty,
                     autofocus: focus === true,
                     creatable: this.attr.creatable !== false,

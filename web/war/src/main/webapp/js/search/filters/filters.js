@@ -595,30 +595,35 @@ define([
                     matchType: this.matchType,
                     propertyFilters: _.chain(this.propertyFilters)
                         .map(function(filter) {
-                            var ontologyProperty = self.propertiesByDomainType[self.matchType].find(function(property) {
-                                return property.title === filter.propertyId;
-                            });
+                            const { propertyId, dataType, metadata, predicate, values } = filter;
+                            const dataKey = dataType ? 'dataType' : 'propertyId';
 
-                            if (ontologyProperty && ontologyProperty.dependentPropertyIris) {
-                                return ontologyProperty.dependentPropertyIris.map(function(iri, i) {
-                                    if (_.isArray(filter.values[i]) && _.reject(filter.values[i], function(v) {
-                                        return v === null || v === undefined;
-                                    }).length) {
-                                        return {
-                                            propertyId: iri,
-                                            predicate: filter.predicate,
-                                            values: filter.values[i],
-                                            metadata: filter.metadata
-                                        }
-                                    }
+                            if (propertyId) {
+                                const ontologyProperty = self.propertiesByDomainType[self.matchType].find(function(property) {
+                                    return property.title === propertyId;
                                 });
+
+                                if (ontologyProperty && ontologyProperty.dependentPropertyIris) {
+                                    return ontologyProperty.dependentPropertyIris.map(function(iri, i) {
+                                        if (_.isArray(values[i]) && _.reject(values[i], function(v) {
+                                            return v === null || v === undefined;
+                                        }).length) {
+                                            return {
+                                                propertyId: iri,
+                                                predicate,
+                                                values: values[i],
+                                                metadata
+                                            }
+                                        }
+                                    });
+                                }
                             }
 
                             return {
-                                propertyId: filter.propertyId,
-                                predicate: filter.predicate,
-                                values: filter.values,
-                                metadata: filter.metadata
+                                [dataKey]: filter[dataKey],
+                                predicate,
+                                values,
+                                metadata
                             };
                         })
                         .flatten(true)

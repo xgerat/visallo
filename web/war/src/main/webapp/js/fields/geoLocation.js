@@ -200,7 +200,7 @@ define([
                 latitudeField.toggleClass('invalid', latitudeInvalid);
                 longitudeField.toggleClass('invalid', longitudeInvalid);
 
-                return valid && F.vertex.singlePropValid(value, name);
+                return valid && (self.attr.property.title.startsWith('dataType:') || F.vertex.singlePropValid(value, name));
             })
         };
 
