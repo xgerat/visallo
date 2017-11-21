@@ -303,13 +303,15 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
 
     private void updateQueryWithDataTypeFilter(Query graphQuery, JSONObject obj, User user, SearchOptions searchOptions) {
         String dataType = obj.getString("dataType");
+        String predicateString = obj.optString("predicate");
 
         try {
             PropertyType propertyType = PropertyType.valueOf(dataType);
             JSONArray values = obj.getJSONArray("values");
             Object value0 = jsonValueToObject(values, propertyType, 0);
             if (PropertyType.GEO_LOCATION.equals(propertyType)) {
-                graphQuery.has(GeoShape.class, GeoCompare.INTERSECTS, value0);
+                GeoCompare geoComparePredicate = GeoCompare.valueOf(predicateString.toUpperCase());
+                graphQuery.has(GeoShape.class, geoComparePredicate, value0);
             } else {
                 throw new UnsupportedOperationException("Data type queries are not yet supported for type: " + dataType);
             }
