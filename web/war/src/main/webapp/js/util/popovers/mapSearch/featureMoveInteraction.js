@@ -1,21 +1,25 @@
 define(['openlayers'], function(ol) {
     'use strict';
 
-    var ANIMATION_DURATION = 200,
-        RESIZE_RADIUS = 6,
-        FeatureMoveInteraction = function(optOptions) {
-            ol.interaction.Pointer.call(this, {
-                handleEvent: this.handle.bind(this)
-            });
-            var options = optOptions ? optOptions : {};
-            this.lastCentroid = null;
-            this.circleCenter = options.center;
-            this.circleRadius = options.radius;
-            this.shouldFit = options.fit !== false;
-            this.condition_ = options.condition ?
-                options.condition : ol.events.condition.primaryAction;
+    const SPHERE = new ol.Sphere(6378137);
+    const ANIMATION_DURATION = 200;
+    const RESIZE_RADIUS = 6;
+    const createCircle = (center, radius) => {
+        const centerLonLat = ol.proj.toLonLat(center);
+        return ol.geom.Polygon.circular(SPHERE, centerLonLat, radius, 64)
+            .transform('EPSG:4326', 'EPSG:3857');
+    }
 
-        };
+    function FeatureMoveInteraction(options = {}) {
+        ol.interaction.Pointer.call(this, {
+            handleEvent: this.handle.bind(this)
+        });
+        this.circleCenter = options.center;
+        this.circleRadius = options.radius;
+        this.shouldFit = options.fit !== false;
+        this.condition_ = options.condition ?
+            options.condition : ol.events.condition.primaryAction;
+    }
     ol.inherits(FeatureMoveInteraction, ol.interaction.Pointer);
 
     FeatureMoveInteraction.prototype.fit = function() {
@@ -36,11 +40,12 @@ define(['openlayers'], function(ol) {
 
         var center = this.circleCenter,
             extent = map.getView().calculateExtent(map.getSize()),
-            circleRadius = this.circleRadius || ol.extent.getWidth(extent) * 0.1 / 2,
-            circleGeometry = new ol.geom.Circle(center, circleRadius),
-            resizeGeometry = new ol.geom.Point(calculateResizeCoordinate(center, circleRadius)),
-            circleFeature = new ol.Feature({ geometry: circleGeometry }),
-            resizeFeature = new ol.Feature({ geometry: resizeGeometry });
+            circleRadius = this.circleRadius || ol.extent.getWidth(extent) * 0.1 / 2;
+
+        var circleGeometry = createCircle(center, circleRadius),
+            resizeGeometry = new ol.geom.Point(this.calculateResizePoint(circleGeometry)),
+            circleFeature = new ol.Feature(circleGeometry),
+            resizeFeature = new ol.Feature(resizeGeometry);
 
         circleFeature.setId('circle');
         resizeFeature.setId('resize');
@@ -67,13 +72,7 @@ define(['openlayers'], function(ol) {
                                 fill: new ol.style.Fill({
                                     color: 'white'
                                 })
-                            })/*,
-                            text: new ol.style.Text({
-                                text: '10KM',
-                                font: 'bold 20px sans-serif',
-                                fill: new ol.style.Fill({ color: 'black' })
                             })
-                            */
                         })]
                     } else {
                         return [new ol.style.Style({
@@ -97,12 +96,27 @@ define(['openlayers'], function(ol) {
         }
     }
 
-    FeatureMoveInteraction.prototype.getRegion = function(e) {
-        var geo = this.circleFeature.getGeometry()
-        return {
-            center: geo.getCenter(),
-            radius: geo.getRadius() / 1000
-        };
+    FeatureMoveInteraction.prototype.getRegion = function() {
+        return { center: this.circleCenter, radius: this.circleRadius / 1000 };
+    }
+
+    FeatureMoveInteraction.prototype.calculateResizePoint = function(geometry) {
+        const circleRings = geometry.getCoordinates();
+        if (circleRings && circleRings.length === 1) {
+            const coordinates = circleRings[0];
+            return coordinates[Math.trunc(coordinates.length / 3)]
+        }
+    }
+
+    FeatureMoveInteraction.prototype.updateGeometry = function(center, radius) {
+        const geometry = createCircle(center, radius);
+        const point = this.calculateResizePoint(geometry);
+
+        this.circleFeature.setGeometry(geometry)
+
+        if (point) {
+            this.resize.setCoordinates(point);
+        }
     }
 
     FeatureMoveInteraction.prototype.handle = function(e) {
@@ -123,14 +137,13 @@ define(['openlayers'], function(ol) {
         var features = this.layer.getSource().getFeaturesInExtent(extent);
         if (features.length) {
             this.startCoordinate = event.coordinate;
-            this.circle = this.circleFeature.getGeometry()
             this.resize = this.resizeFeature.getGeometry()
 
             if (features.length === 1 && features[0].getId() === 'circle') {
-                this.center = this.circle.getCenter();
+                this.center = this.circleCenter;
                 this.state = 'down'
             } else {
-                this.center = this.resize.getCoordinates();
+                this.center = [...this.resize.getCoordinates()];
                 this.state = 'resize'
             }
             return true;
@@ -138,23 +151,22 @@ define(['openlayers'], function(ol) {
     }
 
     FeatureMoveInteraction.prototype.pointermove = function(event) {
-        if (this.state) {
-            var delta = subtractCoordinates(event.coordinate, this.startCoordinate),
-                newCenter = addCoordinates(this.center, delta);
-        }
+        if (!this.state) return;
+
+        const delta = subtractCoordinates(event.coordinate, this.startCoordinate);
+        const newCenter = addCoordinates(this.center, delta);
 
         if (this.state === 'down') {
-            this.circle.setCenter(newCenter)
-            this.resize.setCoordinates(calculateResizeCoordinate(newCenter, this.circle.getRadius()))
+            this.circleCenter = newCenter;
+            this.updateGeometry(this.circleCenter, this.circleRadius)
             var centerChange = new ol.events.Event('centerChanged');
             centerChange.newCenter = newCenter;
             this.dispatchEvent(centerChange);
             return true;
         } else if (this.state === 'resize') {
-            var circleCenter = this.circle.getCenter(),
-                newRadius = new ol.geom.LineString([newCenter, circleCenter]).getLength();
-            this.circle.setRadius(newRadius);
-            this.resize.setCoordinates(newCenter);
+            const newRadius = new ol.geom.LineString([newCenter, this.circleCenter]).getLength();
+            this.circleRadius = newRadius
+            this.updateGeometry(this.circleCenter, this.circleRadius)
             var radiusChange = new ol.events.Event('radiusChanged');
             radiusChange.newRadius = newRadius / 1000;
             this.dispatchEvent(radiusChange);
@@ -174,13 +186,5 @@ define(['openlayers'], function(ol) {
 
     function addCoordinates(c1, c2) {
         return c1.map((c, i) => c + c2[i])
-    }
-
-    function calculateResizeCoordinate(coord, radius) {
-        var angle = Math.PI / -4
-        return [
-            coord[0] + radius * Math.cos(angle),
-            coord[1] + radius * Math.sin(angle)
-        ];
     }
 });
