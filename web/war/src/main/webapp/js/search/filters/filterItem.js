@@ -9,15 +9,16 @@ define([
     'use strict';
 
     const PREDICATES = {
-            HAS: 'has',
-            HAS_NOT: 'hasNot',
-            CONTAINS: '~',
-            EQUALS: '=',
-            IN: 'in',
-            LESS_THAN: '<',
-            GREATER_THAN: '>',
-            BETWEEN: 'range'
-        };
+        HAS: 'has',
+        HAS_NOT: 'hasNot',
+        CONTAINS: '~',
+        EQUALS: '=',
+        IN: 'in',
+        LESS_THAN: '<',
+        GREATER_THAN: '>',
+        BETWEEN: 'range'
+    };
+
     const GEO_PREDICATES = {
         INTERSECTS: 'intersects',
         DISJOINT: 'disjoint',
@@ -25,13 +26,22 @@ define([
         CONTAINS: 'contains'
     }
 
-    const DATA_TYPES = [
+    const DATA_TYPES_WITH_HEADERS = [
+        {
+            title: 'data-types-header',
+            displayName: i18n('ontology.property.header.data.types'),
+            header: true
+        },
         {
             title: 'dataType:geoLocation',
             dataType: 'geoLocation',
-            displayName: 'All Geolocations'
+            displayName: i18n('ontology.property.data.types.geolocation')
+        },
+        {
+            title: 'properties-header',
+            displayName: i18n('ontology.property.header.properties'),
+            header: true
         }
-
     ]
 
     return defineComponent(FilterItem);
@@ -139,9 +149,15 @@ define([
             });
         };
 
-        this.onFilterProperties = function(event, data) {
+        this.onFilterProperties = function(event, filter) {
             if ($(event.target).is(this.$node)) {
-                this.select('propertySelectionSelector').trigger(event.type, data);
+                if (!filter) {
+                    this.listFilter = null;
+                } else {
+                    this.listFilter = filter;
+                }
+
+                this.select('propertySelectionSelector').trigger('filterProperties', this.listFilter);
             }
         };
 
@@ -338,7 +354,7 @@ define([
             if (property.title.startsWith('dataType:')) {
                 switch (property.dataType) {
                     case 'geoLocation':
-                        return GEO_PREDICATES
+                        return _.values(GEO_PREDICATES).concat(standardPredicates)
                 }
             }
 
@@ -399,7 +415,7 @@ define([
         };
 
         this.createFieldSelection = function() {
-            const properties = [ ...DATA_TYPES, ...this.attr.properties ];
+            const properties = [ ...DATA_TYPES_WITH_HEADERS, ..._.sortBy(this.attr.properties, 'displayName') ];
 
             FieldSelection.attachTo(this.select('propertySelectionSelector'), {
                 properties,
@@ -407,7 +423,8 @@ define([
                 creatable: false,
                 placeholder: i18n('search.filters.add_filter.placeholder'),
                 rollupCompound: false,
-                hideCompound: true
+                hideCompound: true,
+                filter: this.attr.listFilter
             });
         };
 
