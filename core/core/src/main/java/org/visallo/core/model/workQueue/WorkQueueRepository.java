@@ -573,7 +573,9 @@ public abstract class WorkQueueRepository {
         users.put(userId);
         permissions.put("users", users);
         json.put("permissions", permissions);
-        json.put("data", longRunningProcessQueueItem.get("id"));
+        JSONObject data = new JSONObject();
+        data.put("processId", longRunningProcessQueueItem.get("id"));
+        json.put("data", data);
         broadcastJson(json);
     }
 
