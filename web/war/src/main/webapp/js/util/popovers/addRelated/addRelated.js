@@ -62,12 +62,14 @@ define([
                     'conceptType'
                 );
                 ConceptSelector.attachTo(self.popover.find('.concept'), {
+                    creatable: false,
                     focus: true,
                     defaultText: i18n('popovers.add_related.concept.default_text'),
                     limitRelatedToConceptId: this.limitParentConceptId
                 });
 
                 RelationshipSelector.attachTo(self.popover.find('.relationship'), {
+                    creatable: false,
                     defaultText: i18n('popovers.add_related.relationship.default_text'),
                     limitParentConceptId: this.limitParentConceptId
                 });
