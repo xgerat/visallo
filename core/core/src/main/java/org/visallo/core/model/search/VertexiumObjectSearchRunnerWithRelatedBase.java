@@ -3,25 +3,26 @@ package org.visallo.core.model.search;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.vertexium.Authorizations;
-import org.vertexium.ElementType;
-import org.vertexium.Graph;
-import org.vertexium.Vertex;
+import org.vertexium.*;
 import org.vertexium.query.CompositeGraphQuery;
 import org.vertexium.query.Query;
 import org.visallo.core.config.Configuration;
-import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.directory.DirectoryRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.user.User;
+import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -40,72 +41,78 @@ public abstract class VertexiumObjectSearchRunnerWithRelatedBase extends Vertexi
     @Override
     protected QueryAndData getQuery(SearchOptions searchOptions, Authorizations authorizations) {
         JSONArray filterJson = getFilterJson(searchOptions, searchOptions.getWorkspaceId());
-        String queryString;
 
+        String queryStringParam = searchOptions.getOptionalParameter("q", String.class);
         String[] relatedToVertexIdsParam = searchOptions.getOptionalParameter("relatedToVertexIds[]", String[].class);
         String elementExtendedDataParam = searchOptions.getOptionalParameter("elementExtendedData", String.class);
-        List<String> relatedToVertexIds;
-        ElementExtendedData elementExtendedData;
-        if (relatedToVertexIdsParam == null && elementExtendedDataParam == null) {
-            queryString = searchOptions.getRequiredParameter("q", String.class);
-            relatedToVertexIds = ImmutableList.of();
-            elementExtendedData = null;
-        } else if (elementExtendedDataParam != null) {
-            queryString = searchOptions.getOptionalParameter("q", String.class);
-            relatedToVertexIds = ImmutableList.of();
-            elementExtendedData = ElementExtendedData.fromJsonString(elementExtendedDataParam);
-        } else if (relatedToVertexIdsParam != null) {
-            queryString = searchOptions.getOptionalParameter("q", String.class);
-            relatedToVertexIds = ImmutableList.copyOf(relatedToVertexIdsParam);
-            elementExtendedData = null;
-        } else {
-            throw new VisalloException("Unexpected state");
-        }
-        LOGGER.debug(
-                "search %s (relatedToVertexIds: %s, elementExtendedData: %s)\n%s",
-                queryString,
-                Joiner.on(",").join(relatedToVertexIds),
-                elementExtendedData,
-                filterJson.toString(2)
-        );
 
-        Query graphQuery;
-        if (relatedToVertexIds.isEmpty()) {
-            graphQuery = query(queryString, null, elementExtendedData, authorizations);
-        } else if (relatedToVertexIds.size() == 1) {
-            graphQuery = query(queryString, relatedToVertexIds.get(0), null, authorizations);
+        List<String> relatedToVertexIds = Collections.emptyList();
+        ElementExtendedData elementExtendedData = null;
+        if (relatedToVertexIdsParam == null && elementExtendedDataParam == null) {
+            queryStringParam = searchOptions.getRequiredParameter("q", String.class);
+        } else if (elementExtendedDataParam != null) {
+            elementExtendedData = ElementExtendedData.fromJsonString(elementExtendedDataParam);
         } else {
-            graphQuery = new CompositeGraphQuery(getGraph(), Lists.transform(
-                    relatedToVertexIds,
-                    relatedToVertexId -> query(queryString, relatedToVertexId, null, authorizations)
-            ));
+            relatedToVertexIds = ImmutableList.copyOf(relatedToVertexIdsParam);
+        }
+
+        if (StringUtils.isBlank(queryStringParam)) {
+            queryStringParam = null;
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(
+                    "search %s (relatedToVertexIds: %s, elementExtendedData: %s)\n%s",
+                    queryStringParam,
+                    Joiner.on(",").join(relatedToVertexIds),
+                    elementExtendedData,
+                    filterJson.toString(2)
+            );
+        }
+
+        Query graphQuery = getGraph().query(queryStringParam, authorizations);
+        if (elementExtendedData != null) {
+            graphQuery = graphQuery.hasExtendedData(elementExtendedData.elementType, elementExtendedData.elementId, elementExtendedData.tableName);
+        } else if (!relatedToVertexIds.isEmpty()){
+            String[] edgeLabels = getEdgeLabels(searchOptions);
+            Set<String> allRelatedIds = relatedToVertexIds.stream()
+                    .map(vertexId -> {
+                        Vertex vertex = getGraph().getVertex(vertexId, FetchHint.EDGE_REFS, authorizations);
+                        checkNotNull(vertex, "Could not find vertex: " + vertexId);
+                        return vertex;
+                    })
+                    .flatMap(vertex -> {
+                        Iterable<EdgeInfo> edgeInfos = vertex.getEdgeInfos(Direction.BOTH, edgeLabels, authorizations);
+                        return StreamSupport.stream(edgeInfos.spliterator(), false).map(EdgeInfo::getVertexId);
+                    })
+                    .collect(Collectors.toSet());
+            if (allRelatedIds.isEmpty()) {
+                // If there are no element id's at this point, there are no possible results.
+                // We're using an empty CompositeGraphQuery here as a way ensure there will be no hits.
+                graphQuery = new CompositeGraphQuery(getGraph());
+            } else {
+                graphQuery = graphQuery.hasId(allRelatedIds);
+            }
         }
 
         return new QueryAndData(graphQuery);
     }
 
-    private Query query(
-            String query,
-            String relatedToVertexId,
-            ElementExtendedData elementExtendedData,
-            Authorizations authorizations
-    ) {
-        Query graphQuery;
-        if (relatedToVertexId == null && elementExtendedData == null) {
-            graphQuery = getGraph().query(query, authorizations);
-        } else if (elementExtendedData != null) {
-            graphQuery = getGraph().query(query, authorizations)
-                    .hasExtendedData(elementExtendedData.elementType, elementExtendedData.elementId, elementExtendedData.tableName);
-        } else if (StringUtils.isBlank(query)) {
-            Vertex relatedToVertex = getGraph().getVertex(relatedToVertexId, authorizations);
-            checkNotNull(relatedToVertex, "Could not find vertex: " + relatedToVertexId);
-            graphQuery = relatedToVertex.query(authorizations);
-        } else {
-            Vertex relatedToVertex = getGraph().getVertex(relatedToVertexId, authorizations);
-            checkNotNull(relatedToVertex, "Could not find vertex: " + relatedToVertexId);
-            graphQuery = relatedToVertex.query(query, authorizations);
+    private String[] getEdgeLabels(SearchOptions searchOptions) {
+        Collection<OntologyRepository.ElementTypeFilter> edgeLabelFilters = getEdgeLabelFilters(searchOptions);
+        if (edgeLabelFilters == null || edgeLabelFilters.isEmpty()) {
+            return null;
         }
-        return graphQuery;
+
+        return edgeLabelFilters.stream()
+                .flatMap(filter -> {
+                    if (filter.includeChildNodes) {
+                        return getOntologyRepository().getRelationshipAndAllChildrenByIRI(filter.iri, searchOptions.getWorkspaceId())
+                                .stream().map(Relationship::getIRI);
+                    }
+                    return Stream.of(filter.iri);
+                })
+                .toArray(String[]::new);
     }
 
     private static class ElementExtendedData {
