@@ -26,21 +26,22 @@ define([
         CONTAINS: 'contains'
     }
 
-    const DATA_TYPES_WITH_HEADERS = [
+    const DATA_TYPES = [
         {
-            title: 'data-types-header',
-            displayName: i18n('ontology.property.header.data.types'),
-            header: true
+            title: 'dataType:date',
+            dataType: 'date',
+            displayName: i18n('ontology.property.data.types.date')
+        },
+        {
+            title: 'dataType:dateOnly',
+            dataType: 'date',
+            displayType: 'dateOnly',
+            displayName: i18n('ontology.property.data.types.date.only')
         },
         {
             title: 'dataType:geoLocation',
             dataType: 'geoLocation',
             displayName: i18n('ontology.property.data.types.geolocation')
-        },
-        {
-            title: 'properties-header',
-            displayName: i18n('ontology.property.header.properties'),
-            header: true
         }
     ]
 
@@ -225,6 +226,11 @@ define([
                     case 'geoLocation':
                         filter.dataType = 'GEO_LOCATION';
                         break;
+                    case 'date':
+                        filter.dataType = 'date';
+                        break;
+                    default:
+                        filter.dataType = 'string';
                 }
             } else {
                 filter.propertyId = property && property.title;
@@ -355,6 +361,12 @@ define([
                 switch (property.dataType) {
                     case 'geoLocation':
                         return _.values(GEO_PREDICATES).concat(standardPredicates)
+                    case 'date': return [
+                        PREDICATES.LESS_THAN,
+                        PREDICATES.GREATER_THAN,
+                        PREDICATES.BETWEEN,
+                        PREDICATES.EQUALS
+                    ].concat(standardPredicates)
                 }
             }
 
@@ -415,7 +427,20 @@ define([
         };
 
         this.createFieldSelection = function() {
-            const properties = [ ...DATA_TYPES_WITH_HEADERS, ..._.sortBy(this.attr.properties, 'displayName') ];
+            const properties = [
+                {
+                    title: 'data-types-header',
+                    displayName: i18n('ontology.property.header.data.types'),
+                    header: true
+                },
+                ..._.sortBy(DATA_TYPES, 'displayName'),
+                {
+                    title: 'properties-header',
+                    displayName: i18n('ontology.property.header.properties'),
+                    header: true
+                },
+                ..._.sortBy(this.attr.properties, 'displayName'),
+            ];
 
             FieldSelection.attachTo(this.select('propertySelectionSelector'), {
                 properties,
