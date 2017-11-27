@@ -108,11 +108,11 @@ define([
                     })
                 }
             },
-            longRunningProcessDeleted: function(processId) {
+            longRunningProcessDeleted: function(data) {
                 dispatchMain('rebroadcastEvent', {
                     eventName: 'longRunningProcessDeleted',
                     data: {
-                        processId: processId
+                        processId: data.processId
                     }
                 });
             },

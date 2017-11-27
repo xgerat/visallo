@@ -240,44 +240,47 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
     protected abstract QueryAndData getQuery(SearchOptions searchOptions, Authorizations authorizations);
 
     protected void applyConceptTypeFilterToQuery(QueryAndData queryAndData, SearchOptions searchOptions) {
-        Query query = queryAndData.getQuery();
-        String conceptTypes = searchOptions.getOptionalParameter("conceptTypes", String.class);
-        if (conceptTypes == null) {
-            // Try legacy conceptType parameter
-            String conceptType = searchOptions.getOptionalParameter("conceptType", String.class);
-            if (conceptType != null) {
-                final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
-                ontologyRepository.addConceptTypeFilterToQuery(query, conceptType, (includeChildNodes == null || includeChildNodes), searchOptions.getWorkspaceId());
-            }
-        } else {
-            ontologyRepository.addConceptTypeFilterToQuery(query, getTypeFilters(conceptTypes), searchOptions.getWorkspaceId());
+        Collection<OntologyRepository.ElementTypeFilter> conceptTypeFilters = getConceptTypeFilters(searchOptions);
+        if (conceptTypeFilters != null) {
+            ontologyRepository.addConceptTypeFilterToQuery(queryAndData.getQuery(), conceptTypeFilters, searchOptions.getWorkspaceId());
         }
     }
 
     protected void applyEdgeLabelFilterToQuery(QueryAndData queryAndData, SearchOptions searchOptions) {
-        Query query = queryAndData.getQuery();
-        String labels = searchOptions.getOptionalParameter("edgeLabels", String.class);
-        if (labels == null) {
-            // Try legacy edgeLabel parameter
-            String edgeLabel = searchOptions.getOptionalParameter("edgeLabel", String.class);
-            if (edgeLabel != null) {
-                final Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
-                ontologyRepository.addEdgeLabelFilterToQuery(query, edgeLabel, (includeChildNodes == null || includeChildNodes), searchOptions.getWorkspaceId());
-            }
-        } else {
-            ontologyRepository.addEdgeLabelFilterToQuery(query, getTypeFilters(labels), searchOptions.getWorkspaceId());
+        Collection<OntologyRepository.ElementTypeFilter> edgeFilters = getEdgeLabelFilters(searchOptions);
+        if (edgeFilters != null) {
+            ontologyRepository.addEdgeLabelFilterToQuery(queryAndData.getQuery(), edgeFilters, searchOptions.getWorkspaceId());
         }
     }
 
-    private Collection<OntologyRepository.ElementTypeFilter> getTypeFilters(String typesStr) {
-        JSONArray types = new JSONArray(typesStr);
-        List<OntologyRepository.ElementTypeFilter> filters = new ArrayList<>(types.length());
-        for (int i = 0; i < types.length(); i++) {
-            JSONObject type = (JSONObject) types.get(i);
-            OntologyRepository.ElementTypeFilter filter = ClientApiConverter.toClientApi(type, OntologyRepository.ElementTypeFilter.class);
-            filters.add(filter);
+    protected Collection<OntologyRepository.ElementTypeFilter> getEdgeLabelFilters(SearchOptions searchOptions) {
+        return getElementTypeFilters("edgeLabels", "edgeLabel", searchOptions);
+    }
+
+    protected Collection<OntologyRepository.ElementTypeFilter> getConceptTypeFilters(SearchOptions searchOptions) {
+        return getElementTypeFilters("conceptTypes", "conceptType", searchOptions);
+    }
+
+    private Collection<OntologyRepository.ElementTypeFilter> getElementTypeFilters(String parameterName, String legacyParameterName, SearchOptions searchOptions) {
+        String typesStr = searchOptions.getOptionalParameter(parameterName, String.class);
+        if (typesStr != null) {
+            JSONArray types = new JSONArray(typesStr);
+            List<OntologyRepository.ElementTypeFilter> filters = new ArrayList<>(types.length());
+            for (int i = 0; i < types.length(); i++) {
+                JSONObject type = types.getJSONObject(i);
+                OntologyRepository.ElementTypeFilter filter = ClientApiConverter.toClientApi(type, OntologyRepository.ElementTypeFilter.class);
+                filters.add(filter);
+            }
+            return filters;
         }
-        return filters;
+
+        // Try the legacy parameter
+        String elementType = searchOptions.getOptionalParameter(legacyParameterName, String.class);
+        if (elementType != null) {
+            Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
+            return Collections.singleton(new OntologyRepository.ElementTypeFilter(elementType, includeChildNodes));
+        }
+        return null;
     }
 
     protected void applyFiltersToQuery(QueryAndData queryAndData, JSONArray filterJson, User user, SearchOptions searchOptions) {
@@ -493,6 +496,10 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
             return values.get(index);
         }
         return OntologyProperty.convert(values, propertyDataType, index);
+    }
+
+    protected OntologyRepository getOntologyRepository() {
+        return ontologyRepository;
     }
 
     protected Graph getGraph() {
