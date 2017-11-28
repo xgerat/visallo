@@ -12,6 +12,7 @@ import org.vertexium.Graph;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.property.StreamingPropertyValue;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
 import org.visallo.core.user.User;
@@ -29,14 +30,17 @@ public class VertexVideoPreviewImage implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexVideoPreviewImage.class);
     private final Graph graph;
     private final ArtifactThumbnailRepository artifactThumbnailRepository;
+    private int framesPerPreview;
 
     @Inject
     public VertexVideoPreviewImage(
             final Graph graph,
-            final ArtifactThumbnailRepository artifactThumbnailRepository
+            final ArtifactThumbnailRepository artifactThumbnailRepository,
+            final Configuration configuration
     ) {
         this.graph = graph;
         this.artifactThumbnailRepository = artifactThumbnailRepository;
+        framesPerPreview = configuration.getInt(Configuration.VIDEO_PREVIEW_FRAMES_COUNT, ArtifactThumbnailRepository.DEFAULT_FRAMES_PER_PREVIEW);
     }
 
     @Handle
@@ -52,10 +56,10 @@ public class VertexVideoPreviewImage implements ParameterizedHandler {
             throw new VisalloResourceNotFoundException("Could not find vertex with id: " + graphVertexId);
         }
 
-        int[] boundaryDims = new int[]{200 * ArtifactThumbnailRepository.FRAMES_PER_PREVIEW, 200};
+        int[] boundaryDims = new int[]{200 * framesPerPreview, 200};
 
         if (width != null) {
-            boundaryDims[0] = width * ArtifactThumbnailRepository.FRAMES_PER_PREVIEW;
+            boundaryDims[0] = width * framesPerPreview;
             boundaryDims[1] = width;
 
             response.setContentType("image/jpeg");
