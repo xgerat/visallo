@@ -230,7 +230,7 @@ define([
                         filter.dataType = 'date';
                         break;
                     default:
-                        filter.dataType = 'string';
+                        throw new Error('Unknown datatype: ' + property.dataType);
                 }
             } else {
                 filter.propertyId = property && property.title;
@@ -367,6 +367,9 @@ define([
                         PREDICATES.BETWEEN,
                         PREDICATES.EQUALS
                     ].concat(standardPredicates)
+                    default:
+                        throw new Error('Unknown datatype: ' + property.dataType);
+
                 }
             }
 
@@ -428,18 +431,13 @@ define([
 
         this.createFieldSelection = function() {
             const properties = [
+                ..._.sortBy(this.attr.properties, 'displayName'),
                 {
                     title: 'data-types-header',
                     displayName: i18n('ontology.property.header.data.types'),
                     header: true
                 },
                 ..._.sortBy(DATA_TYPES, 'displayName'),
-                {
-                    title: 'properties-header',
-                    displayName: i18n('ontology.property.header.properties'),
-                    header: true
-                },
-                ..._.sortBy(this.attr.properties, 'displayName'),
             ];
 
             FieldSelection.attachTo(this.select('propertySelectionSelector'), {
