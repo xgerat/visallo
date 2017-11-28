@@ -34,6 +34,8 @@ define([
         BITS_FOR_OFFSET = 32 - BITS_FOR_INDEX,
         SERVER_DATE = 'YYYY-MM-DD',
         SERVER_TIME = 'HH:mm',
+        MOMENT_FORMAT = `${SERVER_DATE} ${SERVER_TIME}`,
+        MOMENT_FORMAT_TZ = `${MOMENT_FORMAT} Z`,
         dateFormat,
         timeFormat,
         showTz,
@@ -766,8 +768,11 @@ define([
 
                 if (_.isDate(numberOrString)) {
                     dateInLocale = numberOrString;
+                } else if (_.isNumber(numberOrString)) {
+                    dateInLocale = new Date(numberOrString)
                 } else {
-                    dateInLocale = new Date(moment.tz(numberOrString, tz.name).toISOString());
+                    const parsed = moment(numberOrString, MOMENT_FORMAT_TZ);
+                    dateInLocale = parsed.tz(tz.name).toDate();
                     if (isNaN(dateInLocale.getTime())) {
                         console.warn('Unable to parse date: ' + str);
                         return '';
@@ -980,9 +985,15 @@ define([
                 if (/^\s*$/.test(dateStr)) {
                     return dateStr;
                 }
-                return _.isNumber(dateStr) ?
-                    moment.tz(dateStr, timezone) :
-                    moment.tz(dateStr, SERVER_DATE + ' ' + SERVER_TIME, timezone);
+
+                let parsed;
+                if (_.isNumber(dateStr)) {
+                    parsed = moment(new Date(dateStr))
+                } else {
+                    parsed = moment(dateStr, MOMENT_FORMAT)
+                }
+
+                return parsed ? parsed.tz(timezone) : parsed
             },
             date: function(dateStr, timezone) {
                 if (/^\s*$/.test(dateStr)) {
