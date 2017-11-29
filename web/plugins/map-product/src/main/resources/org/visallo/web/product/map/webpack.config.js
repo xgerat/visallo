@@ -93,7 +93,8 @@ module.exports = [
     Object.assign({}, baseConfig, {
         entry: {
             Map: './MapContainer.jsx',
-            MapLayersContainer: './layers/MapLayersContainer.jsx'
+            MapLayersContainer: './layers/MapLayersContainer.jsx',
+            geoShapePreview: './detail/geoShapePreview'
         },
         target: 'web'
     })

@@ -268,6 +268,7 @@ define([
             if (this.idleUpdatePosition) {
                 cancelIdleCallback(this.idleUpdatePosition);
             }
+
             this.idleUpdatePosition = requestIdleCallback(() => {
                 if (this.unmounted) return;
 

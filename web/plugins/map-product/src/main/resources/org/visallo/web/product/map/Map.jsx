@@ -73,15 +73,6 @@ define([
             return true;
         },
 
-        componentWillReceiveProps(nextProps) {
-            if (nextProps.product.id === this.props.product.id) {
-                this.setState({ viewport: {}, generatePreview: false })
-            } else {
-                this.saveViewport(this.props)
-                this.setState({ viewport: nextProps.viewport || {}, generatePreview: true })
-            }
-        },
-
         componentWillMount() {
             this.caches = {
                 styles: {
@@ -128,6 +119,15 @@ define([
             $(this.wrap).off('selectAll');
             $(document).off('.org-visallo-map');
             this.saveViewport(this.props)
+        },
+
+        componentWillReceiveProps(nextProps) {
+            if (nextProps.product.id === this.props.product.id) {
+                this.setState({ viewport: {}, generatePreview: false })
+            } else {
+                this.saveViewport(this.props)
+                this.setState({ viewport: nextProps.viewport || {}, generatePreview: true })
+            }
         },
 
         render() {
@@ -355,6 +355,7 @@ define([
                 } else if (!sources[id].features) {
                     sources[id].features = [];
                 }
+
                 sources[id].features.push(feature);
             };
             const sources = {

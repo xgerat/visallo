@@ -31,6 +31,7 @@ define([
                                     }}
                                     onSortEnd={({ oldIndex, newIndex }) => {
                                         this.SortableList.container.classList.remove('sorting');
+
                                         if (oldIndex !== newIndex) {
                                             onOrderLayer(oldIndex, newIndex);
                                         }
