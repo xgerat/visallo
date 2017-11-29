@@ -3,8 +3,9 @@
     "destination": "./build/jsdoc/",
     "recurse": true,
     "readme": "./README.md",
-    "template": "./node_modules/visallo-jsdoc-template"
+    "template": "./node_modules/@visallo/visallo-jsdoc-template"
   },
+  "recurseDepth": 100,
   "tags": {
     "allowUnknownTags": true,
     "dictionaries": ["jsdoc","closure"]
@@ -16,7 +17,7 @@
   },
   "plugins": [
     "plugins/markdown",
-    "./node_modules/visallo-jsdoc-template/plugins/visallo"
+    "./node_modules/@visallo/visallo-jsdoc-template/plugins/visallo"
   ],
   "templates": {
     "cleverLinks": true,

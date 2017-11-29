@@ -66,6 +66,7 @@
             'openlayers': '../libs/openlayers/dist/ol-debug',
             'pathfinding': '../libs/pathfinding/lib/pathfinding-browser.min',
             'propertyParser': '../libs/requirejs-plugins/src/propertyParser',
+            'urlPolyfill': '../libs/js-polyfills/url',
             'rangy-core': '../libs/rangy/lib/rangy-core',
             'rangy-text': '../libs/rangy/lib/rangy-textrange',
             'rangy-highlighter': '../libs/rangy/lib/rangy-highlighter',

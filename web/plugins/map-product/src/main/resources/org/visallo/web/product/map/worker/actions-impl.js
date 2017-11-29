@@ -76,6 +76,36 @@ define([
             })
         },
 
+        setElementData: ({ productId, elements, undoable }) => (dispatch, getState) => {
+            const state = getState();
+            const workspaceId = state.workspace.currentId;
+            let undoPayload = {};
+            if (undoable) {
+                // TODO: reenable
+                //undoPayload = {
+                    //undoScope: productId,
+                    //undo: {
+                        //productId,
+                        //elements: { vertexIds: combined }
+                    //},
+                    //redo: {
+                        //productId,
+                        //elements
+                    //}
+                //};
+            }
+
+            dispatch({
+                type: 'PRODUCT_MAP_ADD_ELEMENTS',
+                payload: {
+                    workspaceId,
+                    productId,
+                    elements
+                    //...undoPayload
+                }
+            });
+        },
+
         removeElements: ({ productId, elements, undoable }) => (dispatch, getState) => {
             const state = getState();
             const workspaceId = state.workspace.currentId;
@@ -112,6 +142,24 @@ define([
                 if (elements.vertexIds.length) {
                     ajax('POST', '/product/map/vertices/remove', { productId, vertexIds: elements.vertexIds })
                 }
+            }
+        },
+
+        setLayerOrder: ({ productId, layerOrder }) => (dispatch, getState) => {
+            const state = getState();
+            const workspaceId = state.workspace.currentId;
+            const workspace = state.workspace.byId[workspaceId];
+            const product = state.product.workspaces[workspaceId].products[productId];
+
+            const layerExtendedData = product.extendedData && product.extendedData['org-visallo-map-layers'];
+
+
+            if (workspace.editable) {
+                dispatch(productActions.updateExtendedData({
+                    key: 'org-visallo-map-layers',
+                    value: { ...layerExtendedData, layerOrder },
+                    productId
+                }));
             }
         }
     };

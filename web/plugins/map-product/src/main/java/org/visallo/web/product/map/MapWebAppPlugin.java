@@ -23,10 +23,14 @@ public class MapWebAppPlugin implements WebAppPlugin {
         app.post("/product/map/vertices/update", authenticationHandlerClass, csrfHandlerClass, UpdateVertices.class);
 
         app.registerJavaScript("/org/visallo/web/product/map/plugin.js");
+
+        app.registerCompiledJavaScript("/org/visallo/web/product/map/dist/MapLayersContainer.js");
         app.registerCompiledJavaScript("/org/visallo/web/product/map/dist/Map.js");
         app.registerCompiledJavaScript("/org/visallo/web/product/map/dist/actions-impl.js");
         app.registerResourceBundle("/org/visallo/web/product/map/messages.properties");
 
         app.registerCompiledWebWorkerJavaScript("/org/visallo/web/product/map/dist/plugin-worker.js");
+
+        app.registerLess("/org/visallo/web/product/map/layers/mapLayers.less");
     }
 }

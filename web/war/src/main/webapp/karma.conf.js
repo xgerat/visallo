@@ -21,6 +21,7 @@ module.exports = function(config) {
 
                 // Source
                 {pattern: 'jsc/**/*.js', included: false},
+                {pattern: 'jsc/**/*.js.map', included: false},
 
                 // Templates
                 {pattern: 'jsc/**/*.ejs', included: false},

@@ -600,7 +600,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             boolean userVisible = OWLOntologyUtil.getUserVisible(o, dataTypeProperty);
             boolean searchable = OWLOntologyUtil.getSearchable(o, dataTypeProperty);
             boolean addable = OWLOntologyUtil.getAddable(o, dataTypeProperty);
-            boolean sortable = !propertyType.equals(PropertyType.GEO_LOCATION) && OWLOntologyUtil.getSortable(o, dataTypeProperty);
+            boolean sortable = !propertyType.equals(PropertyType.GEO_LOCATION) && !propertyType.equals(PropertyType.GEO_SHAPE) && OWLOntologyUtil.getSortable(o, dataTypeProperty);
             String displayType = OWLOntologyUtil.getDisplayType(o, dataTypeProperty);
             String propertyGroup = OWLOntologyUtil.getPropertyGroup(o, dataTypeProperty);
             String validationFormula = OWLOntologyUtil.getValidationFormula(o, dataTypeProperty);

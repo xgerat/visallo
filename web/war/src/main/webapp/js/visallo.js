@@ -86,6 +86,7 @@ function(jQuery,
     $(function() {
         require(['cli']);
         require(['data/data'], configureApplication);
+        require(['urlPolyfill']);
 
         function configureApplication(Data) {
             // Flight Logging
