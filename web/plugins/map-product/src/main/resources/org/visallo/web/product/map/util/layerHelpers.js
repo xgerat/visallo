@@ -18,22 +18,6 @@ define([
         toggleable: true
     };
 
-    /**
-     * Layer definition with methods to display the layer within a map component
-     *
-     * @typedef org.visallo.map.layer~layerType
-     * @property {func} configure Given the string `id` and object `options`. Initialize and return
-     *   a [layerWithSource]{@link org.visallo.product.toolbar.item~layerWithSource}
-     * @property {func} [shouldUpdate] Given the `nextSource` and `prevSource` derived from the work product extended data,
-     *   and [layerWithSource]{@link org.visallo.product.toolbar.item~layerWithSource}. Compare `nextSource`
-     *   and `prevSource` and return true or false for whether `this.update()` should be called.
-     * @property {func} [addEvents] Given the map instance `map`, the [layerWithSource]{@link org.visallo.product.toolbar.item~layerWithSource},
-     *   and an object with the map component callbacks, add events to the map or layer instances and then return an array of unique event keys
-     * ```js
-     * const onClick = map.on('click', callback)
-     * return [ onClick ]
-     * ```
-     */
     const layers = {
         tile: {
             configure(id, options = {}) {

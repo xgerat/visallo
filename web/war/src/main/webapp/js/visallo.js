@@ -39,7 +39,16 @@ function(jQuery,
         (
             window.requestIdleCallback ||
             function(callback) {
-                setTimeout(callback, 1000 / 60);
+                return setTimeout(callback, 1000 / 60);
+            }
+        );
+    window.cancelIdleCallback =
+        typeof window === 'undefined' ?
+        function() { } :
+        (
+            window.cancelIdleCallback ||
+            function(handle) {
+                clearTimeout(handle, 1000 / 60);
             }
         );
     window.requestAnimationFrame =
@@ -51,7 +60,7 @@ function(jQuery,
             window.webkitRequestAnimationFrame ||
             window.msRequestAnimationFrame ||
             function(callback) {
-                setTimeout(callback, 1000 / 60);
+                return setTimeout(callback, 1000 / 60);
             }
         );
     window.TRANSITION_END = 'transitionend webkitTransitionEnd MSTransitionEnd oTransitionEnd otransitionend';

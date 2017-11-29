@@ -12,7 +12,6 @@ define([
     jsonpatch,
     layerHelpers,
     ProductToolbar) {
-    'use strict';
 
     const noop = function() {};
 

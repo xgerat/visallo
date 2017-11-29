@@ -79,20 +79,23 @@ define([
         setElementData: ({ productId, elements, undoable }) => (dispatch, getState) => {
             const state = getState();
             const workspaceId = state.workspace.currentId;
+            const product = productSelectors.getProductsById(state)[productId];
+            const existing = product.extendedData ? Object.keys(product.extendedData.vertices) : [];
+            const combined = _.without(elements.vertexIds, ..._.pluck(existing, 'id'));
+
             let undoPayload = {};
             if (undoable) {
-                // TODO: reenable
-                //undoPayload = {
-                    //undoScope: productId,
-                    //undo: {
-                        //productId,
-                        //elements: { vertexIds: combined }
-                    //},
-                    //redo: {
-                        //productId,
-                        //elements
-                    //}
-                //};
+                undoPayload = {
+                    undoScope: productId,
+                    undo: {
+                        productId,
+                        elements: { vertexIds: combined }
+                    },
+                    redo: {
+                        productId,
+                        elements
+                    }
+                };
             }
 
             dispatch({
@@ -100,8 +103,8 @@ define([
                 payload: {
                     workspaceId,
                     productId,
-                    elements
-                    //...undoPayload
+                    elements,
+                    ...undoPayload
                 }
             });
         },

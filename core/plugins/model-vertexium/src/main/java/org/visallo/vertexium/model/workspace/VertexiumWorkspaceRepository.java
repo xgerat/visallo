@@ -1176,7 +1176,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
         WorkProductService workProductService = getWorkProductServiceByKind(kind);
 
         if (workProductService instanceof WorkProductServiceHasElements) {
-            ((WorkProductServiceHasElements) workProductService).cleanUpElements(getGraph(), productVertex,authorizations);
+            ((WorkProductServiceHasElements) workProductService).cleanUpElements(getGraph(), productVertex, authorizations);
         }
 
         getGraph().softDeleteVertex(productId, authorizations);
@@ -1250,6 +1250,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             GraphUpdateContext.Update<Vertex> updateVertexFn) {
         return addOrUpdateProductAncillaryVertex(workspaceId, productId, vertexId, user, null, productEdgeOptions, updateVertexFn);
     }
+
     public WorkProductAncillaryResponse addOrUpdateProductAncillaryVertex(
             String workspaceId,
             String productId,
@@ -1294,16 +1295,34 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
             ).get();
 
             getWorkQueueRepository().broadcastWorkProductAncillaryChange(
-                productVertex.getId(), workspaceId, vertex.getId(), user, sourceGuid
+                    productVertex.getId(), workspaceId, vertex.getId(), user, sourceGuid
             );
         } catch (Exception e) {
             throw new VisalloException("Unable to add or update vertex", e);
         }
 
         return new WorkProductAncillaryResponse(
-            ClientApiConverter.toClientApiVertex(vertex, workspaceId, authorizations),
-            elementsService.populateProductVertexWithWorkspaceEdge(edge)
+                ClientApiConverter.toClientApiVertex(vertex, workspaceId, authorizations),
+                elementsService.populateProductVertexWithWorkspaceEdge(edge)
         );
+    }
+
+    public void deleteProductAncillaryVertex(String workspaceId, String vertexId, User user, String sourceGuid) {
+        Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                VISIBILITY_PRODUCT_STRING,
+                workspaceId
+        );
+
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
+            Graph graph = ctx.getGraph();
+            Vertex annotation = getGraph().getVertex(vertexId, authorizations);
+            annotation.getEdgeInfos(Direction.BOTH, authorizations).forEach(edgeInfo -> {
+                graph.deleteEdge(edgeInfo.getEdgeId(), authorizations);
+            });
+            graph.deleteVertex(annotation, authorizations);
+        }
     }
 
     private ProductPreview getProductPreviewFromUrl(String url) {

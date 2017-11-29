@@ -265,9 +265,17 @@ define([
         },
 
         _updatePreview() {
-            if (this.unmounted) return;
-            const { cy } = this.state;
-            this.props.onUpdatePreview(cy.png(DEFAULT_PNG));
+            if (this.idleUpdatePosition) {
+                cancelIdleCallback(this.idleUpdatePosition);
+            }
+            this.idleUpdatePosition = requestIdleCallback(() => {
+                if (this.unmounted) return;
+
+                const { cy } = this.state;
+                const png = cy.png(DEFAULT_PNG);
+
+                this.props.onUpdatePreview(png);
+            })
         },
 
         prepareConfig() {
@@ -284,6 +292,9 @@ define([
                             }
                         });
                     });
+                    cy.on('position', () => {
+                        this.updatePreview();
+                    })
                     cy.on('cxttap', (event) => {
                         const {target, cy} = event;
                         if (cy === target) {
@@ -602,7 +613,9 @@ define([
         },
 
         makeChanges(older, newer, reparenting, decorations, ghostAnimations) {
-            const cy = this.state.cy
+            const { interacting } = this.props;
+            const { cy } = this.state;
+
             const add = [];
             const remove = [...older];
             const modify = [];
@@ -626,7 +639,7 @@ define([
                 Object.keys(topLevelChanges).forEach(change => {
                     const cyNode = cy.getElementById(item.data.id);
 
-                    if (cyNode.scratch('interacting')) {
+                    if (cyNode.scratch('interacting') || interacting[item.data.id] ) {
                         return;
                     }
 

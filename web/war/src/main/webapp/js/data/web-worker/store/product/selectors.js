@@ -11,6 +11,8 @@ define(['reselect', '../element/selectors'], function(reselect, elementSelectors
 
     const getProductTypes = (state) => state.product.types || [];
 
+    const getInteracting = (state) => state.product.interacting;
+
     const getProductState = createSelector([getWorkspaceId, getProductWorkspaces], (workspaceId, productWorkspaces) => {
         return productWorkspaces[workspaceId];
     })
@@ -97,6 +99,7 @@ define(['reselect', '../element/selectors'], function(reselect, elementSelectors
         getProducts,
         getProductsById,
         getProductTypes,
+        getInteracting,
         getElementIdsInProduct,
         getElementsInProduct,
         getSelectedElementsInProduct,

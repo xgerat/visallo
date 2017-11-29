@@ -35,7 +35,7 @@ define([
     const generateCompoundEdgeId = edge => edge.outVertexId + edge.inVertexId + edge.label;
     const isGhost = cyElement => cyElement && cyElement._private && cyElement._private.data && cyElement._private.data.animateTo;
     const isValidElement = cyElement => cyElement && cyElement.is('.c,.v,.e,.partial') && !isGhost(cyElement);
-    const isValidNode = cyElement => cyElement && cyElement.is('node.c,node.v,node.partial,node.ancillary') && !isGhost(cyElement);
+    const isValidNode = cyElement => cyElement && cyElement.is('node.c,node.v,node.partial') && !isGhost(cyElement);
     const canUpdatePosition = isValidNode;
     const canSelect = isValidElement;
     const canRemove = isValidElement;
@@ -133,6 +133,7 @@ define([
         },
 
         componentDidMount() {
+            this.mounted = true;
             memoizeClear();
             this.cyNodeIdsWithPositionChanges = {};
 
@@ -255,6 +256,7 @@ define([
         },
 
         componentWillUnmount() {
+            this.mounted = false;
             this.removeEvents.forEach(({ node, func, events }) => {
                 $(node).off(events, func);
             })
@@ -280,7 +282,7 @@ define([
 
         render() {
             var { viewport, initialProductDisplay, draw, paths } = this.state,
-                { panelPadding, registry, workspace, product } = this.props,
+                { panelPadding, registry, workspace, product, interacting } = this.props,
                 { editable } = workspace,
                 { previewMD5 } = product,
                 config = {...CONFIGURATION(this.props), ...viewport},
@@ -326,6 +328,7 @@ define([
                         config={config}
                         panelPadding={panelPadding}
                         elements={cyElements}
+                        interacting={interacting}
                         drawEdgeToMouseFrom={draw ? _.pick(draw, 'vertexId', 'toVertexId') : null }
                         drawPaths={paths}
                         onGhostFinished={this.props.onGhostFinished}
@@ -392,8 +395,10 @@ define([
         },
 
         requestUpdate() {
-            memoizeClear();
-            this.forceUpdate();
+            if (this.mounted) {
+                memoizeClear();
+                this.forceUpdate();
+            }
         },
 
         onReady({ cy }) {
@@ -769,11 +774,13 @@ define([
                 const { pageX, pageY } = originalEvent;
                 if (target.is('node.c')) {
                     this.props.onCollapsedItemMenu(originalEvent.target, target.id(), { x: pageX, y: pageY });
-                } else if (target.isNode()) {
-                    this.props.onVertexMenu(originalEvent.target, target.id(), { x: pageX, y: pageY });
-                } else {
-                    const edgeIds = _.pluck(target.data('edgeInfos'), 'edgeId');
-                    this.props.onEdgeMenu(originalEvent.target, edgeIds, { x: pageX, y: pageY });
+                } else if (isValidElement(target)) {
+                    if (target.isNode()) {
+                        this.props.onVertexMenu(originalEvent.target, target.id(), { x: pageX, y: pageY });
+                    } else {
+                        const edgeIds = _.pluck(target.data('edgeInfos'), 'edgeId');
+                        this.props.onEdgeMenu(originalEvent.target, edgeIds, { x: pageX, y: pageY });
+                    }
                 }
             }
         },
@@ -889,7 +896,7 @@ define([
 
                 if (ancillary) {
                     selected = false;
-                    selectable = true;
+                    selectable = false;
                     classes = 'ancillary';
                     registry['org.visallo.graph.ancillary'].forEach(({
                         canHandle, data: dataFn, classes: classFn

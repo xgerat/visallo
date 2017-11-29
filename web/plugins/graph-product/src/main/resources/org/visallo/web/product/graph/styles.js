@@ -55,7 +55,7 @@ define([], function() {
         function getSelectionStyles() {
             return [
                 {
-                    selector: 'node:selected',
+                    selector: '.c:selected,.v:selected,.partial:selected',
                     css: {
                         'display': 'element',
                         'opacity': 1,

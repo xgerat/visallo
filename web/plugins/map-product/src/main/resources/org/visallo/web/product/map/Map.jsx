@@ -33,119 +33,11 @@ define([
         'http://docs.visallo.org/extension-points/front-end/mapOptions'
     );
 
-    /**
-     * Extension to style map features/pins using the
-     * [OpenLayers](http://openlayers.org)
-     * [`ol.style.Style`](http://openlayers.org/en/latest/apidoc/ol.style.Style.html)
-     * api.
-     *
-     * This does not change clustered features.
-     *
-     * @param {org.visallo.map.style~canHandle} canHandle Function that
-     * determines if style function applies for elements.
-     * @param {org.visallo.map.style~style} style Style to use for feature
-     * @param {org.visallo.map.style~style} selectedStyle Style to use when feature is selected
-     * @example
-     * registry.registerExtension('org.visallo.map.style', {
-     *     canHandle: function(productEdgeInfo, element) {
-     *         return element.properties.length > 2;
-     *     },
-     *     style: function(productEdgeInfo, element) {
-     *         const fill = new ol.style.Fill({ color: '#ff0000' })
-     *         const stroke = new ol.style.Stroke({ color: '#0000ff', width: 2 })
-     *         return new ol.style.Style({
-     *             image: new ol.style.Circle({
-     *                 fill: fill,
-     *                 stroke: stroke,
-     *                 radius: 25
-     *             })
-     *         })
-     *     }
-     * });
-     */
-    registry.documentExtensionPoint('org.visallo.map.style',
-        'Style map features using OpenLayers',
-        function(e) {
-            return _.isFunction(e.canHandle) && (_.isFunction(e.style) || _.isFunction(e.selectedStyle))
-        },
-        'http://docs.visallo.org/extension-points/front-end/mapStyle'
-    );
+    registry.markUndocumentedExtensionPoint('org.visallo.map.style');
 
-    /**
-     * Extension to customize geometry of map features/pins using the
-     * [OpenLayers](http://openlayers.org)
-     * [`ol.geom.Geometry`](http://openlayers.org/en/latest/apidoc/ol.geom.Geometry.html)
-     * api.
-     *
-     * @param {org.visallo.map.geometry~canHandle} canHandle Function that
-     * determines if geometry function applies for elements.
-     * @param {org.visallo.map.geometry~geometry} geometry Geometry to use for feature
-     * @param {org.visallo.map.geometry~layer} [layer] Configuration to determine which layer to place this feature at
-     * @example
-     * require(['openlayers'], function(ol) {
-     *     registry.registerExtension('org.visallo.map.geometry', {
-     *         canHandle: function(productEdgeInfo, element, ontology) {
-     *             return element.properties.length > 2;
-     *         },
-     *         geometry: function(productEdgeInfo, element, ontology) {
-     *             const { lon, lat } = getGeo(element)
-     *             return new ol.geom.Point(ol.proj.fromLonLat([lon, lat]))
-     *         },
-     *         layer: {
-     *              id: 'myLayer',
-     *              type: 'ancillary'
-     *         }
-     *     });
-     * })
-     */
-    registry.documentExtensionPoint('org.visallo.map.geometry',
-        'Change map geometries using OpenLayers',
-        function(e) {
-            return _.isFunction(e.canHandle) && _.isFunction(e.geometry) &&
-                (!e.layer || (_.isObject(e.layer) & (_.isString(e.layer.id)) && _.isString(e.layer.type)))
-        },
-        'http://docs.visallo.org/extension-points/front-end/mapGeometry'
-    );
+    registry.markUndocumentedExtensionPoint('org.visallo.map.geometry');
 
-
-    /**
-     * Extension to initialize additional [layers](http://openlayers.org/en/latest/apidoc/ol.layer.Layer.html) on map load.
-     * The `base` tile layer will always be initialized
-     *
-     * @param {string} id Unique id for this item
-     * @param {(string|org.visallo.map.layer~layerType)} type The string id of a layer type: `base`, `cluster`,
-            `ancillary`, or `vectorXhr`, or a new [layerType]{@link org.visallo.map.layer~layerType} object
-     * @param {object} [options] Extra options that will be passed to `layerType.configure()`
-     * @example
-     * require(['openlayers', 'public/v1/api'], function(ol, api) {
-     *     api.registry.registerExtension('org.visallo.map.layer', {
-     *         id: 'myCustomLayer',
-     *         type: 'ancillary',
-     *         shouldUpdate: function(nextSource, prevSource, layerWithSource) {
-     *              return Object.keys(nextSource).some(key => !(key in prevSource) || nextSource[key] !== prevSource[key])
-     *         },
-     *         options: {
-     *             zIndex: 4
-     *         }
-     *     });
-     * })
-     */
-    registry.documentExtensionPoint('org.visallo.map.layer',
-        'Initialize layers on the map',
-        function(e) {
-            return (_.isString(e.id)
-                && (_.isString(e.type) || (_.isObject(e.type) && (
-                    (!e.configure || _.isFunction(e.configure))
-                    && (!e.addEvents || _.isFunction(e.addEvents))
-                    && (!e.update || _.isFunction(e.update))
-                    && (!e.shouldUpdate || _.isFunction(e.shouldUpdate))
-                )))
-                && (!e.options || _.isObject(e.options))
-            );
-        },
-        'http://docs.visallo.org/extension-points/front-end/mapLayers'
-    );
-
+    registry.markUndocumentedExtensionPoint('org.visallo.map.layer');
 
     const REQUEST_UPDATE_DEBOUNCE = 300;
     const GEOSHAPE_MIMETYPES = [
@@ -463,10 +355,8 @@ define([
                 } else if (!sources[id].features) {
                     sources[id].features = [];
                 }
-
                 sources[id].features.push(feature);
             };
-
             const sources = {
                 cluster: {
                     id: 'cluster',
@@ -542,17 +432,17 @@ define([
 
                 if (geoLocations.length) {
                     addOrUpdateSource({ id: 'cluster', ...layer }, {
-                    id: el.id,
-                    element: el,
-                    selected,
-                    iconUrl,
-                    iconUrlSelected,
-                    iconSize: [22, 40].map(v => v * this.props.pixelRatio),
-                    iconAnchor: [0.5, 1.0],
-                    pixelRatio: this.props.pixelRatio,
-                    styles,
-                    geometry,
-                    geoLocations
+                        id: el.id,
+                        element: el,
+                        selected,
+                        iconUrl,
+                        iconUrlSelected,
+                        iconSize: [22, 40].map(v => v * this.props.pixelRatio),
+                        iconAnchor: [0.5, 1.0],
+                        pixelRatio: this.props.pixelRatio,
+                        styles,
+                        geometry,
+                        geoLocations
                     });
                 }
             })
@@ -576,10 +466,12 @@ define([
         },
 
         clearCaches() {
-            Object.keys(this.caches).forEach(k => {
-                Object.keys(this.caches[k]).forEach(key => this.caches[k][key].clear())
-            })
-            this.forceUpdate();
+            if (this.mounted) {
+                Object.keys(this.caches).forEach(k => {
+                    Object.keys(this.caches[k]).forEach(key => this.caches[k][key].clear())
+                })
+                this.forceUpdate();
+            }
         }
     });
 
