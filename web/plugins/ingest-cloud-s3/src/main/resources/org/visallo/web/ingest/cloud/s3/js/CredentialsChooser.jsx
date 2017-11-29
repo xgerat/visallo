@@ -9,8 +9,7 @@ define([
 
     const DEFAULT_AUTH_ID = 'basic_auth'
     const AUTH_EXTENSION_POINT = 'org.visallo.ingest.cloud.s3.auth';
-    RegistryInjectorHOC.registry.documentExtensionPoint(
-        AUTH_EXTENSION_POINT,
+    RegistryInjectorHOC.registry.documentExtensionPoint('org.visallo.ingest.cloud.s3.auth',
         'Provide credential managers to S3 ingest',
         function(e) {
             return _.every(

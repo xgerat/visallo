@@ -2,7 +2,7 @@ define(['updeep'], function(u) {
     'use strict';
 
     return function product(state, { type, payload }) {
-        if (!state) return { workspaces: {}, types: [] };
+        if (!state) return { workspaces: {}, types: [], interacting: {} };
 
         switch (type) {
             case 'PRODUCT_LIST': return updateList(state, payload);
@@ -15,6 +15,8 @@ define(['updeep'], function(u) {
             case 'PRODUCT_UPDATE_VIEWPORT': return updateViewport(state, payload);
             case 'PRODUCT_UPDATE_DATA': return updateData(state, payload);
             case 'PRODUCT_UPDATE_EXTENDED_DATA': return updateExtendedData(state, payload);
+
+            case 'PRODUCT_SET_INTERACTING': return setInteracting(state, payload);
 
             case 'ELEMENT_UPDATE': return updateUnauthorizedElements(state, payload);
         }
@@ -164,6 +166,16 @@ define(['updeep'], function(u) {
                 }
             }
         }, state);
+    }
+
+    function setInteracting(state, { interactingIds }) {
+        const updates = u({
+            interacting: interactingIds
+        }, state);
+
+        return u({
+            interacting: u.omitBy(val => !val)
+        }, updates)
     }
 
     function updateUnauthorizedElements(state, {workspaceId, vertices, edges}) {

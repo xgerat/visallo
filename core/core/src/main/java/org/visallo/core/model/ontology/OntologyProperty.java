@@ -9,6 +9,7 @@ import org.vertexium.Authorizations;
 import org.vertexium.type.GeoCircle;
 import org.vertexium.type.GeoHash;
 import org.vertexium.type.GeoPoint;
+import org.vertexium.type.GeoShape;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.properties.types.*;
 import org.visallo.core.user.User;
@@ -183,6 +184,11 @@ public abstract class OntologyProperty {
                     return value;
                 }
                 break;
+            case GEO_SHAPE:
+                if (value instanceof GeoShape) {
+                    return value;
+                }
+                break;
             case CURRENCY:
                 if (value instanceof BigDecimal) {
                     return value;
@@ -348,6 +354,8 @@ public abstract class OntologyProperty {
                 return new DoubleVisalloProperty(getIri());
             case GEO_LOCATION:
                 return new GeoPointVisalloProperty(getIri());
+            case GEO_SHAPE:
+                return new GeoShapeVisalloProperty(getIri());
             case INTEGER:
                 return new IntegerVisalloProperty(getIri());
             case STRING:

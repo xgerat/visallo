@@ -336,7 +336,7 @@ public class Configuration {
     }
 
     public Iterable<String> getKeys() {
-        return this.config.keySet();
+        return new HashSet<>(this.config.keySet());
     }
 
     public Iterable<String> getKeys(String keyPrefix) {

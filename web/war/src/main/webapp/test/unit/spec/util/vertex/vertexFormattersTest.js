@@ -67,11 +67,17 @@ define([
                 properties = id;
                 id = null;
             }
-            return {
+
+            const conceptProp = (properties || []).find(p => p.name === PROPERTY_NAME_CONCEPT);
+
+            const vertex = {
                 id: id || `testVertex-${elementIdent++}`,
                 properties: properties || [],
-                type: 'vertex'
-            }
+                type: 'vertex',
+                conceptType: conceptProp ? conceptProp.value : ''
+            };
+
+            return vertex;
         };
 
     describe('vertex formatters', function() {

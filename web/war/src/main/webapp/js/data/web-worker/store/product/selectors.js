@@ -11,6 +11,8 @@ define(['reselect', '../element/selectors'], function(reselect, elementSelectors
 
     const getProductTypes = (state) => state.product.types || [];
 
+    const getInteracting = (state) => state.product.interacting;
+
     const getProductState = createSelector([getWorkspaceId, getProductWorkspaces], (workspaceId, productWorkspaces) => {
         return productWorkspaces[workspaceId];
     })
@@ -71,15 +73,21 @@ define(['reselect', '../element/selectors'], function(reselect, elementSelectors
 
     const getFocusedElementsInProduct = createSelector([getFocused, getElementIdsInProduct], (focusing, elementIds) => {
         const { vertices, edges } = elementIds;
-        const focused = { vertices: {}, edges: {} };
+        const focused = {
+            vertices: {},
+            edges: {},
+            isFocusing: false
+        };
         Object.keys(vertices).forEach(vertexId => {
             if (vertexId in focusing.vertexIds) {
                 focused.vertices[vertexId] = true;
+                focused.isFocusing = true;
             }
         });
         Object.keys(edges).forEach(edgeId => {
             if (edgeId in focusing.edgeIds) {
                 focused.edges[edgeId] = true;
+                focused.isFocusing = true;
             }
         })
         return focused;
@@ -97,6 +105,7 @@ define(['reselect', '../element/selectors'], function(reselect, elementSelectors
         getProducts,
         getProductsById,
         getProductTypes,
+        getInteracting,
         getElementIdsInProduct,
         getElementsInProduct,
         getSelectedElementsInProduct,

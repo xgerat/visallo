@@ -9,6 +9,20 @@ define([], function() {
     const VIDEO_ASPECT_RATIO = 19 / 9;
 
     return function({ pixelRatio, edgesCount, edgeLabels, styleExtensions }) {
+        const OVERLAY_COLOR = '#0088cc';
+        const OVERLAY_OPACITY = 0.2;
+        const OVERLAY_NODE_PADDING = 5 * pixelRatio;
+        const OVERLAY_EDGE_PADDING = function(node) {
+            const data = node && node.length && node.length && node[0]._private;
+            const style = data && data.style;
+            if (style) {
+                const width = style.width;
+                if (width) {
+                    return width.value / 2 + OVERLAY_NODE_PADDING;
+                }
+            }
+            return OVERLAY_NODE_PADDING;
+        }
 
         return getDefaultStyles().concat(getExtensionStyles(), getSelectionStyles());
 
@@ -55,34 +69,45 @@ define([], function() {
         function getSelectionStyles() {
             return [
                 {
-                    selector: 'node:selected',
+                    selector: '.c:selected,.v:selected,.partial:selected',
                     css: {
                         'display': 'element',
                         'opacity': 1,
                         'background-image-opacity': 1,
-                        'background-color': '#0088cc',
-                        'border-color': '#0088cc',
-                        'color': '#0088cc'
+                        'overlay-color': OVERLAY_COLOR,
+                        'overlay-opacity': OVERLAY_OPACITY,
+                        'overlay-padding': OVERLAY_NODE_PADDING
                     }
                 },
                 {
-                    selector: 'node[selectedImageSrc]:selected',
-                    css: {
-                        'background-image': 'data(selectedImageSrc)'
-                    }
-                },
-                {
-                    selector: 'edge:selected',
+                    selector: '.e:selected',
                     css: {
                         'display': 'element',
                         'opacity': 1,
-                        'line-color': '#0088cc',
-                        'color': '#0088cc',
-                        'target-arrow-color': '#0088cc',
-                        'source-arrow-color': '#0088cc'
+                        'overlay-color': OVERLAY_COLOR,
+                        'overlay-opacity': OVERLAY_OPACITY,
+                        'overlay-padding': OVERLAY_EDGE_PADDING
+                    }
+                },
+                {
+                    selector: '*.focus',
+                    css: {
+                        'display': 'element',
+                        'color': OVERLAY_COLOR,
+                        'font-weight': 'bold',
+                        'overlay-color': OVERLAY_COLOR,
+                        'overlay-padding': 7 * pixelRatio,
+                        'overlay-opacity': 0.4
+                    }
+                },
+                {
+                    selector: '*.focus-dim',
+                    css: {
+                        'display': 'element',
+                        'opacity': 0.25,
+                        'overlay-opacity': 0.05
                     }
                 }
-
             ];
         }
 
@@ -258,24 +283,6 @@ define([], function() {
                     }
                 },
                 {
-                    selector: 'node.focus',
-                    css: {
-                        color: '#00547e',
-                        'font-weight': 'bold',
-                        'overlay-color': '#a5e1ff',
-                        'overlay-padding': 10 * pixelRatio,
-                        'overlay-opacity': 0.5
-                    }
-                },
-                {
-                    selector: 'edge.focus',
-                    css: {
-                        'overlay-color': '#a5e1ff',
-                        'overlay-padding': 7 * pixelRatio,
-                        'overlay-opacity': 0.5
-                    }
-                },
-                {
                     selector: 'node.temp',
                     css: {
                         'background-color': 'rgba(255,255,255,0.0)',
@@ -333,16 +340,18 @@ define([], function() {
                         'font-size': 16 * pixelRatio,
                         color: 'data(pathColor)',
                         'text-outline-color': 'white',
-                        'text-outline-width': 4
+                        'text-outline-width': 4,
+                        'overlay-color': 'data(pathColor)',
+                        'overlay-opacity': OVERLAY_OPACITY,
+                        'overlay-padding': OVERLAY_EDGE_PADDING
                     }
                 },
                 {
                     selector: 'edge.path-edge',
                     css: {
-                        'line-color': 'data(pathColor)',
-                        'target-arrow-color': 'data(pathColor)',
-                        'source-arrow-color': 'data(pathColor)',
-                        width: 4 * pixelRatio
+                        'overlay-color': 'data(pathColor)',
+                        'overlay-opacity': OVERLAY_OPACITY,
+                        'overlay-padding': OVERLAY_EDGE_PADDING
                     }
                 },
                 {
@@ -351,7 +360,10 @@ define([], function() {
                         width: 4,
                         'line-color': '#0088cc',
                         'line-style': 'dotted',
-                        'target-arrow-color': '#0088cc'
+                        'target-arrow-color': '#0088cc',
+                        'overlay-color': '#0088cc',
+                        'overlay-opacity': OVERLAY_OPACITY,
+                        'overlay-padding': OVERLAY_EDGE_PADDING
                     }
                 }
             ];

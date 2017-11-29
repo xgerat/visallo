@@ -16,7 +16,8 @@ module.exports = {
         "ANIMATION_END": false,
         "VISALLO_MIMETYPES": false,
         "i18n": false,
-        "_": false
+        "_": false,
+        "cancelIdleCallback": false,
     },
     "parserOptions": {
         "ecmaFeatures": {

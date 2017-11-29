@@ -268,6 +268,9 @@ public class OWLOntologyUtil {
         if ("http://visallo.org#geolocation".equals(iri)) {
             return PropertyType.GEO_LOCATION;
         }
+        if ("http://visallo.org#geoshape".equals(iri)) {
+            return PropertyType.GEO_SHAPE;
+        }
         if ("http://visallo.org#directory/entity".equals(iri)) {
             return PropertyType.DIRECTORY_ENTITY;
         }

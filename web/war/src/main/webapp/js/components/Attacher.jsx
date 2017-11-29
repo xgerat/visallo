@@ -9,7 +9,8 @@ define([
     const Attacher = createReactClass({
 
         propTypes: {
-            componentPath: PropTypes.string.isRequired,
+            componentPath: PropTypes.string,
+            component: PropTypes.func,
             behavior: PropTypes.object,
             legacyMapping: PropTypes.object,
             nodeType: PropTypes.string,
@@ -38,6 +39,7 @@ define([
         componentWillUnmount() {
             if (this.attacher) {
                 this.attacher.teardown();
+                this.attacher = null;
             }
         },
 
@@ -53,10 +55,15 @@ define([
         },
 
         reattach(props) {
-            const { componentPath, legacyMapping, behavior, nodeType, nodeStyle, nodeClassName, ...rest } = props;
+            const { component, componentPath, legacyMapping, behavior, nodeType, nodeStyle, nodeClassName, ...rest } = props;
+
+            if (!component && !componentPath) {
+                throw new Error('Attacher requires either component or componentPath')
+            }
 
             const inst = (this.attacher || (this.attacher = attacher({ preferDirectReactChildren: true })))
                 .path(componentPath)
+                .component(component)
                 .params(rest);
 
             if (this.refs.node) {
@@ -76,10 +83,12 @@ define([
                 teardownOptions: { react: false },
                 emptyFlight: true
             }).then(attach => {
-                if (attach._reactElement) {
-                    this.setState({ element: attach._reactElement })
+                if (this.attacher) {
+                    if (attach._reactElement) {
+                        this.setState({ element: attach._reactElement })
+                    }
+                    this.afterAttach();
                 }
-                this.afterAttach();
             })
         },
 

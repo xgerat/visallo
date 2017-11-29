@@ -1103,6 +1103,8 @@ public abstract class WorkspaceRepository {
 
     public abstract WorkProductAncillaryResponse addOrUpdateProductAncillaryVertex(String workspaceId, String productId, String vertexId, User user, String sourceGuid, UpdateProductEdgeOptions productEdgeOptions, GraphUpdateContext.Update<Vertex> updateVertexFn);
 
+    public abstract void deleteProductAncillaryVertex(String workspaceId, String vertexId, User user, String sourceGuid);
+
     protected VisibilityTranslator getVisibilityTranslator() {
         return visibilityTranslator;
     }

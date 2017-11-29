@@ -344,7 +344,11 @@
     <!-- http://visallo.org#directory/entity -->
 
     <rdfs:Datatype rdf:about="http://visallo.org#directory/entity"/>
-    
+
+
+    <!-- http://visallo.org#geoshape -->
+
+    <rdfs:Datatype rdf:about="http://visallo.org#geoshape"/>
 
 
     <!-- 

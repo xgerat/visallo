@@ -10,6 +10,7 @@ public enum PropertyType {
     DATE("date"),
     STRING("string"),
     GEO_LOCATION("geoLocation"),
+    GEO_SHAPE("geoshape"),
     IMAGE("image"),
     BINARY("binary"),
     CURRENCY("currency"),
@@ -20,6 +21,7 @@ public enum PropertyType {
     EXTENDED_DATA_TABLE("extendedDataTable");
 
     public static final String VERTEXIUM_TYPE_GEO_POINT = "org.vertexium.type.GeoPoint";
+    public static final String VERTEXIUM_TYPE_GEO_SHAPE = "org.vertexium.type.GeoShape";
 
     private final String text;
 
@@ -62,6 +64,12 @@ public enum PropertyType {
                     return Class.forName(VERTEXIUM_TYPE_GEO_POINT);
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException("Could not find class: " + VERTEXIUM_TYPE_GEO_POINT);
+                }
+            case GEO_SHAPE:
+                try {
+                    return Class.forName(VERTEXIUM_TYPE_GEO_SHAPE);
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException("Could not find class: " + VERTEXIUM_TYPE_GEO_SHAPE);
                 }
             case EXTENDED_DATA_TABLE:
                 return Iterable.class;

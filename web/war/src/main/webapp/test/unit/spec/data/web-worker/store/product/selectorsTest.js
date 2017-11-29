@@ -80,24 +80,24 @@ define(['/base/jsc/data/web-worker/store/product/selectors'], function(selectors
             const focusing = { vertexIds: {}, edgeIds: {}}
 
             expect(selectors.getFocusedElementsInProduct.resultFunc(focusing, elementIds))
-                .to.deep.equal({ vertices: {}, edges: {}});
+                .to.deep.equal({ vertices: {}, isFocusing: false, edges: {}});
 
             elementIds.vertices = {v1: {id: 'v1'}};
             expect(selectors.getFocusedElementsInProduct.resultFunc(focusing, elementIds))
-                .to.deep.equal({ vertices: {}, edges: {}});
+                .to.deep.equal({ vertices: {}, isFocusing: false, edges: {}});
 
             focusing.vertexIds = { 'v1': true };
             expect(selectors.getFocusedElementsInProduct.resultFunc(focusing, elementIds))
-                .to.deep.equal({ vertices: {'v1': true}, edges: {}});
+                .to.deep.equal({ vertices: {'v1': true}, isFocusing: true, edges: {}});
 
             focusing.vertexIds = { 'v2': true };
             expect(selectors.getFocusedElementsInProduct.resultFunc(focusing, elementIds))
-                .to.deep.equal({ vertices: {}, edges: {}});
+                .to.deep.equal({ vertices: {}, isFocusing: false, edges: {}});
 
             elementIds.edges = { e1: { edgeId: 'e1' }};
             focusing.edgeIds = { 'e1': true };
             expect(selectors.getFocusedElementsInProduct.resultFunc(focusing, elementIds))
-                .to.deep.equal({ vertices: {}, edges: {'e1': true}});
+                .to.deep.equal({ vertices: {}, isFocusing: true, edges: {'e1': true}});
 
         })
 

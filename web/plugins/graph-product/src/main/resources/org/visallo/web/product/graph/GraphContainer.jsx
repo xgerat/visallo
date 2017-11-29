@@ -175,7 +175,7 @@ define([
 
     /**
      * Extension to add new graph [layouts](http://js.cytoscape.org/#layouts) that are accesible from the layout
-     * context menu. 
+     * context menu.
      *
      * the `identifier` is used for the menu option text and should be in the
      * plugins message bundle:
@@ -418,6 +418,7 @@ define([
                 selection: productSelectors.getSelectedElementsInProduct(state),
                 viewport: productSelectors.getViewport(state),
                 focusing: productSelectors.getFocusedElementsInProduct(state),
+                interacting: productSelectors.getInteracting(state),
                 ghosts,
                 pixelRatio,
                 concepts,
