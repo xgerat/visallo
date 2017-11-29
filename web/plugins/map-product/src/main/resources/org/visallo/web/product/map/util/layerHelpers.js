@@ -274,8 +274,10 @@ define([
 
                 if (!layerStatus) {
                     this.loadFeatures(olSource, layer).then((features) => {
-                        olSource.addFeatures(features);
-                        layer.set('status', 'loaded');
+                        if (features) {
+                            olSource.addFeatures(features);
+                            layer.set('status', 'loaded');
+                        }
                     });
                 } else if (selected !== olSource.get('selected')) {
                     const overlayId = getOverlayIdForLayer(layer);
