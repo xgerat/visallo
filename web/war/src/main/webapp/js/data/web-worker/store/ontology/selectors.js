@@ -245,10 +245,26 @@ define(['reselect'], function(reselect) {
         })
     })
 
+    const getConceptProperties = createSelector([getPropertiesByConcept], (propertiesByConcept) => {
+        let conceptProperties = {};
+
+        return Object.keys(propertiesByConcept).reduce((properties, concept) => {
+            return { ...properties, ...propertiesByConcept[concept] }
+        }, conceptProperties);
+    })
+
     const getPropertiesByRelationship = createSelector([getRelationships, getProperties], (relationships, properties) => {
         return _.mapObject(relationships, r => {
             return _.pick(properties, r.properties);
         })
+    })
+
+    const getRelationshipProperties = createSelector([getPropertiesByRelationship], (propertiesByRelationship) => {
+        let relationshipProperties = {};
+
+        return Object.keys(propertiesByRelationship).reduce((properties, relationship) => {
+            return { ...properties, ...propertiesByRelationship[relationship] }
+        }, relationshipProperties);
     })
 
     const getPropertiesByDependentToCompound = createSelector([getProperties], properties => {
@@ -308,7 +324,9 @@ define(['reselect'], function(reselect) {
         getProperties,
         getPropertyKeyIris,
         getPropertiesByConcept,
+        getConceptProperties,
         getPropertiesByRelationship,
+        getRelationshipProperties,
         getPropertiesByDependentToCompound,
         getPropertiesList,
         getVisiblePropertiesList,

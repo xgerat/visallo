@@ -45,20 +45,16 @@ define([
             this.updateSortFields(true);
         });
 
-        this.onFilterProperties = function(event, data) {
+        this.onFilterProperties = function(event, filter) {
             if ($(event.target).is('.property-select')) return;
 
-            if (!data || _.isEmpty(data.properties)) {
-                this.filteredProperties = null;
+            if (!filter) {
+                this.filter = null;
             } else {
-                this.filteredProperties = _.reject(data.properties, function(p) {
-                    return p.sortable === false;
-                });
+                this.filter = { ...(this.filter || {}), ...filter, searchable: true, sortable: true };
             }
 
-            this.$node.find('.property-select').trigger(event.type, {
-                properties: this.filteredProperties
-            });
+            this.$node.find('.property-select').trigger(event.type, this.filter);
         };
 
         this.onSetSortFields = function(event, data) {
@@ -92,15 +88,14 @@ define([
             var node = this.$node.find('.property-select');
             node.teardownComponent(FieldSelection);
             FieldSelection.attachTo(node, {
-                properties: _.reject(this.filteredProperties || ontology.properties.list, function(p) {
-                    return p.searchable === false || p.sortable === false;
-                }),
+                properties: ontology.properties.list,
                 creatable: false,
                 onlySearchable: true,
                 onlySortable: true,
                 rollupCompound: false,
                 hideCompound: true,
-                placeholder: i18n('search.sort.placeholder')
+                placeholder: i18n('search.sort.placeholder'),
+                filter: this.filter
             });
         };
 

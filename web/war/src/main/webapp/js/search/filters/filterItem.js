@@ -8,17 +8,31 @@ define([
     template) {
     'use strict';
 
-    var PREDICATES = {
-            HAS: 'has',
-            HAS_NOT: 'hasNot',
-            CONTAINS: '~',
-            EQUALS: '=',
-            IN: 'in',
-            LESS_THAN: '<',
-            GREATER_THAN: '>',
-            BETWEEN: 'range',
-            WITHIN: 'within'
-        };
+    const PREDICATES = {
+        HAS: 'has',
+        HAS_NOT: 'hasNot',
+        CONTAINS: '~',
+        EQUALS: '=',
+        IN: 'in',
+        LESS_THAN: '<',
+        GREATER_THAN: '>',
+        BETWEEN: 'range'
+    };
+
+    const GEO_PREDICATES = {
+        INTERSECTS: 'intersects',
+        DISJOINT: 'disjoint',
+        WITHIN: 'within',
+        CONTAINS: 'contains'
+    }
+
+    const DATA_TYPES = [
+        {
+            title: 'dataType:geoLocation',
+            dataType: 'geoLocation',
+            displayName: i18n('ontology.property.data.types.geolocation')
+        }
+    ]
 
     return defineComponent(FilterItem);
 
@@ -63,7 +77,7 @@ define([
         };
 
         this.isValid = function() {
-            var hasPredicateAndProperty = this.filter.predicate && this.filter.propertyId;
+            var hasPredicateAndProperty = this.filter.predicate && (this.filter.propertyId || this.filter.dataType);
             if (hasPredicateAndProperty) {
                 var propertyFieldRequired = this.predicateNeedsValues(),
                     rangeFilter = this.filter.predicate === PREDICATES.BETWEEN;
@@ -80,12 +94,8 @@ define([
         };
 
         this.triggerChange = function() {
-            var valid = this.isValid(),
-                filter = {
-                    propertyId: this.filter.propertyId,
-                    predicate: this.filter.predicate,
-                    metadata: this.filter.metadata
-                };
+            let valid = this.isValid();
+            const { values, ...filter } = this.filter;
 
             if (this.predicateNeedsValues()) {
 
@@ -98,7 +108,7 @@ define([
                         }
                         return val;
                     });
-                } else if (this.filter.predicate === PREDICATES.WITHIN) {
+                } else if (Object.keys(GEO_PREDICATES).some(predicate => GEO_PREDICATES[predicate] === this.filter.predicate)) {
                     var geo = _.first(this.filter.values);
                     filter.values = geo ? [geo.latitude, geo.longitude, geo.radius] : new Array(3);
                 } else if (this.filter.predicate === PREDICATES.IN) {
@@ -129,9 +139,15 @@ define([
             });
         };
 
-        this.onFilterProperties = function(event, data) {
+        this.onFilterProperties = function(event, filter) {
             if ($(event.target).is(this.$node)) {
-                this.select('propertySelectionSelector').trigger(event.type, data);
+                if (!filter) {
+                    this.listFilter = null;
+                } else {
+                    this.listFilter = filter;
+                }
+
+                this.select('propertySelectionSelector').trigger('filterProperties', this.listFilter);
             }
         };
 
@@ -189,11 +205,24 @@ define([
             if (data.predicate === 'equal') {
                 data.predicate = '=';
             }
-            this.filter = {
+            const filter = {
                 predicate: data.predicate,
-                propertyId: property && property.title,
                 values: data.values || []
             };
+
+            if (property && property.title.startsWith('dataType:')) {
+                switch (property.dataType) {
+                    case 'geoLocation':
+                        filter.dataType = 'GEO_LOCATION';
+                        break;
+                    default:
+                        throw new Error('Unknown datatype: ' + property.dataType);
+                }
+            } else {
+                filter.propertyId = property && property.title;
+            }
+
+            this.filter = filter;
 
             this.select('propertySelectionSelector')
                 .toggle(!hasProperty);
@@ -314,15 +343,24 @@ define([
                 return [PREDICATES.IN].concat(standardPredicates);
             }
 
+            if (property.title.startsWith('dataType:')) {
+                switch (property.dataType) {
+                    case 'geoLocation':
+                        return _.values(GEO_PREDICATES).concat(standardPredicates)
+                    default:
+                        throw new Error('Unknown datatype: ' + property.dataType);
+
+                }
+            }
+
             switch (property.dataType) {
                 case 'string': return [
                         PREDICATES.CONTAINS,
                         PREDICATES.EQUALS
                     ].concat(standardPredicates);
 
-                case 'geoLocation': return [
-                        PREDICATES.WITHIN
-                    ].concat(standardPredicates);
+                case 'geoLocation':
+                    return _.values(GEO_PREDICATES).concat(standardPredicates);
 
                 case 'boolean': return [
                         PREDICATES.EQUALS
@@ -371,13 +409,24 @@ define([
         };
 
         this.createFieldSelection = function() {
+            const properties = [
+                ..._.sortBy(this.attr.properties, 'displayName'),
+                {
+                    title: 'data-types-header',
+                    displayName: i18n('ontology.property.header.data.types'),
+                    header: true
+                },
+                ..._.sortBy(DATA_TYPES, 'displayName'),
+            ];
+
             FieldSelection.attachTo(this.select('propertySelectionSelector'), {
-                properties: this.attr.properties,
+                properties,
                 onlySearchable: true,
                 creatable: false,
                 placeholder: i18n('search.filters.add_filter.placeholder'),
                 rollupCompound: false,
-                hideCompound: true
+                hideCompound: true,
+                filter: this.attr.listFilter
             });
         };
 

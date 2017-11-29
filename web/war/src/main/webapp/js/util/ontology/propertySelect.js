@@ -10,6 +10,7 @@
  * @attr {boolean} [onlySearchable=false] Only show properties that have searchable attribute equal to true in ontology
  * @attr {boolean} [onlySortable=false] Only show properties that have sortable attribute equal to true in ontology
  * @attr {string} [onlyDataTypes=[]] Only show properties that have matching data type in ontology
+ * @attr {string} [domainType] `concept` or `relationship`, show only properties that are attached to concepts or relationships
  * @attr {boolean} [hideCompound=false] Hide all compound/parent fields
  * @attr {boolean} [rollupCompound=true] Hide all dependent properties and only show the compound/parent fields
  * @attr {boolean} [focus=false] Activate the field for focus when finished rendering
@@ -48,21 +49,22 @@ define([
             }
 
             /**
-             * Trigger to change the list of properties the component works with.
+             * Trigger to change the filters or list of properties the component works with.
              *
              * @event module:components/PropertySelect#filterProperties
-             * @property {object} data
-             * @property {Array.<object>} data.properties The properties array to use
+             * @property {module:components/PropertySelect#filters} filters Attributes used to filter the properties in the component
              * @example
              * PropertySelect.attachTo($node)
              * //...
              * $node.trigger('filterProperties', { properties: newList })
+             * $node.trigger('filterProperties', { conceptId: null }) //clear a filter
+             * $node.trigger('filterProperties', { searchable: true, sortable: true, dataType: null }) //set multiple at once
              */
-            this.on('filterProperties', function(event, data) {
-                if ('properties' in data) {
-                    const params = this.attacher._params;
-                    this.attacher.params({ ...params, filter: { ...params.filter, properties: _.indexBy(data.properties, 'title') }}).attach();
-                }
+            this.on('filterProperties', function(event, filter) {
+                const params = this.attacher._params;
+                const nextFilter = _.omit({ ...params.filter, ...filter }, value => value === null);
+
+                this.attacher.params({ ...params, filter: nextFilter }).attach();
             });
 
             /**
@@ -95,12 +97,16 @@ define([
                 onlySearchable,
                 onlySortable,
                 onlyDataTypes,
+                domainType,
                 showAdminProperties,
                 limitParentConceptId
             } = this.attr;
 
             if (_.isArray(onlyDataTypes)) {
                 filter.dataTypes = onlyDataTypes
+            }
+            if (domainType) {
+                filter.domainType = domainType;
             }
             if (onlySearchable === true) {
                 filter.searchable = true;
@@ -121,7 +127,14 @@ define([
             this.attacher = attacher()
                 .node(this.node)
                 .params({
-                    filter: { ...filter, rollupCompound, hideCompound },
+                    properties: this.attr.properties,
+                    filter: {
+                        ...filter,
+                        rollupCompound,
+                        hideCompound,
+                        userVisible: true,
+                        searchable: true
+                    },
                     value: this.attr.selectedProperty,
                     autofocus: focus === true,
                     creatable: this.attr.creatable !== false,

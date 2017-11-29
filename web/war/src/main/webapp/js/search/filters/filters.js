@@ -337,14 +337,10 @@ define([
             // If related search just notify filters
             if (this.matchType === 'edge') {
                 if (this.edgeLabelFilter.length) {
-                    Promise.map(this.edgeLabelFilter, item =>
-                        this.dataRequest('ontology', 'propertiesByRelationship', item.iri)
-                    ).then(properties => {
-                        this.filterPropertyList(properties);
-                        this.notifyOfFilters();
-                    })
+                    this.filterPropertyList({ relationshipId: _.map(this.edgeLabelFilter, edgeLabelFilter => edgeLabelFilter.iri) });
+                    this.notifyOfFilters();
                 } else {
-                    this.filterPropertyList();
+                    this.filterPropertyList({ domainType: 'relationship' });
                     this.notifyOfFilters();
                 }
             } else {
@@ -352,34 +348,12 @@ define([
             }
         };
 
-        this.filterPropertyList = function(properties) {
-            let addedTitles = {};
-            this.filteredPropertiesList = (
-                properties ?
-                    properties.reduce((filtered, props) => {
-                        if (props && props.list) {
-                            props.list.forEach(property => {
-                                const alreadyAdded = property.title in addedTitles;
-                                const noDependents = _.isEmpty(property.dependentPropertyIris);
-
-                                if (!alreadyAdded && noDependents) {
-                                    addedTitles[property.title] = true;
-                                    filtered.push(property);
-                                }
-                            })
-                        }
-                        return filtered;
-                    }, []) :
-                    null
-            );
+        this.filterPropertyList = function(filter) {
+            this.propertyListFilter = filter;
 
             this.select('filterItemsSelector')
                 .add(this.select('sortContentSelector'))
-                .trigger('filterProperties', {
-                    properties: properties ?
-                        this.filteredPropertiesList :
-                        this.propertiesByDomainType[this.matchType]
-                })
+                .trigger('filterProperties', filter)
         }
 
         this.setMatchType = function(type) {
@@ -405,9 +379,16 @@ define([
                     if (result.length) {
                         this.propertiesByDomainType[type] = result;
                     }
-                    this.select('sortContentSelector').trigger('filterProperties', {
-                        properties: this.propertiesByDomainType[type]
-                    });
+                    const domainType = this.matchType === 'vertex' ? 'concept' : 'relationship';
+                    const filters = { domainType, conceptId: null, relationshipId: null }
+
+                    if (domainType === 'concept' && this.propertyListFilter && this.propertyListFilter.conceptId) {
+                        filters.conceptId = this.propertyListFilter.conceptId;
+                    } else if (domainType === 'relationship' && this.propertyListFilter && this.propertyListFilter.relationshipId) {
+                        filters.relationshipId = this.propertyListFilter.relationshipId;
+                    }
+
+                    this.select('sortContentSelector').trigger('filterProperties', filters);
                     this.createNewRowIfNeeded();
                     this.notifyOfFilters();
                 });
@@ -448,14 +429,12 @@ define([
             });
 
             if (this.conceptFilter.length) {
-                Promise.map(this.conceptFilter, item =>
-                    this.dataRequest('ontology', 'propertiesByConceptId', item.iri)
-                ).then(properties => {
-                    this.filterPropertyList(properties);
-                    this.notifyOfFilters();
-                })
+                const filters = {};
+
+                this.filterPropertyList({ conceptId: _.map(this.conceptFilter, conceptFilter => conceptFilter.iri) });
+                this.notifyOfFilters();
             } else {
-                this.filterPropertyList();
+                this.filterPropertyList({ conceptId: null, domainType: 'concept' });
                 this.notifyOfFilters();
             }
         };
@@ -595,30 +574,35 @@ define([
                     matchType: this.matchType,
                     propertyFilters: _.chain(this.propertyFilters)
                         .map(function(filter) {
-                            var ontologyProperty = self.propertiesByDomainType[self.matchType].find(function(property) {
-                                return property.title === filter.propertyId;
-                            });
+                            const { propertyId, dataType, metadata, predicate, values } = filter;
+                            const dataKey = dataType ? 'dataType' : 'propertyId';
 
-                            if (ontologyProperty && ontologyProperty.dependentPropertyIris) {
-                                return ontologyProperty.dependentPropertyIris.map(function(iri, i) {
-                                    if (_.isArray(filter.values[i]) && _.reject(filter.values[i], function(v) {
-                                        return v === null || v === undefined;
-                                    }).length) {
-                                        return {
-                                            propertyId: iri,
-                                            predicate: filter.predicate,
-                                            values: filter.values[i],
-                                            metadata: filter.metadata
-                                        }
-                                    }
+                            if (propertyId) {
+                                const ontologyProperty = self.propertiesByDomainType[self.matchType].find(function(property) {
+                                    return property.title === propertyId;
                                 });
+
+                                if (ontologyProperty && ontologyProperty.dependentPropertyIris) {
+                                    return ontologyProperty.dependentPropertyIris.map(function(iri, i) {
+                                        if (_.isArray(values[i]) && _.reject(values[i], function(v) {
+                                            return v === null || v === undefined;
+                                        }).length) {
+                                            return {
+                                                propertyId: iri,
+                                                predicate,
+                                                values: values[i],
+                                                metadata
+                                            }
+                                        }
+                                    });
+                                }
                             }
 
                             return {
-                                propertyId: filter.propertyId,
-                                predicate: filter.predicate,
-                                values: filter.values,
-                                metadata: filter.metadata
+                                [dataKey]: filter[dataKey],
+                                predicate,
+                                values,
+                                metadata
                             };
                         })
                         .flatten(true)
@@ -840,10 +824,14 @@ define([
                     predicate: filter.predicate,
                     values: filter.values
                 } : {
-                    properties: this.filteredPropertiesList || this.propertiesByDomainType[this.matchType],
+                    properties: this.propertiesByDomainType[this.matchType],
                     supportsHistogram: this.attr.supportsHistogram
                 },
                 $newRow = this.$node.find('.newrow');
+
+            if (this.propertyListFilter) {
+                attributes.listFilter = this.propertyListFilter;
+            }
 
             if (filter) {
                 $li.addClass('filter')
