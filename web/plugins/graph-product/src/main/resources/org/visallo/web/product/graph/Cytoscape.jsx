@@ -781,12 +781,6 @@ define([
 
             if (drawPaths) {
                 const { paths, renderedPaths, sourceId, targetId, labels } = drawPaths;
-
-                if (cy.getElementById(sourceId).empty() ||
-                    cy.getElementById(targetId).empty()) {
-                    return;
-                }
-
                 const nodesById = _.indexBy(newData.elements.nodes, n => n.data.id);
                 const keyGen = (src, target) => [src, target].sort().join('');
                 const edgesById = _.groupBy(
@@ -831,7 +825,7 @@ define([
                     };
 
                     var count = 0;
-                    var lastNode = sourceId;
+                    var lastNode = path[0];
 
                     nodeIds.forEach(nodeId => {
                         if (nodeId in nodesById && nodeId !== lastNode) {
@@ -841,7 +835,9 @@ define([
                         } else count++;
                     });
 
-                    existingOrNewEdgeBetween(lastNode, targetId, count);
+                    if (nodesById[targetId]) {
+                        existingOrNewEdgeBetween(lastNode, path[(path.length - 1)], count);
+                    }
                 });
             }
         },

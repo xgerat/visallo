@@ -352,19 +352,37 @@ define([
             const cy = this.cytoscape.state.cy;
             const collapsedNodes = cy.nodes().filter('node.c');
             const mappedIds = {};
+            const findRenderedNodeId = (id) => {
+                if (!(id in mappedIds)) {
+                    if (cy.getElementById(id).length) {
+                        mappedIds[id] = id
+                    } else {
+                        const parentNode = collapsedNodes.filter(node => node.data('vertexIds').includes(id))
+                        mappedIds[id] = parentNode.length === 1 ? parentNode.id() : null
+                    }
+                }
+
+                return mappedIds[id]
+            }
 
             if (data.paths.length > MaxPathsToFocus) {
                 data.paths = data.paths.slice(0, MaxPathsToFocus);
-                $(document).trigger('displayInformation', { message: 'Too many paths to show, will display the first ' + MaxPathsToFocus })
+                $(document).trigger('displayInformation', {
+                    message: i18n('org.visallo.web.product.graph.findPath.too.many', MaxPathsToFocus)
+                })
             }
 
-            data.renderedPaths = data.paths.map(path => path.map(id => {
-                mappedIds[id] = mappedIds[id] || (
-                    cy.getElementById(id).length
-                        ? id : (collapsedNodes.filter(node => node.data('vertexIds').includes(id)).id() || id)
-                );
-                return mappedIds[id];
-            }));
+            data.renderedPaths = data.paths.reduce((renderedPaths, path) => {
+                const sourceId = findRenderedNodeId(path[0])
+                const targetId = findRenderedNodeId(path[(path.length - 1)])
+
+                if (sourceId && targetId) {
+                    const renderedPath = path.map(findRenderedNodeId)
+                    renderedPaths.push(renderedPath)
+                }
+
+                return renderedPaths
+            }, [])
 
             this.setState({
                 paths: data
