@@ -1234,7 +1234,7 @@ define([
             isEdge: function(vertex) { return vertex && vertex.type && vertex.type === 'edge'; },
 
             isExtendedDataRow: function(item) {
-                return (item.id && item.id.rowId) || (item.type === 'extendedDataRow');
+                return item && ((item.id && item.id.rowId) || (item.type === 'extendedDataRow'));
             },
 
             isArtifact: function(vertex) {
