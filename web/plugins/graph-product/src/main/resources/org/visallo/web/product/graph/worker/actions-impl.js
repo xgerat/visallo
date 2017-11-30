@@ -141,7 +141,7 @@ define([
                         dispatch(productActions.update(product));
 
                         const { edges } = product.extendedData;
-                        const vertexIds = Object.keys(byType.vertex);
+                        const vertexIds = _.pluck(byType.vertex, 'id');
                         const edgeIds = _.pluck(edges, 'edgeId');
                         return dispatch(elementActions.get({ workspaceId, vertexIds, edgeIds }));
                     });
