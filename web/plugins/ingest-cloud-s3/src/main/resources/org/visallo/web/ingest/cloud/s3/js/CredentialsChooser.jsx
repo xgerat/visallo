@@ -9,6 +9,10 @@ define([
 
     const DEFAULT_AUTH_ID = 'basic_auth'
     const AUTH_EXTENSION_POINT = 'org.visallo.ingest.cloud.s3.auth';
+
+    /**
+     * Add other UI to authenticate to an s3 instance.
+     */
     RegistryInjectorHOC.registry.documentExtensionPoint('org.visallo.ingest.cloud.s3.auth',
         'Provide credential managers to S3 ingest',
         function(e) {

@@ -62,7 +62,7 @@
   },
   "devDependencies": {
     "@visallo/grunt-contrib-compress": "^1.4.3",
-    "@visallo/visallo-jsdoc-template": "^1.1.6",
+    "@visallo/visallo-jsdoc-template": "^1.1.7",
     "babel-core": "^6.10.4",
     "babel-plugin-transform-object-rest-spread": "^6.8.0",
     "babel-plugin-transform-react-display-name": "^6.8.0",
