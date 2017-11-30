@@ -119,7 +119,7 @@ define([
                         }
                         return val;
                     });
-                } else if (this.filter.predicate === GEO_PREDICATES.WITHIN || this.filter.predicate === GEO_PREDICATES.INTERSECTS) {
+                } else if (Object.keys(GEO_PREDICATES).some(predicate => GEO_PREDICATES[predicate] === this.filter.predicate)) {
                     var geo = _.first(this.filter.values);
                     filter.values = geo ? [geo.latitude, geo.longitude, geo.radius] : new Array(3);
                 } else if (this.filter.predicate === PREDICATES.IN) {
@@ -379,9 +379,8 @@ define([
                         PREDICATES.EQUALS
                     ].concat(standardPredicates);
 
-                case 'geoLocation': return [
-                        ...GEO_PREDICATES
-                    ].concat(standardPredicates);
+                case 'geoLocation':
+                    return _.values(GEO_PREDICATES).concat(standardPredicates);
 
                 case 'boolean': return [
                         PREDICATES.EQUALS

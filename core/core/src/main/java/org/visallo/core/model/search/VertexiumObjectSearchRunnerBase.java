@@ -353,7 +353,8 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
                 } else if (PropertyType.BOOLEAN.equals(propertyDataType)) {
                     graphQuery.has(propertyName, Compare.EQUAL, value0);
                 } else if (PropertyType.GEO_LOCATION.equals(propertyDataType)) {
-                    graphQuery.has(propertyName, GeoCompare.INTERSECTS, value0);
+                    GeoCompare geoComparePredicate = GeoCompare.valueOf(predicateString.toUpperCase());
+                    graphQuery.has(propertyName, geoComparePredicate, value0);
                 } else if ("<".equals(predicateString)) {
                     graphQuery.has(propertyName, Compare.LESS_THAN, value0);
                 } else if (">".equals(predicateString)) {

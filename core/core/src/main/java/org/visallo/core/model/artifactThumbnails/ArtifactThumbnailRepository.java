@@ -27,7 +27,7 @@ import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 public class ArtifactThumbnailRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ArtifactThumbnailRepository.class);
     private static final String VISIBILITY_STRING = "";
-    public static int FRAMES_PER_PREVIEW = 20;
+    public static int DEFAULT_FRAMES_PER_PREVIEW = 20;
     public static int PREVIEW_FRAME_WIDTH = 360;
     public static int PREVIEW_FRAME_HEIGHT = 240;
     private final SimpleOrmSession simpleOrmSession;

@@ -320,19 +320,23 @@ define([
         };
 
         this.checkValid = function() {
-            var button = this.select('actionButtonSelector');
-            var visibilityValid = this.visibilitySource && this.visibilitySource.valid;
+            const button = this.select('actionButtonSelector');
+            const visibilityValid = this.visibilitySource && this.visibilitySource.valid;
+            let disabled = false;
 
             if (!this.unresolve) {
                 this.select('visibilitySelector').find('input').toggleClass('invalid', !visibilityValid);
-                if (this.justification && this.justification.valid && this.selectedConceptId && visibilityValid) {
-                    button.removeAttr('disabled');
-                } else {
-                    button.attr('disabled', true);
-                }
-            } else {
-                button.removeAttr('disabled');
+
+                disabled = !(
+                    this.justification
+                    && this.justification.valid
+                    && this.selectedConceptId
+                    && visibilityValid
+                    && (this.attr.existing || this.sign)
+                );
             }
+
+            button.attr('disabled', disabled);
         };
 
         this.setupContent = function() {

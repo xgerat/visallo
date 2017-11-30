@@ -368,10 +368,21 @@ define([
             const { animate = true, limitToFeatures = [] } = options;
             const { map, layersWithSources } = this.state;
             const view = map.getView();
-            const extent = limitToFeatures.length ?
-                this.extentFromFeatures(limitToFeatures) :
-                layersWithSources.cluster.source.getExtent();
             const changeZoom = limitToFeatures.length !== 1;
+            let extent;
+
+            if (limitToFeatures.length) {
+                extent = this.extentFromFeatures(limitToFeatures)
+            } else {
+                extent = ol.extent.createEmpty();
+                map.getLayers().forEach(layer => {
+                    const source = layer.getSource();
+
+                    if (layer.getVisible() && _.isFunction(source.getExtent)) {
+                        ol.extent.extend(extent, source.getExtent())
+                    }
+                })
+            }
 
             if (!ol.extent.isEmpty(extent)) {
                 var resolution = view.getResolution(),
