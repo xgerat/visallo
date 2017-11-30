@@ -426,7 +426,7 @@ define([
                 placeholder: i18n('search.filters.add_filter.placeholder'),
                 rollupCompound: false,
                 hideCompound: true,
-                filter: this.attr.listFilter
+                filter: { ...this.attr.listFilter, userVisible: true }
             });
         };
 

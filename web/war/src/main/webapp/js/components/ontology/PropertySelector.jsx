@@ -28,18 +28,18 @@ define([
              * @typedef {object} module:components/PropertySelect#filters
              *
              * @property {Array.<object>} properties Override the array of properties to use, any other filters defined will still be applied to this array
-             * @property {string|Array.<string>} conceptId Filter to only properties attached to this concept, or any of the concepts if given an array
-             * @property {string|Array.<string>} relationshipId Filter to only properties attached to this relationship, or any of the relationships if given an array
-             * @property {boolean} hideCompound Exclude compound properties
-             * @property {string} dataType Include properties of only this data type
-             * @property {Array.<string>} dataTypes Include properties of only these data types
-             * @property {string} domainType `concept` or `relationship`, include properties that are attached to an element type
-             * @property {boolean} addable Include properties whose `addable` value matches the value provided, if `addable` is not defined on the property it will return true
-             * @property {boolean} userVisible Include properties whose `userVisible` value matches the value provided, if `userVisible` is not defined on the property it will return true
-             * @property {boolean} searchable Include properties whose `searchable` value matches the value provided, if `searchable` is not defined on the property it will return true
-             * @property {boolean} deleteable Include properties whose `deleteable` value matches the value provided, if `deleteable` is not defined on the property it will return true
-             * @property {boolean} sortable Include properties whose `sortable` value matches the value provided, if `sortable` is not defined on the property it will return true
-             * @property {boolean} updateable Include properties whose `updateable` value matches the value provided, if `updateable` is not defined on the property it will return true
+             * @property {string|Array.<string>} [conceptId] Filter to only properties attached to this concept, or any of the concepts if given an array
+             * @property {string|Array.<string>} [relationshipId] Filter to only properties attached to this relationship, or any of the relationships if given an array
+             * @property {boolean} [hideCompound] Exclude compound properties
+             * @property {string} [dataType] Include properties of only this data type
+             * @property {Array.<string>} [dataTypes] Include properties of only these data types
+             * @property {string} [domainType] `concept` or `relationship`, include properties that are attached to an element type
+             * @property {boolean} [addable] Include properties whose `addable` value matches the value provided, if `addable` is not defined on the property it will return true
+             * @property {boolean} [userVisible=true] Include properties whose `userVisible` value matches the value provided, if `userVisible` is not defined on the property it will return true
+             * @property {boolean} [searchable] Include properties whose `searchable` value matches the value provided, if `searchable` is not defined on the property it will return true
+             * @property {boolean} [deleteable] Include properties whose `deleteable` value matches the value provided, if `deleteable` is not defined on the property it will return true
+             * @property {boolean} [sortable] Include properties whose `sortable` value matches the value provided, if `sortable` is not defined on the property it will return true
+             * @property {boolean} [updateable] Include properties whose `updateable` value matches the value provided, if `updateable` is not defined on the property it will return true
              *
              */
             filter: PropTypes.shape({

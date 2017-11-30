@@ -51,7 +51,13 @@ define([
             if (!filter) {
                 this.filter = null;
             } else {
-                this.filter = { ...(this.filter || {}), ...filter, searchable: true, sortable: true };
+                this.filter = {
+                    ...(this.filter || {}),
+                    ...filter,
+                    searchable: true,
+                    sortable: true,
+                    userVisible: true
+                };
             }
 
             this.$node.find('.property-select').trigger(event.type, this.filter);

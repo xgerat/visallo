@@ -131,9 +131,7 @@ define([
                     filter: {
                         ...filter,
                         rollupCompound,
-                        hideCompound,
-                        userVisible: true,
-                        searchable: true
+                        hideCompound
                     },
                     value: this.attr.selectedProperty,
                     autofocus: focus === true,
