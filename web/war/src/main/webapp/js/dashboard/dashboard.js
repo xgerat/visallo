@@ -31,6 +31,57 @@ define([
     'use strict';
 
     /**
+     * @typedef org.visallo.dashboard.item~filter
+     * @property {string} propertyName Iri of property name to filter.
+     * @property {string} predicate Type of filter operation `has`, `hasNot`, `equal`, `contains`, `range`, `<`, `>`
+     * @property {Array.<object>} [values] The values for the property length of `2` when range filter, usually `1`
+     */
+
+    /**
+     * `term` Group by value of `field` and return counts.
+     *
+     * `geohash` Group by value of `field` with geohash [`precision` _(required)_](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-geohashgrid-aggregation.html) and return counts.
+     *
+     * `histogram` Group range (specified by [`interval` _(required)_](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-histogram-aggregation.html)) of values and their counts.
+     *
+     * `statistics` Statistics for property: [`min`, `max`, `count`, `average`, `sum`](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-stats-aggregation.html).
+     *
+     * @typedef org.visallo.dashboard.item~aggregation
+     * @property {string} type Type of aggregation: `term`, `geohash`, `histogram`
+     * @property {string} name Name the aggregation that's returned with results. Useful when more than one aggregation is used.
+     * @property {string} field Property name iri to aggregate.
+     */
+
+    /**
+     * These work for search `endpoints`
+     * * `vertex/search`: Only return vertices.
+     * * `edge/search`: Only return edges.
+     * * `element/search`: Search both vertices and edges.
+     *
+     * @typedef org.visallo.dashboard.item~reportParametersForSearch
+     * @property {string} q Search query, or asterisk.
+     * @property {number} [size] Number of results to limit to, use `0` if using aggregations.
+     * @property {number} [offset] Index of results to start.
+     * @property {string} filter JSON array of {@link org.visallo.dashboard.item~filter} objects to `AND`.
+     * @property {Array.<string>} [aggregations] List of {@link org.visallo.dashboard.item~aggregation} to apply, each item is json string.
+     * The aggregations should be converted from objects to strings. See example.
+     * @example
+     * {
+     *     q: '*',
+     *     size: 0,
+     *     filter: '[]',
+     *     aggregations: [
+     *         {
+     *             type: 'term',
+     *             name: 'field',
+     *             field: 'http://visallo.org#conceptType'
+     *         }
+     *     ].map(JSON.stringify) // Convert each item to strings
+     * }
+     *
+     */
+
+    /**
      * Allow custom content to be rendered in a card on dashboards.
      * They can be included in defaults dashboards using the {@link org.visallo.dashboard.layout}
      * extension, or added manually by users using the "Add Item" button
@@ -111,57 +162,6 @@ define([
             legacyName: 'org.visallo.web.dashboard.item'
         }
     );
-
-    /**
-     * @typedef org.visallo.dashboard.item~filter
-     * @property {string} propertyName Iri of property name to filter.
-     * @property {string} predicate Type of filter operation `has`, `hasNot`, `equal`, `contains`, `range`, `<`, `>`
-     * @property {Array.<object>} [values] The values for the property length of `2` when range filter, usually `1`
-     */
-
-    /**
-     * `term` Group by value of `field` and return counts.
-     *
-     * `geohash` Group by value of `field` with geohash [`precision` _(required)_](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-geohashgrid-aggregation.html) and return counts.
-     *
-     * `histogram` Group range (specified by [`interval` _(required)_](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-histogram-aggregation.html)) of values and their counts.
-     *
-     * `statistics` Statistics for property: [`min`, `max`, `count`, `average`, `sum`](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-stats-aggregation.html).
-     *
-     * @typedef org.visallo.dashboard.item~aggregation
-     * @property {string} type Type of aggregation: `term`, `geohash`, `histogram`
-     * @property {string} name Name the aggregation that's returned with results. Useful when more than one aggregation is used.
-     * @property {string} field Property name iri to aggregate.
-     */
-
-    /**
-     * These work for search `endpoints`
-     * * `vertex/search`: Only return vertices.
-     * * `edge/search`: Only return edges.
-     * * `element/search`: Search both vertices and edges.
-     *
-     * @typedef org.visallo.dashboard.item~reportParametersForSearch
-     * @property {string} q Search query, or asterisk.
-     * @property {number} [size] Number of results to limit to, use `0` if using aggregations.
-     * @property {number} [offset] Index of results to start.
-     * @property {string} filter JSON array of {@link org.visallo.dashboard.item~filter} objects to `AND`.
-     * @property {Array.<string>} [aggregations] List of {@link org.visallo.dashboard.item~aggregation} to apply, each item is json string.
-     * The aggregations should be converted from objects to strings. See example.
-     * @example
-     * {
-     *     q: '*',
-     *     size: 0,
-     *     filter: '[]',
-     *     aggregations: [
-     *         {
-     *             type: 'term',
-     *             name: 'field',
-     *             field: 'http://visallo.org#conceptType'
-     *         }
-     *     ].map(JSON.stringify) // Convert each item to strings
-     * }
-     *
-     */
 
     /**
      * Adds additional output types for dashboard items that define a `report` or `item.configuration.report`.
