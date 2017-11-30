@@ -17,12 +17,19 @@ requirejs.config({
 
 global.visalloEnvironment = { dev: false, prod: true };
 
+
 requirejs(['/base/jsc/require.config.js'], function(cfg) {
 
-    // Use react with addons for test utils
-    cfg.paths['react'] = '../libs/react/dist/react-with-addons';
-
-    var requireConfig = $.extend(true, {}, cfg, unminifyForTest('react-dom', 'create-react-class', 'react-proptypes-dev', 'react-redux'), {
+    var requireConfig = $.extend(true, {}, cfg,
+        unminifyForTest(
+            'react',
+            'react-dom',
+            'create-react-class',
+            'react-proptypes-dev',
+            'react-redux',
+            'react-transition-group',
+            'redux'
+        ), {
 
         // Karma serves files from '/base'
         baseUrl: '/base/jsc',
@@ -178,7 +185,11 @@ requirejs(['/base/jsc/require.config.js'], function(cfg) {
         for (var i = 0; i < arguments.length; i++) {
             var name = arguments[i];
             if (name in cfg.paths) {
-                override[name] = cfg.paths[name].replace(/\.min$/, '')
+                if (cfg.paths[name].includes('production.min')) {
+                    override[name] = cfg.paths[name].replace(/production\.min$/, 'development')
+                } else {
+                    override[name] = cfg.paths[name].replace(/\.min$/, '')
+                }
             }
         }
         return { paths: override };

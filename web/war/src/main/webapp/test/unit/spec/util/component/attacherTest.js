@@ -2,9 +2,7 @@ define([
     'util/component/attacher',
     'react',
     'testutils/called-deferred'
-], function(attacher, react, calledDeferred) {
-
-    var Simulate = react.addons.TestUtils.Simulate;
+], function(attacher, React, calledDeferred) {
 
     describe('attacher', function() {
 
@@ -219,7 +217,7 @@ define([
                 return attacher()
                     .node(this.node)
                     .component(function() {
-                        return react.createElement('div', null, 'Pure');
+                        return React.createElement('div', null, 'Pure');
                     })
                     .attach()
                     .then(function(a) {
@@ -273,7 +271,7 @@ define([
                     })
                     .attach()
                     .then(function(a) {
-                        Simulate.click(a._node.querySelector('div'));
+                        a._node.textContent.should.equal('Behavior Test');
                         return called.promise.should.become(true)
                     })
             })
@@ -296,7 +294,6 @@ define([
                     .attach()
                     .then(function(a) {
                         a._node.textContent.should.equal('first');
-                        Simulate.click(a._node.querySelector('div'));
                         return called.promise.should.become(true)
                     })
             })

@@ -20,7 +20,7 @@ define([
         },
 
         componentDidMount() {
-            this.setState({  overflow: this._container.offsetWidth < this._tabs.scrollWidth });
+            this.setState({ overflow: this._container.offsetWidth < this._tabs.scrollWidth });
         },
 
         onScrollClick(direction) {

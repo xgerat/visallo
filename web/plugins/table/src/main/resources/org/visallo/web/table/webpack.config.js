@@ -6,6 +6,7 @@ var VisalloAmdExternals = [
  'util/popovers/withPopover',
  'org/visallo/web/table/hbs/columnConfigPopover',
  'react',
+ 'react-virtualized',
  'create-react-class',
  'prop-types',
  'react-dom',

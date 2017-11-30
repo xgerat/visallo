@@ -5,18 +5,20 @@ define([
     'use strict';
 
     const ReactParams = createReactClass({
-        handleClick: function() {
-            this.props.customBehavior('param1')
+        propTypes: {
+            visalloApi: PropTypes.object.isRequired,
+            customBehavior: PropTypes.func.isRequired
+        },
+        componentDidMount() {
+            setTimeout(() => {
+                this.props.customBehavior('param1')
+            }, 0)
         },
         render: function(){
             const { customBehavior } = this.props;
             return (
-                <div onClick={this.handleClick}>Click Me</div>
+                <div>Behavior Test</div>
             );
-        },
-        propTypes: {
-            visalloApi: PropTypes.object.isRequired,
-            customBehavior: PropTypes.func.isRequired
         }
     })
 

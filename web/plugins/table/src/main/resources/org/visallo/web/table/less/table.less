@@ -127,19 +127,19 @@
     -webkit-user-select: none;
     user-select: none;
 
-      .FlexTable {
+      .ReactVirtualized__Table {
         overflow-x: auto;
 
-        .FlexTable__headerRow {
+        .ReactVirtualized__Table__headerRow {
           background: #f1f1f1;
 
-          .FlexTable__headerColumn {
+          .ReactVirtualized__Table__headerColumn {
             color: #666;
 
             .resizable-column-header {
               display: flex;
 
-              .FlexTable__headerTruncatedText {
+              .ReactVirtualized__Table__headerTruncatedText {
                 &:after {
                   content: ' ';
                   display: inline-block;
@@ -189,16 +189,21 @@
               background-size: auto 40%;
               background-repeat: no-repeat;
               background-position: center;
+              &:hover {
+                background-color: #c7c7c7;
+                pointer-events: all;
+                cursor: pointer;
+              }
             }
           }
         }
 
-        .FlexTable__Grid {
+        .ReactVirtualized__Table__Grid {
           .Grid__cell {
-            .FlexTable__row {
+            .ReactVirtualized__Table__row {
               border-bottom: 1px solid #f1f1f1;
 
-              .FlexTable__rowColumn {
+              .ReactVirtualized__Table__rowColumn {
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -221,7 +226,7 @@
                 background: #0088cc;
                 color: white;
 
-                .FlexTable__rowColumn {
+                .ReactVirtualized__Table__rowColumn {
                   .config-row-column {
                     color: white;
                   }
@@ -265,6 +270,15 @@
     }
 
     .popover-title {
+      .tableOption {
+        font-size: 90%;
+        margin: 0 0 0.2em 0;
+        padding: 0;
+        input {
+          margin: 0;
+          vertical-align: baseline;
+        }
+      }
       .sort-config {
         border-top: 1px solid #ebebeb;
         margin-top: 0.5em;
@@ -272,18 +286,37 @@
 
         .sort-property-select {
           margin: 0.5em 0 0 0;
+          display: block;
+          width: 100%;
         }
       }
     }
 
-    .popover-content .ui-sortable {
-      list-style-type: none;
-      margin: 0;
-      overflow-y: auto;
-      max-height: 50vh;
+    .popover-content {
+      padding: 0;
 
-      input[type="checkbox"] {
+      .ui-sortable {
+        list-style-type: none;
         margin: 0;
+        overflow-y: auto;
+        max-height: 40vh;
+        padding: 0.25em 1em;
+
+        input[type="checkbox"] {
+          margin: 0;
+        }
+        label {
+          font-size: 90%;
+          padding: 0;
+          margin: 0 0 .2em 0;
+          white-space: nowrap;
+          overflow: hidden;
+          max-width: 14em;
+          text-overflow: ellipsis; 
+          input {
+            vertical-align: baseline;
+          }
+        }
       }
     }
 }

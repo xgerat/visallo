@@ -538,7 +538,6 @@ define([
         },
 
         switchToTab(tabId) {
-            
             let { tableView } = this.state;
             tableView = _.mapObject(tableView, (val, key) => {
                 if (_.isObject(val)) {
@@ -590,11 +589,10 @@ define([
                 currentSelection[type] = [id];
             }
 
-            if (!event.shiftKey)  {
+            if (!event.shiftKey) {
                 this.setState({ previousRowClickIndex: index });
             }
 
-            
             this.props.onSetSelection(currentSelection);
 
             function isDiscontiguousSelectionKeyPressed(evt) {

@@ -13,6 +13,7 @@ define([], function() {
       onRowMouseOver,
       onRowMouseOut,
       rowData,
+      key,
       style,
       selected,
       onContextMenu
@@ -55,6 +56,7 @@ define([], function() {
             <div
                 {...a11yProps}
                 className={className}
+                key={key}
                 style={style}
                 onContextMenu={(event) => { onContextMenu(event, index)}}
                 data-row-index={index}

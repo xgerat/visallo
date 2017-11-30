@@ -19,7 +19,6 @@ public class TableWebAppPlugin implements WebAppPlugin {
         app.registerJavaScriptComponent("/org/visallo/web/table/js/card/Config.jsx");
         app.registerJavaScriptTemplate("/org/visallo/web/table/hbs/columnConfigPopover.hbs");
 
-        app.registerCss("/org/visallo/web/table/node_modules/react-virtualized/styles.css");
         app.registerCss("/org/visallo/web/table/node_modules/react-resizable/css/styles.css");
         app.registerLess("/org/visallo/web/table/less/table.less");
 

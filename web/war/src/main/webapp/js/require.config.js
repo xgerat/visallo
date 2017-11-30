@@ -72,9 +72,8 @@
             'rangy-highlighter': '../libs/rangy/lib/rangy-highlighter',
             'rangy-cssclassapplier': '../libs/rangy/lib/rangy-classapplier',
             'rangy-serializer': '../libs/rangy/lib/rangy-serializer',
-
-            'react': '../libs/react/dist/react.min',
-            'react-dom': '../libs/react-dom/dist/react-dom.min',
+            'react': '../libs/react/umd/react.production.min',
+            'react-dom': '../libs/react-dom/umd/react-dom.production.min',
             'create-react-class': '../libs/create-react-class/create-react-class.min',
             'react-proptypes-dev': '../libs/prop-types/prop-types.min',
             'react-redux': '../libs/react-redux/dist/react-redux.min',

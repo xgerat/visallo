@@ -4,12 +4,14 @@ define([
     'use strict';
 
     const ReactReattach = createReactClass({
-        click: function() {
-            this.props.changeParam('changed')
+        componentDidMount() {
+            setTimeout(() => {
+                this.props.changeParam('changed')
+            }, 0)
         },
         render: function(){
             return (
-              <div onClick={this.click}>{this.props.param}</div>
+              <div>{this.props.param}</div>
             );
         }
     })

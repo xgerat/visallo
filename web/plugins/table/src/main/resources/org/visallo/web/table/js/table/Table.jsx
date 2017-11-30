@@ -12,7 +12,7 @@ define([
     SelectableRowRenderer) {
     'use strict';
 
-    const { AutoSizer, InfiniteLoader, FlexTable, FlexColumn } = ReactVirtualized;
+    const { AutoSizer, InfiniteLoader, Table: VirtualizedTable, Column } = ReactVirtualized;
     const { Resizable } = ReactResizable;
 
     const PAGE_SIZE = 25,
@@ -40,9 +40,9 @@ define([
 
         componentWillUpdate(nextProps) {
             if (nextProps.showRowNumbers !== this.props.showRowNumbers) {
-                this._FlexTable.forceUpdateGrid();
+                this._VirtualizedTable.forceUpdateGrid();
             } else {
-                this._FlexTable.recomputeRowHeights();
+                this._VirtualizedTable.recomputeRowHeights();
             }
         },
 
@@ -77,7 +77,7 @@ define([
                         {({ onRowsRendered, registerChild }) => (
                             <AutoSizer disableWidth={true}>
                                 {({ height }) => (
-                                    <FlexTable
+                                    <VirtualizedTable
                                          overscanRowCount={0}
                                          width={tableWidth}
                                          height={height - 10}
@@ -91,12 +91,12 @@ define([
                                          scrollToIndex={scrollToIndex}
                                          onRowsRendered={onRowsRendered}
                                          ref={(ref) => {
-                                            this._FlexTable = ref;
+                                            this._VirtualizedTable = ref;
                                             registerChild(ref);
                                          }}
                                          sort={({ sortBy }) => {onHeaderClick(sortBy) }}
                                     >
-                                        <FlexColumn
+                                        <Column
                                            label="Columns"
                                            dataKey="index"
                                            disableSort={true}
@@ -112,14 +112,14 @@ define([
                                                ></div>
                                            )}
                                            style={{height: '100%'}}
-                                           cellRenderer={({ cellData }) =>
-                                               indexCellRenderer(cellData, showRowNumbers)
+                                           cellRenderer={({ key, style, cellData }) =>
+                                               indexCellRenderer(key, style, cellData, showRowNumbers)
                                            }
                                         />
                                         {columns.map(({ displayName, title, visible, width: columnWidth }) => {
                                             if (visible) {
                                                 return (
-                                                    <FlexColumn
+                                                    <Column
                                                        label={displayName}
                                                        dataKey={title}
                                                        width={columnWidth}
@@ -139,7 +139,7 @@ define([
                                             }
                                         })}
 
-                                    </FlexTable>
+                                    </VirtualizedTable>
                                 )}
                             </AutoSizer>
                         )}
@@ -168,7 +168,7 @@ define([
                 }}
             >
                 <div>
-                    <span className={'FlexTable__headerTruncatedText' + sortBy} title={label}>{label}</span>
+                    <span className={'ReactVirtualized__Table__headerTruncatedText' + sortBy} title={label}>{label}</span>
                 </div>
             </Resizable>
         );
@@ -179,25 +179,31 @@ define([
         }
     }
 
-    function cellRenderer({ dataKey, cellData }, width) {
+    function cellRenderer({ key, style, dataKey, cellData }, width) {
         let i = 0;
-        return (cellData ?
-            cellData.map((data) => (
-                <div
-                    key={`${dataKey}(${i++}):${data}`}
-                    className="property-value"
-                    style={{width: width}}
-                    dangerouslySetInnerHTML={{__html: data.outerHTML}}
-                ></div>
-            )) : ' '
+        return (
+            <div key={key} style={style}>
+            {
+                (cellData ?
+                cellData.map((data) => (
+                    <div
+                        key={`${dataKey}(${i++}):${data}`}
+                        className="property-value"
+                        style={{width: width}}
+                        dangerouslySetInnerHTML={{__html: data.outerHTML}}
+                    ></div>
+                )) : ' ')
+            }
+            </div>
         );
     }
 
-    function indexCellRenderer(cellData, showRowNumbers) {
+    function indexCellRenderer(key, style, cellData, showRowNumbers) {
         return (
             <p
                 className="property-value config-row-column"
-                style={{width: CONFIGURE_COLUMN_WIDTH}}
+                key={key}
+                style={{...style, width: CONFIGURE_COLUMN_WIDTH}}
             >
                 {showRowNumbers ? cellData : null}
             </p>

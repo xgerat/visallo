@@ -42,6 +42,8 @@ define([
                         containment: 'parent'
                     })
                     .on('sortupdate', this.onChange.bind(this));
+
+                this.positionDialog();
             });
         });
 

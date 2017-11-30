@@ -10,9 +10,7 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
-    "react-addons-shallow-compare": "15.3.0",
-    "react-resizable": "1.4.2",
-    "react-virtualized": "7.23.0"
+    "react-resizable": "1.7.5"
   },
   "devDependencies": {
     "babel-core": "^6.14.0",
@@ -21,8 +19,6 @@
     "babel-plugin-transform-react-display-name": "^6.8.0",
     "babel-plugin-transform-react-jsx": "^6.8.0",
     "babel-preset-es2015": "^6.14.0",
-    "react": "15.6.1",
-    "react-dom": "15.6.1",
     "webpack": "^3.5.2"
   }
 }

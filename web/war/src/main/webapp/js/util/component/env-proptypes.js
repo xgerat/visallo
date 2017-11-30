@@ -7,6 +7,14 @@ define(visalloEnvironment.dev ? ['react-proptypes-dev'] : [], function(PropTypes
 
     if (PropTypes) {
         if (!shimPropTypesSameAsReal(PropTypeShims, PropTypes)) {
+            // We shim the PropTypes in production for performance, but in dev
+            // also make sure our shims match what react provides.
+            const realKeys = Object.keys(PropTypes)
+            const shimKeys = Object.keys(PropTypeShims)
+            const missing = _.difference(realKeys, shimKeys).join(', ');
+            const extra = _.difference(shimKeys, realKeys).join(', ');
+            if (missing.length) console.warn('PropTypes shim is missing:', missing);
+            if (extra.length) console.warn('PropTypes shim has extras:', extra);
             throw new Error('PropTypes that are defined for production differ from those in react');
         }
         return PropTypes;
@@ -32,6 +40,7 @@ define(visalloEnvironment.dev ? ['react-proptypes-dev'] : [], function(PropTypes
             bool: shim,
             checkPropTypes: shim,
             element: shim,
+            exact: getShim,
             func: shim,
             instanceOf: getShim,
             node: shim,
