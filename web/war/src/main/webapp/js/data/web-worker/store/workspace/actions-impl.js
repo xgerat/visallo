@@ -17,6 +17,7 @@ define(['../actions', '../../util/ajax', 'require'], function(actions, ajax, req
                     if (workspaces.allLoaded) {
                         return Promise.resolve(sort(Object.values(workspaces.byId)));
                     } else {
+                        publicData.currentWorkspaceId = null;
                         return ajax('GET', '/workspace/all')
                             .then(function(result) {
                                 dispatch(api.setAll({ workspaces: result.workspaces }));
@@ -91,22 +92,31 @@ define(['../actions', '../../util/ajax', 'require'], function(actions, ajax, req
         update: ({ workspace }) => (dispatch, getState) => {
             const state = getState();
             const { currentId, byId } = state.workspace;
-            dispatch({
-                type: 'WORKSPACE_UPDATE',
-                payload: { workspace }
-            })
-            if (!currentId || !byId[currentId]) {
-                dispatch(api.setCurrent({ workspaceId: workspace.workspaceId }))
-            } else {
-                require([
-                    'data/web-worker/store/product/actions-impl',
-                    'data/web-worker/store/product/selectors'
-                ], (productActions, productSelectors) => {
-                    const selectedProduct = productSelectors.getProduct(state);
-                    if (selectedProduct && selectedProduct.extendedData) {
-                            dispatch(productActions.get({ productId: selectedProduct.id, invalidate: true }));
-                    }
+            const { current } = state.user;
+            const currentUserId = current && current.id;
+            // Sometimes withdrawing access can send a change message after
+            // permission has been removed
+            const hasAccess = currentUserId === workspace.createdBy ||
+                workspace.users.some(({userId}) => userId === currentUserId)
+
+            if (hasAccess) {
+                dispatch({
+                    type: 'WORKSPACE_UPDATE',
+                    payload: { workspace }
                 })
+                if (!currentId || !byId[currentId]) {
+                    dispatch(api.setCurrent({ workspaceId: workspace.workspaceId }))
+                } else {
+                    require([
+                        'data/web-worker/store/product/actions-impl',
+                        'data/web-worker/store/product/selectors'
+                    ], (productActions, productSelectors) => {
+                        const selectedProduct = productSelectors.getProduct(state);
+                        if (selectedProduct && selectedProduct.extendedData) {
+                                dispatch(productActions.get({ productId: selectedProduct.id, invalidate: true }));
+                        }
+                    })
+                }
             }
         }
     }

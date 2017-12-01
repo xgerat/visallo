@@ -18,46 +18,43 @@ define([], function() {
             this.on('undo', this.onUndo);
             this.on('redo', this.onRedo);
 
-            const selectId = (state) => state.workspace.currentId || null;
-            const selector = (state) => selectId(state) && state.workspace.byId[selectId(state)] || null;
-            visalloData.storePromise.then(store => {
-                let previous = store.getState();
+            const selectId = (state) => state.workspace.currentId || undefined;
+            const selector = (state) => {
+                const current = selectId(state);
+                return current ? state.workspace.byId[current] : undefined;
+            }
+            visalloData.storePromise.then(store => store.observe(state => state.workspace, (next, prev) => {
+                const state = store.getState()
+                const oldWorkspace = prev && prev.currentId && prev.byId[prev.currentId];
+                const newWorkspace = next && next.currentId && next.byId[next.currentId];
+                const changed = newWorkspace && (!oldWorkspace || oldWorkspace.workspaceId !== newWorkspace.workspaceId);
 
-                return store.observe(selector, (newWorkspace, oldWorkspace) => {
-                    const state = store.getState()
-                    const changed = newWorkspace && (!oldWorkspace || oldWorkspace.workspaceId !== newWorkspace.workspaceId);
+                if (changed) {
+                    workspace = {...newWorkspace};
+                    this.setPublicApi('currentWorkspaceId', workspace.workspaceId);
+                    this.setPublicApi('currentWorkspaceName', workspace.title);
+                    this.setPublicApi('currentWorkspaceEditable', workspace.editable);
+                    this.setPublicApi('currentWorkspaceCommentable', workspace.commentable);
+                    this.trigger('workspaceLoaded', workspace);
+                    this.trigger('selectObjects');
+                    this.fireApplicationReadyOnce();
+                }
 
-                    if (changed) {
-                        workspace = {...newWorkspace};
-                        this.setPublicApi('currentWorkspaceId', workspace.workspaceId);
-                        this.setPublicApi('currentWorkspaceName', workspace.title);
-                        this.setPublicApi('currentWorkspaceEditable', workspace.editable);
-                        this.setPublicApi('currentWorkspaceCommentable', workspace.commentable);
-                        this.trigger('workspaceLoaded', workspace);
-                        this.trigger('selectObjects');
-                        this.fireApplicationReadyOnce();
-                    } else {
-                        _.each(state.workspace.byId, (workspace, id) => {
-                            const workspaceChanged = previous.workspace.byId[id] && previous.workspace.byId[id] !== workspace;
-                            if (workspaceChanged) {
-                                this.setPublicApi('currentWorkspaceName', workspace.title);
-                                this.setPublicApi('currentWorkspaceEditable', workspace.editable);
-                                this.setPublicApi('currentWorkspaceCommentable', workspace.commentable);
-                                this.trigger('workspaceUpdated', { workspace })
-                            }
-                        });
-
-                        const deletedKeys = Object.keys(_.omit(previous.workspace.byId, Object.keys(state.workspace.byId)));
-
-                        if (deletedKeys.length) {
-                            deletedKeys.forEach(workspaceId => {
-                                this.trigger('workspaceDeleted', { workspaceId });
-                            })
-                        }
+                _.each(next.byId, (workspace, id) => {
+                    const previousWorkspace = prev.byId[id];
+                    const workspaceChanged = !previousWorkspace || (previousWorkspace !== workspace);
+                    if (workspaceChanged) {
+                        this.trigger('workspaceUpdated', { workspace })
                     }
-                    previous = state;
                 });
-            });
+
+                const deletedKeys = prev && next && Object.keys(_.omit(prev.byId, Object.keys(next.byId)));
+                if (deletedKeys) {
+                    deletedKeys.forEach(workspaceId => {
+                        this.trigger('workspaceDeleted', { workspaceId });
+                    })
+                }
+            }));
         });
 
         this.onLoadCurrentWorkspace = function(event) {
