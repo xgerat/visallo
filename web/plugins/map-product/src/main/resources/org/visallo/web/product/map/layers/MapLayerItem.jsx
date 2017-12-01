@@ -11,7 +11,7 @@ define([
 
     const MapLayerItem = ({ layer, config, style, toggleable, onToggleLayer }) => {
         const layerStatus = layer.get('status');
-        const statusMessage = _.isObject(layerStatus) && layerStatus.message;
+        const statusMessage = (_.isObject(layerStatus) && layerStatus.message) || null;
         const hasError = _.isObject(layerStatus) && layerStatus.type === 'error';
         const visible = config && config.visible !== undefined ? config.visible : layer.getVisible();
 
@@ -26,7 +26,7 @@ define([
                 />
                 <div className="layer-title">
                     <div className="title">{ titleRenderer(layer) }</div>
-                    <span className="subtitle" title={statusMessage}>{ statusMessage || null }</span>
+                    <span className="subtitle" title={statusMessage}>{ statusMessage }</span>
                 </div>
                 <div
                     className="layer-icon drag-handle"
