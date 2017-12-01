@@ -332,7 +332,7 @@ define([
                     && this.justification.valid
                     && this.selectedConceptId
                     && visibilityValid
-                    && (this.attr.existing || this.sign)
+                    && (this.attr.existing || this.sign.trim())
                 );
             }
 
