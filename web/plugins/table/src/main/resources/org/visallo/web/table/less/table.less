@@ -199,57 +199,55 @@
         }
 
         .ReactVirtualized__Table__Grid {
-          .Grid__cell {
-            .ReactVirtualized__Table__row {
-              border-bottom: 1px solid #f1f1f1;
+          .ReactVirtualized__Table__row {
+            border-bottom: 1px solid #f1f1f1;
+
+            .ReactVirtualized__Table__rowColumn {
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              pointer-events: none;
+              border-right: 1px solid transparent;
+
+              .property-value {
+                width: inherit;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                margin: 0.3em 0;
+
+                &.config-row-column {
+                  color: #ccc;
+                }
+              }
+            }
+
+            &.selected {
+              background: #0088cc;
+              color: white;
 
               .ReactVirtualized__Table__rowColumn {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                pointer-events: none;
-                border-right: 1px solid transparent;
-
-                .property-value {
-                  width: inherit;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                  margin: 0.3em 0;
-
-                  &.config-row-column {
-                    color: #ccc;
-                  }
-                }
-              }
-
-              &.selected {
-                background: #0088cc;
-                color: white;
-
-                .ReactVirtualized__Table__rowColumn {
-                  .config-row-column {
-                    color: white;
-                  }
-                }
-
-                &:hover {
-                  background: #0088cc;
-                }
-              }
-
-              &.loading {
-                background: none;
                 .config-row-column {
-                    flex: 1;
-                    height: 100%;
-                    background: transparent url(../../../../../../img/loading.gif) no-repeat center center;
-                    background-size: 35%;
+                  color: white;
                 }
               }
 
               &:hover {
-                background: #f9f9f9;
+                background: #0088cc;
               }
+            }
+
+            &.loading {
+              background: none;
+              .config-row-column {
+                  flex: 1;
+                  height: 100%;
+                  background: transparent url(../../../../../../img/loading.gif) no-repeat center center;
+                  background-size: 35%;
+              }
+            }
+
+            &:hover {
+              background: #f9f9f9;
             }
           }
         }

@@ -397,7 +397,7 @@ define([
                                     const options = {defaultValue: ' '};
                                     displayValuePromise = Promise.resolve(F[type].prop(result, title, p.key, options));
                                 } else if (ontologyProperty.displayType && F[type].properties[ontologyProperty.displayType]) {
-                                    displayValuePromise = Promise.resolve(F[type].properties[ontologyProperty.displayType](wrapper, p))
+                                    displayValuePromise = Promise.resolve(F[type].properties[ontologyProperty.displayType](wrapper, p, result))
                                         .then((el) => {
                                             if (!el) {
                                                 legacyFormattersError();
@@ -407,7 +407,7 @@ define([
                                             }
                                         });
                                 } else if (ontologyProperty.dataType && F[type].properties[ontologyProperty.dataType]) {
-                                    displayValuePromise = Promise.resolve(F[type].properties[ontologyProperty.dataType](wrapper, p))
+                                    displayValuePromise = Promise.resolve(F[type].properties[ontologyProperty.dataType](wrapper, p, result))
                                         .then((el) => {
                                             if (!el) {
                                                 legacyFormattersError();
@@ -553,7 +553,7 @@ define([
             _.defer(() => {this.loadRows(0, PAGE_SIZE)});
         },
 
-        onRowClick(event, index) {
+        onRowClick(event, { index }) {
             const { tableData, tableView, previousRowClickIndex } = this.state;
             const { searchId } = this.props.item.configuration;
             const url = tableView.url;

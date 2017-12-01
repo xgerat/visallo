@@ -56,6 +56,7 @@ define([
                 scrollToIndex,
                 onRowsRendered,
                 onHeaderClick,
+                onRowClick,
                 onContextMenu,
                 onColumnResize,
                 onConfigureColumnsClick } = this.props;
@@ -87,7 +88,7 @@ define([
                                          rowHeight={({ index }) => data[index] && data[index].height || ROW_HEIGHT}
                                          rowCount={rowCount}
                                          rowGetter={({ index }) => data[index] || {}}
-                                         rowRenderer={(args) => SelectableRowRenderer({ ...args, onContextMenu, selected })}
+                                         rowRenderer={(args) => SelectableRowRenderer({ ...args, selected, onContextMenu, onRowClick })}
                                          scrollToIndex={scrollToIndex}
                                          onRowsRendered={onRowsRendered}
                                          ref={(ref) => {
