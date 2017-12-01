@@ -482,6 +482,8 @@ define([
             var self = this;
 
             this.justification = data;
+
+            this.modified.justification = data.valid && (data.justificationText || data.sourceInfo);
             this.checkValid();
         };
 

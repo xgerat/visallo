@@ -1068,6 +1068,7 @@ define([
                 if (values.length) {
                     var properties = [];
                     if (dependentIris) {
+                        var hasValue = false;
                         dependentIris.forEach(function(iri, i) {
                             var property = _.findWhere(vertex.properties, {
                                     name: iri,
@@ -1087,8 +1088,17 @@ define([
                                     value: value
                                 };
                             }
+                            hasValue = hasValue || (
+                                property.value !== undefined
+                                && property.value !== ''
+                                && property.value !== null
+                            );
                             properties.push(property);
                         })
+
+                        if (!hasValue) {
+                            return false
+                        }
                     }
                     vertex = _.extend({}, vertex, { properties: properties });
                 }
