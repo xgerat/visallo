@@ -21,12 +21,16 @@ import static org.junit.Assert.assertEquals;
 public class DateVisalloPropertyTest extends VisalloInMemoryTestBase {
     private User user;
     private Authorizations authorizations;
+    private PropertyMetadata metadata;
+    private DateVisalloProperty prop;
 
     @Before
     public void before() throws Exception {
         super.before();
         user = getUserRepository().getSystemUser();
         authorizations = getAuthorizationRepository().getGraphAuthorizations(user);
+        metadata = new PropertyMetadata(user, new VisibilityJson(""), new Visibility(""));
+        prop = new DateVisalloProperty("name");
     }
 
     @Test
@@ -54,8 +58,40 @@ public class DateVisalloPropertyTest extends VisalloInMemoryTestBase {
     }
 
     private void testUpdatePropertyIfValueIsNewer(Date oldValue, Date newValue, Date expectedValue) {
-        DateVisalloProperty prop = new DateVisalloProperty("name");
+        testUpdateProperty(prop, expectedValue, oldValue, elemCtx ->
+                prop.updatePropertyIfValueIsNewer(elemCtx, "key", newValue, metadata));
+    }
 
+    @Test
+    public void testUpdatePropertyIfValueIsOlder_newer() {
+        Date oldValue = Date.from(ZonedDateTime.of(2017, 2, 6, 9, 30, 0, 0, ZoneId.of("UTC")).toInstant());
+        Date newValue = Date.from(ZonedDateTime.of(2017, 2, 7, 9, 30, 0, 0, ZoneId.of("UTC")).toInstant());
+        Date expectedValue = Date.from(ZonedDateTime.of(2017, 2, 6, 9, 30, 0, 0, ZoneId.of("UTC")).toInstant());
+        testUpdatePropertyIfValueIsOlder(oldValue, newValue, expectedValue);
+    }
+
+    @Test
+    public void testUpdatePropertyIfValueIsOlder_older() {
+        Date oldValue = Date.from(ZonedDateTime.of(2017, 2, 6, 9, 30, 0, 0, ZoneId.of("UTC")).toInstant());
+        Date newValue = Date.from(ZonedDateTime.of(2017, 2, 5, 9, 30, 0, 0, ZoneId.of("UTC")).toInstant());
+        Date expectedValue = Date.from(ZonedDateTime.of(2017, 2, 5, 9, 30, 0, 0, ZoneId.of("UTC")).toInstant());
+        testUpdatePropertyIfValueIsOlder(oldValue, newValue, expectedValue);
+    }
+
+    @Test
+    public void testUpdatePropertyIfValueIsOlder_newValue() {
+        Date oldValue = null;
+        Date newValue = Date.from(ZonedDateTime.of(2017, 2, 5, 9, 30, 0, 0, ZoneId.of("UTC")).toInstant());
+        Date expectedValue = Date.from(ZonedDateTime.of(2017, 2, 5, 9, 30, 0, 0, ZoneId.of("UTC")).toInstant());
+        testUpdatePropertyIfValueIsOlder(oldValue, newValue, expectedValue);
+    }
+
+    private void testUpdatePropertyIfValueIsOlder(Date oldValue, Date newValue, Date expectedValue) {
+        testUpdateProperty(prop, expectedValue, oldValue, elemCtx ->
+                prop.updatePropertyIfValueIsOlder(elemCtx, "key", newValue, metadata));
+    }
+
+    private void testUpdateProperty(DateVisalloProperty prop, Date expectedValue, Date oldValue, GraphUpdateContext.Update<Element> update) {
         Vertex v = getGraph().addVertex("v1", new Visibility(""), authorizations);
         if (oldValue != null) {
             prop.addPropertyValue(v, "key", oldValue, new Visibility(""), authorizations);
@@ -63,10 +99,7 @@ public class DateVisalloPropertyTest extends VisalloInMemoryTestBase {
 
         v = getGraph().getVertex("v1", authorizations);
         try (GraphUpdateContext ctx = getGraphRepository().beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
-            PropertyMetadata metadata = new PropertyMetadata(user, new VisibilityJson(""), new Visibility(""));
-            ctx.update(v, (GraphUpdateContext.Update<Element>) elemCtx ->
-                    prop.updatePropertyIfValueIsNewer(elemCtx, "key", newValue, metadata)
-            );
+            ctx.update(v, update);
         }
 
         v = getGraph().getVertex("v1", authorizations);
