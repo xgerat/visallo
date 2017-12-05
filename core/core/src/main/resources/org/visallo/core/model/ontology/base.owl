@@ -218,6 +218,19 @@
     
 
 
+    <!-- http://visallo.org#sortPriority -->
+
+    <owl:AnnotationProperty rdf:about="http://visallo.org#sortPriority">
+        <textIndexHints>NONE</textIndexHints>
+        <userVisible>false</userVisible>
+        <rdfs:comment>Determines property sort order in the inspector. If not set the default is 0.
+        Properties are sorted highest to lowest.</rdfs:comment>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    </owl:AnnotationProperty>
+    
+
+
     <!-- http://visallo.org#sortable -->
 
     <owl:AnnotationProperty rdf:about="http://visallo.org#sortable">
@@ -335,6 +348,12 @@
     
 
 
+    <!-- http://visallo.org#geoshape -->
+
+    <rdfs:Datatype rdf:about="http://visallo.org#geoshape"/>
+    
+
+
     <!-- http://visallo.org#image -->
 
     <rdfs:Datatype rdf:about="http://visallo.org#image"/>
@@ -344,11 +363,7 @@
     <!-- http://visallo.org#directory/entity -->
 
     <rdfs:Datatype rdf:about="http://visallo.org#directory/entity"/>
-
-
-    <!-- http://visallo.org#geoshape -->
-
-    <rdfs:Datatype rdf:about="http://visallo.org#geoshape"/>
+    
 
 
     <!-- 

@@ -26,6 +26,7 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     private String displayFormula;
     private boolean updateable;
     private boolean deleteable;
+    private Integer sortPriority;
     private ImmutableList<String> dependentPropertyIris = ImmutableList.of();
     private List<String> intents = new ArrayList<>();
     private List<String> textIndexHints = new ArrayList<>();
@@ -92,6 +93,11 @@ public class InMemoryOntologyProperty extends OntologyProperty {
     }
 
     @Override
+    public Integer getSortPriority() {
+        return sortPriority;
+    }
+
+    @Override
     public String getValidationFormula() {
         return validationFormula;
     }
@@ -148,6 +154,10 @@ public class InMemoryOntologyProperty extends OntologyProperty {
 
     public void setSortable(boolean sortable) {
         this.sortable = sortable;
+    }
+
+    public void setSortPriority(Integer sortPriority) {
+        this.sortPriority = sortPriority;
     }
 
     public void setTitle(String title) {
@@ -223,6 +233,14 @@ public class InMemoryOntologyProperty extends OntologyProperty {
                 this.sortable = (Boolean) value;
             } else {
                 this.sortable = Boolean.parseBoolean((String) value);
+            }
+        } else if (OntologyProperties.SORT_PRIORITY.getPropertyName().equals(name)) {
+            if (value == null) {
+                this.sortPriority = null;
+            } else if (value instanceof Number) {
+                this.sortPriority = ((Number) value).intValue();
+            } else {
+                this.sortPriority = Integer.parseInt((String) value);
             }
         } else if (OntologyProperties.ADDABLE.getPropertyName().equals(name)) {
             if (value instanceof Boolean) {

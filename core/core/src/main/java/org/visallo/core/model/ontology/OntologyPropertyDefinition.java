@@ -22,6 +22,7 @@ public class OntologyPropertyDefinition {
     private boolean searchable;
     private boolean addable;
     private boolean sortable;
+    private Integer sortPriority;
     private String displayType;
     private String propertyGroup;
     private Double boost;
@@ -135,6 +136,15 @@ public class OntologyPropertyDefinition {
 
     public OntologyPropertyDefinition setSortable(boolean sortable) {
         this.sortable = sortable;
+        return this;
+    }
+
+    public Integer getSortPriority() {
+        return sortPriority;
+    }
+
+    public OntologyPropertyDefinition setSortPriority(Integer sortPriority) {
+        this.sortPriority = sortPriority;
         return this;
     }
 

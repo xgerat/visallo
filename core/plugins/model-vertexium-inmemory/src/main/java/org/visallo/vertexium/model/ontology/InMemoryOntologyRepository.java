@@ -295,6 +295,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
             boolean searchable,
             boolean addable,
             boolean sortable,
+            Integer sortPriority,
             String displayType,
             String propertyGroup,
             Double boost,
@@ -326,6 +327,7 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         property.setSearchable(searchable);
         property.setAddable(addable);
         property.setSortable(sortable);
+        property.setSortPriority(sortPriority);
         property.setTitle(propertyIri);
         property.setBoost(boost);
         property.setDisplayType(displayType);

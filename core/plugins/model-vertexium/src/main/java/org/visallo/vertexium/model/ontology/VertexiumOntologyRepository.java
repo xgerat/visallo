@@ -597,6 +597,7 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
             boolean searchable,
             boolean addable,
             boolean sortable,
+            Integer sortPriority,
             String displayType,
             String propertyGroup,
             Double boost,
@@ -646,6 +647,9 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
                 OntologyProperties.DELETEABLE.updateProperty(elemCtx, deleteable, metadata, visibility);
                 OntologyProperties.UPDATEABLE.updateProperty(elemCtx, updateable, metadata, visibility);
                 OntologyProperties.USER_VISIBLE.updateProperty(elemCtx, userVisible, metadata, visibility);
+                if (sortPriority != null) {
+                    OntologyProperties.SORT_PRIORITY.updateProperty(elemCtx, sortPriority, metadata, visibility);
+                }
                 if (boost != null) {
                     OntologyProperties.BOOST.updateProperty(elemCtx, boost, metadata, visibility);
                 }

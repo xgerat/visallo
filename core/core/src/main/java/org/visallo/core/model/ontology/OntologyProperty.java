@@ -94,6 +94,8 @@ public abstract class OntologyProperty {
 
     public abstract List<String> getRelationshipIris();
 
+    public abstract Integer getSortPriority();
+
     public void updateIntents(String[] newIntents, Authorizations authorizations) {
         ArrayList<String> toBeRemovedIntents = Lists.newArrayList(getIntents());
         for (String newIntent : newIntents) {
@@ -149,6 +151,7 @@ public abstract class OntologyProperty {
             result.setDeleteable(getDeleteable());
             result.setUpdateable(getUpdateable());
             result.setSandboxStatus(getSandboxStatus());
+            result.setSortPriority(getSortPriority());
             if (getPossibleValues() != null) {
                 result.getPossibleValues().putAll(getPossibleValues());
             }

@@ -200,13 +200,12 @@ define([
                         }
 
                         var ontologyProperty = self.ontologyProperties.byTitle[property.name];
-                        if (ontologyProperty && ontologyProperty.propertyGroup) {
-                            return '4' + ontologyProperty.propertyGroup.toLowerCase() + ontologyProperty.displayName;
+                        if (ontologyProperty) {
+                            return (ontologyProperty.propertyGroup ? '4' + ontologyProperty.propertyGroup.toLowerCase() : '2') +
+                                (Number.MAX_SAFE_INTEGER - (ontologyProperty.sortPriority || 0)).toString(16).padStart(8, '0') +
+                                (ontologyProperty.displayName ? ontologyProperty.displayName.toLocaleLowerCase() : property.name.toLocaleLowerCase());
                         }
-                        if (ontologyProperty && ontologyProperty.displayName) {
-                            return '2' + ontologyProperty.displayName.toLowerCase();
-                        }
-                        return '3' + property.name.toLowerCase();
+                        return '3' + property.name.toLocaleLowerCase();
                     })
                     .groupBy('name')
                     .pairs()
