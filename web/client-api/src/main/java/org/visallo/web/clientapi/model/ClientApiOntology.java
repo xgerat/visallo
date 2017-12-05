@@ -260,6 +260,7 @@ public class ClientApiOntology implements ClientApiObject {
         private boolean searchable;
         private boolean addable;
         private boolean sortable;
+        private Integer sortPriority;
         private PropertyType dataType;
         private String displayType;
         private String propertyGroup;
@@ -320,6 +321,14 @@ public class ClientApiOntology implements ClientApiObject {
 
         public void setSortable(boolean sortable) {
             this.sortable = sortable;
+        }
+
+        public Integer getSortPriority() {
+            return sortPriority;
+        }
+
+        public void setSortPriority(Integer sortPriority) {
+            this.sortPriority = sortPriority;
         }
 
         public boolean isUpdateable() {

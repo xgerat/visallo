@@ -457,6 +457,15 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 continue;
             }
 
+            if (annotationIri.equals(OntologyProperties.SORT_PRIORITY.getPropertyName())) {
+                if (valueString.trim().length() == 0) {
+                    continue;
+                }
+                Integer sortPriority = Integer.parseInt(valueString);
+                result.setProperty(OntologyProperties.SORT_PRIORITY.getPropertyName(), sortPriority, user, authorizations);
+                continue;
+            }
+
             if (annotationIri.equals(OntologyProperties.ADDABLE.getPropertyName())) {
                 boolean searchable = Boolean.parseBoolean(valueString);
                 result.setProperty(OntologyProperties.ADDABLE.getPropertyName(), searchable, user, authorizations);
@@ -601,6 +610,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             boolean searchable = OWLOntologyUtil.getSearchable(o, dataTypeProperty);
             boolean addable = OWLOntologyUtil.getAddable(o, dataTypeProperty);
             boolean sortable = !propertyType.equals(PropertyType.GEO_LOCATION) && !propertyType.equals(PropertyType.GEO_SHAPE) && OWLOntologyUtil.getSortable(o, dataTypeProperty);
+            Integer sortPriority = OWLOntologyUtil.getSortPriority(o, dataTypeProperty);
             String displayType = OWLOntologyUtil.getDisplayType(o, dataTypeProperty);
             String propertyGroup = OWLOntologyUtil.getPropertyGroup(o, dataTypeProperty);
             String validationFormula = OWLOntologyUtil.getValidationFormula(o, dataTypeProperty);
@@ -654,6 +664,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                     searchable,
                     addable,
                     sortable,
+                    sortPriority,
                     displayType,
                     propertyGroup,
                     boost,
@@ -736,6 +747,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 ontologyPropertyDefinition.isSearchable(),
                 ontologyPropertyDefinition.isAddable(),
                 ontologyPropertyDefinition.isSortable(),
+                ontologyPropertyDefinition.getSortPriority(),
                 ontologyPropertyDefinition.getDisplayType(),
                 ontologyPropertyDefinition.getPropertyGroup(),
                 ontologyPropertyDefinition.getBoost(),
@@ -763,6 +775,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             boolean searchable,
             boolean addable,
             boolean sortable,
+            Integer sortPriority,
             String displayType,
             String propertyGroup,
             Double boost,
@@ -1758,6 +1771,7 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         definePropertyOnGraph(graph, OntologyProperties.USER_VISIBLE, Boolean.TYPE, TextIndexHint.NONE);
         definePropertyOnGraph(graph, OntologyProperties.SEARCHABLE, Boolean.TYPE, TextIndexHint.NONE);
         definePropertyOnGraph(graph, OntologyProperties.SORTABLE, Boolean.TYPE, TextIndexHint.NONE);
+        definePropertyOnGraph(graph, OntologyProperties.SORT_PRIORITY, Integer.TYPE, TextIndexHint.NONE);
         definePropertyOnGraph(graph, OntologyProperties.ADDABLE, Boolean.TYPE, TextIndexHint.NONE);
         definePropertyOnGraph(graph, OntologyProperties.DELETEABLE, Boolean.TYPE, TextIndexHint.NONE);
         definePropertyOnGraph(graph, OntologyProperties.UPDATEABLE, Boolean.TYPE, TextIndexHint.NONE);
@@ -1771,7 +1785,14 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         definePropertyOnGraph(graph, property.getPropertyName(), dataType, textIndexHint, null, false);
     }
 
-    protected void definePropertyOnGraph(Graph graph, String propertyName, Class dataType, Collection<TextIndexHint> textIndexHint, Double boost, boolean sortable) {
+    protected void definePropertyOnGraph(
+            Graph graph,
+            String propertyName,
+            Class dataType,
+            Collection<TextIndexHint> textIndexHint,
+            Double boost,
+            boolean sortable
+    ) {
         if (!graph.isPropertyDefined(propertyName)) {
             DefinePropertyBuilder builder = graph.defineProperty(propertyName).dataType(dataType).sortable(sortable);
             if (textIndexHint != null) {

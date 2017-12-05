@@ -130,6 +130,11 @@ public class VertexiumOntologyProperty extends OntologyProperty {
         return b;
     }
 
+    @Override
+    public Integer getSortPriority() {
+        return OntologyProperties.SORT_PRIORITY.getPropertyValue(vertex);
+    }
+
     public boolean getUpdateable() {
         Boolean b = OntologyProperties.UPDATEABLE.getPropertyValue(vertex);
         if (b == null) {

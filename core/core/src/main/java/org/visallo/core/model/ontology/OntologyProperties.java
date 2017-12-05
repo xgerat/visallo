@@ -37,6 +37,7 @@ public class OntologyProperties {
     public static final StringSingleValueVisalloProperty COLOR = new StringSingleValueVisalloProperty("http://visallo.org#color");
     public static final StringSingleValueVisalloProperty DATA_TYPE = new StringSingleValueVisalloProperty("http://visallo.org#dataType");
     public static final DoubleSingleValueVisalloProperty BOOST = new DoubleSingleValueVisalloProperty("http://visallo.org#boost");
+    public static final IntegerSingleValueVisalloProperty SORT_PRIORITY = new IntegerSingleValueVisalloProperty("http://visallo.org#sortPriority");
     public static final JsonSingleValueVisalloProperty POSSIBLE_VALUES = new JsonSingleValueVisalloProperty("http://visallo.org#possibleValues");
     public static final BooleanSingleValueVisalloProperty DELETEABLE = new BooleanSingleValueVisalloProperty("http://visallo.org#deleteable");
     public static final BooleanSingleValueVisalloProperty UPDATEABLE = new BooleanSingleValueVisalloProperty("http://visallo.org#updateable");
@@ -48,6 +49,7 @@ public class OntologyProperties {
             UPDATEABLE.getPropertyName(),
             ADDABLE.getPropertyName(),
             SORTABLE.getPropertyName(),
+            SORT_PRIORITY.getPropertyName(),
             SEARCHABLE.getPropertyName(),
             INTENT.getPropertyName(),
             POSSIBLE_VALUES.getPropertyName(),
