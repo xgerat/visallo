@@ -413,7 +413,11 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
             return false;
         }
 
-        if (!mimeType.startsWith("text")) {
+        if (mimeType.startsWith("image")
+                || mimeType.startsWith("video")
+                || mimeType.startsWith("audio")
+                || mimeType.equals("application/vnd.geo+json")
+                || mimeType.equals("application/vnd.google-earth.kml")) {
             return false;
         }
 
