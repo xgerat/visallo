@@ -195,13 +195,14 @@ define([
 
         vectorXhr: {
             configure(id, options = {}) {
-                const source = new ol.source.Vector();
+                const { sourceOptions = {}, ...layerOptions } = options;
+                const source = new ol.source.Vector(sourceOptions);
                 const layer = new ol.layer.Vector({
                     ...DEFAULT_LAYER_CONFIG,
                     id,
                     type: 'vectorXhr',
                     source,
-                    ...options
+                    ...layerOptions
                 });
 
                 return { source, layer };
@@ -275,6 +276,7 @@ define([
                 if (!layerStatus) {
                     this.loadFeatures(olSource, layer).then((features) => {
                         if (features) {
+                            olSource.clear(true)
                             olSource.addFeatures(features);
                             layer.set('status', 'loaded');
                         }
@@ -338,13 +340,20 @@ define([
                         return features;
                     }
 
-                }).catch(e => {
-                    const message = e.message === 'unhandledDataProjection'
-                        ? i18n('org.visallo.web.product.map.MapWorkProduct.layer.error.data.format')
-                        : i18n('org.visallo.web.product.map.MapWorkProduct.layer.error');
+                })
+                    .then(features => {
+                        return features.map((feature, i) => {
+                            feature.setId(`${layer.get('id')}:${i}`)
+                            return feature
+                        })
+                    })
+                    .catch(e => {
+                        const message = e.message === 'unhandledDataProjection'
+                            ? i18n('org.visallo.web.product.map.MapWorkProduct.layer.error.data.format')
+                            : i18n('org.visallo.web.product.map.MapWorkProduct.layer.error');
 
-                    layer.set('status', { type: 'error', message });
-                });
+                        layer.set('status', { type: 'error', message });
+                    });
             }
         }
     };
