@@ -2,10 +2,14 @@ package org.visallo.web.product.map;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.vertexium.*;
+import org.vertexium.Authorizations;
+import org.vertexium.Edge;
+import org.vertexium.Vertex;
+import org.vertexium.Visibility;
 import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.product.UpdateProductEdgeOptions;
 import org.visallo.core.model.workspace.product.WorkProductEdge;
 import org.visallo.core.model.workspace.product.WorkProductServiceHasElementsBase;
@@ -57,7 +61,7 @@ public class MapWorkProductService extends WorkProductServiceHasElementsBase<Wor
             for (String id : vertexIds) {
                 UpdateProductEdgeOptions updateData = updateVertices.get(id);
 
-                addOrUpdateProductEdgeToEntity(ctx, productVertex, id, updateData, visibility);
+                addOrUpdateProductEdgeToEntity(ctx, productVertex, id, updateData, WorkspaceRepository.VISIBILITY.getVisibility());
             }
         }
     }
