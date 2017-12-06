@@ -413,7 +413,7 @@ public class TikaTextExtractorGraphPropertyWorker extends GraphPropertyWorker {
             return false;
         }
 
-        if (mimeType.startsWith("image") || mimeType.startsWith("video") || mimeType.startsWith("audio")) {
+        if (!mimeType.startsWith("text")) {
             return false;
         }
 
