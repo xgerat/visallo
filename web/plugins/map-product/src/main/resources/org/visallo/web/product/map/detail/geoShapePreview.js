@@ -53,7 +53,10 @@ define([
                 element: this.element,
                 propName: 'http://visallo.org#raw',
                 propKey: '',
-                mimeType: F.vertex.prop(this.element, 'http://visallo.org#mimeType')
+                mimeType: F.vertex.prop(this.element, 'http://visallo.org#mimeType'),
+                sourceOptions: {
+                    wrapX: false
+                }
             });
 
             const map = new ol.Map({
