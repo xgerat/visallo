@@ -1055,7 +1055,7 @@ define([
                 if (!momentZone) {
                     throw new Error('Could not find timezone "' + name + '"');
                 }
-                var offset = momentZone.offset(withOffsetForDate) * -1,
+                var offset = momentZone.utcOffset(withOffsetForDate) * -1,
                     tzInfo = {
                         tzOffset: offset,
                         tzAbbr: momentZone.abbr(withOffsetForDate),
