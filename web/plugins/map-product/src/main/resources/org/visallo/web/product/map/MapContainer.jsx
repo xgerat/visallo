@@ -55,6 +55,7 @@ define([
                 productElementIds: productSelectors.getElementIdsInProduct(state),
                 product: productSelectors.getProduct(state),
                 elements: productSelectors.getElementsInProduct(state),
+                focused: productSelectors.getFocusedElementsInProduct(state),
                 pixelRatio: state.screen.pixelRatio,
                 mimeTypes,
                 style: { height: '100%' },

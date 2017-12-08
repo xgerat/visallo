@@ -36,7 +36,8 @@ var VisalloAmdExternals = [
     'prop-types',
     'react-dom',
     'redux',
-    'react-redux'
+    'react-redux',
+    'jscache'
 ].map(path => ({ [path]: { amd: path, commonjs2: false, commonjs: false }}));
 
 var baseConfig = {

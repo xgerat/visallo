@@ -2,14 +2,12 @@ define([
     'create-react-class',
     'prop-types',
     'openlayers',
-    'fast-json-patch',
     './util/layerHelpers',
     'product/toolbar/ProductToolbar'
 ], function(
     createReactClass,
     PropTypes,
     ol,
-    jsonpatch,
     layerHelpers,
     ProductToolbar) {
 
@@ -131,7 +129,7 @@ define([
 
         componentDidUpdate(prevProps, prevState) {
             const { map, layersWithSources } = this.state;
-            const { product, sourcesByLayerId, layerExtensions, layerConfig, viewport, generatePreview } = this.props;
+            const { product, sourcesByLayerId, layerExtensions, layerConfig, focused, viewport, generatePreview } = this.props;
 
             let changed = false;
             let fit = [];
@@ -149,11 +147,11 @@ define([
 
                 if (layerHelper && layerWithSources) {
                     const shouldUpdate = _.isFunction(layerHelper.shouldUpdate)
-                        ? layerHelper.shouldUpdate(nextSource, prevSource, layerWithSources)
+                        ? layerHelper.shouldUpdate(nextSource, prevSource, layerWithSources, focused)
                         : true;
 
                     if (shouldUpdate && _.isFunction(layerHelper.update) && nextSource) {
-                        const { changed: c = true, fitFeatures = [] } = layerHelper.update(nextSource, layerWithSources) || {};
+                        const { changed: c = true, fitFeatures = [] } = layerHelper.update(nextSource, layerWithSources, focused) || {};
                         changed = changed || c;
                         if (fitFeatures) fit.push(...fitFeatures)
                     }
