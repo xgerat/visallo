@@ -5,22 +5,20 @@ define([
     'util/vertex/justification/viewer',
     'util/withDataRequest',
     'util/vertex/formatters'
-], function(
-    defineComponent,
-    template,
-    ontology,
-    JustificationViewer,
-    withDataRequest,
-    F) {
+], function (defineComponent,
+             template,
+             ontology,
+             JustificationViewer,
+             withDataRequest,
+             F) {
     'use strict';
 
     return defineComponent(EdgeItem, withDataRequest);
 
     function EdgeItem() {
 
-        this.after('initialize', function() {
-            var self = this,
-                edge = this.attr.item,
+        this.after('initialize', function () {
+            const edge = this.attr.item,
                 ontologyRelation = ontology.relationships.byTitle[edge.label],
                 title = ontologyRelation.titleFormula ? F.edge.title(edge) : ontologyRelation.displayName,
                 subtitle = ontologyRelation.subtitleFormula ? F.edge.subtitle(edge) : null,
@@ -28,9 +26,14 @@ define([
 
             this.$node.data('edgeId', edge.id);
 
-            this.dataRequest('config', 'properties')
-                .done(function(properties) {
-                    self.$node
+            Promise.all([
+                this.dataRequest('vertex', 'store', {vertexIds: [edge.inVertexId, edge.outVertexId]}),
+                this.dataRequest('config', 'properties')
+            ])
+                .spread((vertices, properties) => {
+                    const inVertex = _.findWhere(vertices, {id: edge.inVertexId});
+                    const outVertex = _.findWhere(vertices, {id: edge.outVertexId});
+                    this.$node
                         .addClass('default')
                         .addClass('edge-item')
                         .addClass(timeSubtitle ? 'has-timeSubtitle' : '')
@@ -38,21 +41,38 @@ define([
                         .html(template({
                             title: title,
                             timeSubtitle: timeSubtitle,
-                            subtitle: subtitle
+                            subtitle: subtitle,
+                            inVertex: this.getData(inVertex),
+                            outVertex: this.getData(outVertex),
                         }));
 
                     if (properties['field.justification.validation'] !== 'NONE' &&
-                                        self.attr.usageContext === 'detail/multiple') {
-                        self.renderJustification();
+                        this.attr.usageContext === 'detail/multiple') {
+                        this.renderJustification();
                     }
                 });
         });
 
-        this.renderJustification = function() {
-            var edge = this.attr.item,
+        this.getData = function (vertex) {
+            if (!vertex) {
+                return {
+                    title: i18n('element.unauthorized'),
+                    image: 'img/glyphicons/glyphicons_194_circle_question_mark@2x.png',
+                    custom: false
+                }
+            }
+            return {
+                title: F.vertex.title(vertex),
+                image: F.vertex.image(vertex, null, 80, 80),
+                custom: !F.vertex.imageIsFromConcept(vertex)
+            };
+        };
+
+        this.renderJustification = function () {
+            const edge = this.attr.item,
                 titleSpan = this.$node.children('span.title'),
-                justification = _.findWhere(edge.properties, { name: 'http://visallo.org#justification' }),
-                sourceInfo = _.findWhere(edge.properties, { name: '_sourceMetadata' });
+                justification = _.findWhere(edge.properties, {name: 'http://visallo.org#justification'}),
+                sourceInfo = _.findWhere(edge.properties, {name: '_sourceMetadata'});
 
             if (justification || sourceInfo) {
                 titleSpan.empty();
@@ -63,7 +83,7 @@ define([
             }
         };
 
-        this.before('teardown', function() {
+        this.before('teardown', function () {
             this.$node.removeData('edgeId');
             this.$node.removeClass('edge-item has-timeSubtitle has-subtitle');
             this.$node.empty();

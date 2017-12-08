@@ -37,8 +37,12 @@ define([
         },
 
         indexSearchResultsProperties(results) {
-            if (results.elements) {
-                _.forEach(results.elements, indexElementProperties);
+            const { elements = [], referencedElements = [] } = results;
+            if (elements) {
+                elements.forEach(indexElementProperties)
+            }
+            if (referencedElements) {
+                referencedElements.forEach(indexElementProperties)
             }
             return results;
         },
