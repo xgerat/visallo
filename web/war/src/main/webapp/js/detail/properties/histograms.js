@@ -114,9 +114,6 @@ define([
                         if (ontologyProperty && ~BINABLE_TYPES.indexOf(ontologyProperty.dataType)) {
                             return true;
                         }
-                        if (ontologyProperty && ontologyProperty.possibleValues) {
-                            return true;
-                        }
 
                         var valueCounts = _.groupBy(pair[1], 'value'),
                             values = _.map(valueCounts, function(value, key) {
