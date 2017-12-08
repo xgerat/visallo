@@ -111,7 +111,7 @@ define(['openlayers', 'jscache'], function(ol, Cache) {
                             selectedFillNoAlpha = 'rgb(0,112,195)',
                             unselectedStroke = '#AD2E2E',
                             stroke = selected ? '#08538B' : unselectedStroke,
-                            lineWidth = Math.round(radius * 0.1) * pixelRatio,
+                            lineWidth = 2 * pixelRatio,
                             textStroke = stroke,
                             fill = selected ? selectedFill : unselectedFill;
 
