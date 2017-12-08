@@ -67,7 +67,6 @@ public class RequireJsSupport extends ScriptableObject {
 
     private String getFileContents(String file) {
         String transformed = transformFilePath(file);
-        LOGGER.debug("reading file: %s", transformed);
         try (InputStream is = RequireJsSupport.class.getResourceAsStream(transformed)) {
             if (is == null) {
                 throw new VisalloException("File not found: " + transformed);

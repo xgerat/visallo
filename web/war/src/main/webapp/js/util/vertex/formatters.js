@@ -1357,7 +1357,8 @@ define([
     function transformMatchingVertexProperties(vertex, propertyNames, optionalKey) {
         var CONFIDENCE = 'http://visallo.org#confidence',
             properties = [],
-            hasKey = !_.isUndefined(optionalKey);
+            hasKey = !_.isUndefined(optionalKey),
+            pTransformSortValueMap = new WeakMap();
 
         if (vertex.propertiesByName) {
             for (var i = 0; i < propertyNames.length; i++) {
@@ -1376,10 +1377,10 @@ define([
         }
 
         return _.forEach(properties, function(p) {
-                if (!p.tranformSortValue) {
+                if (!pTransformSortValueMap.get(p)) {
                     var pDisplay = V.propDisplay(p.name, p.value);
                     if (_.isString(pDisplay)) {
-                        p.tranformSortValue = pDisplay.toLowerCase();
+                        pTransformSortValueMap.set(p, pDisplay.toLowerCase());
                     }
                 }
             })
@@ -1393,8 +1394,10 @@ define([
                     p2HasCon ? 1 : 0;
 
                 if (compareConf === 0) {
-                    if (_.isString(p1.tranformSortValue) && _.isString(p2.tranformSortValue)) {
-                        return p1.tranformSortValue.localeCompare(p2.tranformSortValue);
+                    var p1TransformSortValue = pTransformSortValueMap.get(p1),
+                        p2TransformSortValue = pTransformSortValueMap.get(p2);
+                    if (_.isString(p1TransformSortValue) && _.isString(p2TransformSortValue)) {
+                        return p1TransformSortValue.localeCompare(p2TransformSortValue);
                     }
                     return 0;
                 }

@@ -29,6 +29,7 @@ require.config({
         'duration-js': '../libs/duration',
         'moment': '../libs/moment-with-locales',
         'moment-timezone': '../libs/moment-timezone-with-data',
+        'weak-map': '../libs/weakmap',
 
         // MOCKS
         'jquery': 'mocks/jquery',
@@ -59,7 +60,7 @@ require.config({
 
 var timerLoop = makeWindowTimer(this, function () { });
 
-require(['util/promise'], function(Promise) {
+require(['util/promise', 'weak-map'], function(Promise) {
     visalloData.storePromise = new Promise(function(r) {
         require(['store'], function(_store) {
             r(_store.getStore())
