@@ -21,7 +21,7 @@ define([
                 subtitle = F.vertex.subtitle(this.vertex);
 
             this.$node
-                .addClass('default')
+                .addClass('default vertex-item')
                 .addClass(timeSubtitle ? 'has-timeSubtitle' : '')
                 .addClass(subtitle ? 'has-subtitle' : '')
                 .html(template({

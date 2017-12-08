@@ -11,10 +11,7 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.ClientApiElementSearchResponse;
-import org.visallo.web.clientapi.model.ClientApiExtendedDataRow;
-import org.visallo.web.clientapi.model.ClientApiSearchResponse;
-import org.visallo.web.clientapi.model.ClientApiVertexiumObject;
+import org.visallo.web.clientapi.model.*;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.routes.search.WebSearchOptionsFactory;
 
@@ -87,7 +84,10 @@ public abstract class VertexiumObjectSearchBase {
         Set<String> edgeIds = new HashSet<>();
         Set<String> vertexIds = new HashSet<>();
         for (ClientApiVertexiumObject searchResult : searchResults) {
-            if (searchResult instanceof ClientApiExtendedDataRow) {
+            if (searchResult instanceof ClientApiEdge) {
+                vertexIds.add(((ClientApiEdge) searchResult).getInVertexId());
+                vertexIds.add(((ClientApiEdge) searchResult).getOutVertexId());
+            } else if (searchResult instanceof ClientApiExtendedDataRow) {
                 ClientApiExtendedDataRow row = (ClientApiExtendedDataRow) searchResult;
                 switch (row.getId().getElementType()) {
                     case "EDGE":

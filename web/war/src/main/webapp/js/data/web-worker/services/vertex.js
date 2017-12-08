@@ -83,10 +83,10 @@ define([
                 .then(storeHelper.indexSearchResultsProperties)
                 .tap(function({ elements, referencedElements }) {
                     if (options.disableResultCache !== true) {
-                        storeHelper.putSearchResults(elements)
                         if (referencedElements) {
                             storeHelper.putSearchResults(referencedElements)
                         }
+                        storeHelper.putSearchResults(elements)
                     }
                 })
         },
