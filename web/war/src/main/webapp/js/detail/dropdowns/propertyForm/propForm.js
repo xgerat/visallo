@@ -568,7 +568,11 @@ define([
                     error: messages
                 })
             ).show();
-            _.defer(this.clearLoading.bind(this));
+
+            _.defer(() => {
+                this.clearLoading()
+                this.saving = false;
+            })
         };
 
         this.getConfigurationValues = function() {
@@ -585,7 +589,9 @@ define([
                 this._keydownValid = valid;
             } else if (this._keydownValid && valid) {
                 this._keydownValid = false;
-                this.onSave();
+                if (!this.saving) {
+                    this.onSave();
+                }
             }
         };
 
@@ -602,6 +608,8 @@ define([
             var self = this;
 
             if (!this.valid) return;
+
+            this.saving = true;
 
             const vertexId = this.attr.data.id;
             const propertyKey = this.currentProperty.key;
