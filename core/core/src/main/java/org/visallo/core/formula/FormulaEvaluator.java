@@ -172,7 +172,6 @@ public class FormulaEvaluator {
     private void evaluateFile(ScriptableObject scope, String filename) {
         String transformed = RequireJsSupport.transformFilePath(filename);
 
-        LOGGER.debug("evaluating file: %s", transformed);
         try (InputStream is = FormulaEvaluator.class.getResourceAsStream(transformed)) {
             if (is == null) {
                 throw new VisalloException("File not found " + transformed);
