@@ -11,6 +11,7 @@ define([], function() {
     return function({ pixelRatio, edgesCount, edgeLabels, styleExtensions }) {
         const OVERLAY_COLOR = '#0088cc';
         const OVERLAY_OPACITY = 0.2;
+        const OVERLAY_DIM_OPACITY = 0.25;
         const OVERLAY_NODE_PADDING = 5 * pixelRatio;
         const OVERLAY_EDGE_PADDING = function(node) {
             const data = node && node.length && node.length && node[0]._private;
@@ -93,6 +94,8 @@ define([], function() {
                     selector: '*.focus',
                     css: {
                         'display': 'element',
+                        'opacity': 1,
+                        'background-image-opacity': 1,
                         'color': OVERLAY_COLOR,
                         'font-weight': 'bold',
                         'overlay-color': OVERLAY_COLOR,
@@ -104,7 +107,18 @@ define([], function() {
                     selector: '*.focus-dim',
                     css: {
                         'display': 'element',
-                        'opacity': 0.25,
+                        'opacity'(node) {
+                            const currentOpacity = node.style('opacity');
+                            if (currentOpacity < 1) {
+                                return Math.min(currentOpacity, OVERLAY_DIM_OPACITY);
+                            }
+                            return OVERLAY_DIM_OPACITY;
+                        }
+                    }
+                },
+                {
+                    selector: '*.focus-dim:selected',
+                    css: {
                         'overlay-opacity': 0.05
                     }
                 }
