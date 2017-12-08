@@ -99,6 +99,7 @@ define([
         };
 
         this.teardownComponents = function() {
+            this.select('detailTypeContentSelector').find('*').teardownAllComponents();
             this.select('detailTypeContentSelector').teardownAllComponents().empty();
         }
     }
