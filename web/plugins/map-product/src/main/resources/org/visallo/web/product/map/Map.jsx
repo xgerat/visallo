@@ -22,6 +22,9 @@ define([
     mapConfig) {
     'use strict';
 
+    const iconAnchor = [0.5, 1.0];
+    const getIconSize = _.memoize(ratio => [22, 40].map(v => v * ratio));
+
     /**
      * @deprecated Use {@link org.visallo.product.toolbar.item} instead
      */
@@ -132,7 +135,7 @@ define([
 
         render() {
             const { viewport, generatePreview } = this.state;
-            const { product, registry, panelPadding, layerConfig, setLayerOrder, onSelectElements, onUpdatePreview } = this.props;
+            const { product, registry, panelPadding, focused, layerConfig, setLayerOrder, onSelectElements } = this.props;
             const { source: baseSource, sourceOptions: baseSourceOptions, ...config } = mapConfig();
             const layerExtensions = _.indexBy(registry['org.visallo.map.layer'], 'id');
 
@@ -141,6 +144,7 @@ define([
                     <OpenLayers
                         ref={c => {this._openlayers = c}}
                         product={product}
+                        focused={focused}
                         baseSource={baseSource}
                         baseSourceOptions={baseSourceOptions}
                         sourcesByLayerId={this.mapElementsToSources()}
@@ -158,9 +162,9 @@ define([
                         onSelectElements={onSelectElements}
                         onMouseOver={this.onMouseOver}
                         onMouseOut={this.onMouseOut}
-                        onUpdatePreview={onUpdatePreview.bind(this, this.props.product.id)}
+                        onUpdatePreview={this.onUpdatePreview}
                         {...config}
-                />
+                    />
                 </div>
             )
         },
@@ -205,6 +209,12 @@ define([
                     { x: pageX, y: pageY }
                 );
             }
+        },
+
+        onUpdatePreview() {
+            const { onUpdatePreview, product } = this.props;
+
+            onUpdatePreview(product.id);
         },
 
         onViewport(event) {
@@ -438,8 +448,8 @@ define([
                         selected,
                         iconUrl,
                         iconUrlSelected,
-                        iconSize: [22, 40].map(v => v * this.props.pixelRatio),
-                        iconAnchor: [0.5, 1.0],
+                        iconSize: getIconSize(this.props.pixelRatio),
+                        iconAnchor,
                         pixelRatio: this.props.pixelRatio,
                         styles,
                         geometry,

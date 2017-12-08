@@ -1,16 +1,18 @@
 define([
     'openlayers',
     '../multiPointCluster',
-    'util/withDataRequest'
+    'util/withDataRequest',
+    './cache',
 ], function(
     ol,
     MultiPointCluster,
-    withDataRequest
+    withDataRequest,
+    cache
 ) {
     'use strict';
 
-    const FEATURE_HEIGHT = 40;
-    const FEATURE_CLUSTER_HEIGHT = 24;
+    const FEATURE_CLUSTER_RADIUS = 12;
+    const FEATURE_CLUSTER_RADIUS_MAX = 20;
     const VECTOR_FEATURE_SELECTION_OVERLAY = 'org-visallo-map-vector-selected-overlay';
 
     const DEFAULT_LAYER_CONFIG = {
@@ -70,32 +72,31 @@ define([
         cluster: {
             configure(id, options = {}) {
                 const source = new ol.source.Vector({ features: [] });
-                const clusterSource = new MultiPointCluster({
-                    distance: Math.max(FEATURE_CLUSTER_HEIGHT, FEATURE_HEIGHT) / 2,
-                    source
-                });
+                const clusterSource = new MultiPointCluster({ source });
                 const layer = new ol.layer.Vector({
                     ...DEFAULT_LAYER_CONFIG,
                     id,
                     label: 'Cluster',
                     type: 'cluster',
-                    style: cluster => this.style(cluster),
+                    style: cluster => this.style(cluster, { source }),
                     source: clusterSource,
                     ...options
                 });
 
+                cache.clear();
+
                 return { source, clusterSource, layer }
             },
 
-            style(cluster, options = { selected: false }) {
+            style(cluster, { source, selected = false } = {}) {
                 const count = cluster.get('count');
                 const selectionState = cluster.get('selectionState') || 'none';
-                const selected = options.selected || selectionState !== 'none';
+                const isSelected = selected || selectionState !== 'none';
 
                 if (count > 1) {
-                    return styles.cluster(cluster, { selected });
+                    return styles.cluster(cluster, { selected: isSelected, source });
                 } else {
-                    return styles.feature(cluster.get('features')[0], { selected })
+                    return styles.feature(cluster.get('features')[0], { selected: isSelected })
                 }
             },
 
@@ -103,7 +104,7 @@ define([
                 const selectInteraction = new ol.interaction.Select({
                     condition: ol.events.condition.click,
                     layers: [layer],
-                    style: cluster => this.style(cluster, { selected: true })
+                    style: cluster => this.style(cluster, { source, selected: true })
                 });
 
                 map.addInteraction(selectInteraction);
@@ -130,15 +131,21 @@ define([
 
                     clusters.forEach(cluster => {
                         var innerFeatures = cluster.get('features');
-                        if (_.any(innerFeatures, isSelected)) {
+                        var all = true, some = false, count = 0;
+                        innerFeatures.forEach(feature => {
+                            const selected = isSelected(feature);
+                            all = all && selected;
+                            some = some || selected;
+                            count += (selected ? 1 : 0)
+                        })
+
+                        if (some) {
                             newSelection.push(cluster);
-                            if (_.all(innerFeatures, isSelected)) {
-                                cluster.set('selectionState', 'all');
-                            } else {
-                                cluster.set('selectionState', 'some');
-                            }
+                            cluster.set('selectionState', all ? 'all' : 'some');
+                            cluster.set('selectionCount', count);
                         } else {
                             cluster.unset('selectionState');
+                            cluster.unset('selectionCount');
                         }
                     })
 
@@ -361,75 +368,77 @@ define([
 
     const styles = {
         feature(feature, { selected = false } = {}) {
-            const isSelected = selected || feature.get('selected');
-            const extensionStyles = feature.get('styles')
+            const {
+                focused,
+                focusedDim,
+                styles: extensionStyles,
+                selected: featureSelected,
+                _nodeRadius: radius
+            } = feature.getProperties();
+
+            const isSelected = selected || featureSelected;
+            let needSelectedStyle = true;
+            let needFocusStyle = true;
+            let styleList;
 
             if (extensionStyles) {
                 const { normal: normalStyle, selected: selectedStyle } = extensionStyles;
                 let style;
-                if (normalStyle.length && (!selected || !selectedStyle.length)) {
+                if (normalStyle.length && (!isSelected || !selectedStyle.length)) {
                     style = normalStyle;
-                } else if (selectedStyle.length && selected) {
+                } else if (selectedStyle.length && isSelected) {
                     style = selectedStyle;
                 }
 
                 if (style) {
-                    return style;
+                    styleList = _.isArray(style) ? style : [style];
                 }
-            }
-            return [new ol.style.Style({
-                image: new ol.style.Icon({
+            } else {
+                needSelectedStyle = false;
+                needFocusStyle = false;
+                styleList = cache.getOrCreateFeature({
                     src: feature.get(isSelected ? 'iconUrlSelected' : 'iconUrl'),
                     imgSize: feature.get('iconSize'),
                     scale: 1 / feature.get('pixelRatio'),
                     anchor: feature.get('iconAnchor')
-                })
-            })]
-        },
-
-        cluster(cluster, { selected = false } = {}) {
-            var count = cluster.get('count'),
-                selectionState = cluster.get('selectionState') || 'none',
-                radius = Math.min(count || 0, FEATURE_CLUSTER_HEIGHT / 2) + 10,
-                unselectedFill = 'rgba(241,59,60, 0.8)',
-                unselectedStroke = '#AD2E2E',
-                stroke = selected ? '#08538B' : unselectedStroke,
-                strokeWidth = Math.round(radius * 0.1),
-                textStroke = stroke,
-                fill = selected ? 'rgba(0,112,195, 0.8)' : unselectedFill;
-
-            if (selected && selectionState === 'some') {
-                fill = unselectedFill;
-                textStroke = unselectedStroke;
-                strokeWidth *= 2;
+                }, focused)
             }
 
-            return [new ol.style.Style({
-                image: new ol.style.Circle({
-                    radius: radius,
-                    stroke: new ol.style.Stroke({
-                        color: stroke,
-                        width: strokeWidth
-                    }),
-                    fill: new ol.style.Fill({
-                        color: fill
-                    })
-                }),
-                text: new ol.style.Text({
-                    text: count.toString(),
-                    font: `bold condensed ${radius}px sans-serif`,
-                    textAlign: 'center',
-                    fill: new ol.style.Fill({
-                        color: '#fff',
-                    }),
-                    stroke: new ol.style.Stroke({
-                        color: textStroke,
-                        width: 2
-                    })
-                })
-            })];
+            if (_.isEmpty(styleList)) {
+                console.warn('No styles for feature, ignoring.', feature);
+                return [];
+            }
+
+            if (needFocusStyle && focused) {
+                return cache.addFocus(radius, cache.reset(radius, styleList));
+            }
+            if (focusedDim) {
+                return cache.addDim(radius, styleList)
+            }
+
+            return cache.reset(radius, styleList);
+        },
+
+        cluster(cluster, { selected = false, source, clusterSource } = {}) {
+            var count = cluster.get('count'),
+                focusStats = cluster.get('focusStats'),
+                selectionState = cluster.get('selectionState') || 'none',
+                selectionCount = cluster.get('selectionCount') || 0,
+                { min, max } = source.countStats,
+                value = Math.min(max, Math.max(min, count)),
+                radius = min === max ?
+                    FEATURE_CLUSTER_RADIUS :
+                    interpolate(value, min, max, FEATURE_CLUSTER_RADIUS, FEATURE_CLUSTER_RADIUS_MAX);
+
+            return cache.getOrCreateCluster({
+                count, radius, selected, selectionState, selectionCount, focusStats
+            })
         }
     };
+
+    function interpolate(v, x0, x1, y0, y1) {
+        return (y0 * (x1 - v) + y1 * (v - x0)) / (x1 - x0)
+    }
 
     function setLayerConfig(config = {}, layer) {
         const { visible = true, opacity = 1, zIndex = 0, ...properties } = config;
@@ -447,7 +456,7 @@ define([
         layer.setZIndex(zIndex)
     }
 
-    function syncFeatures({ features }, { source }) {
+    function syncFeatures({ features }, { source }, focused) {
         const existingFeatures = _.indexBy(source.getFeatures(), f => f.getId());
         const newFeatures = [];
         var changed = false;
@@ -461,7 +470,7 @@ define([
                 if (geometryOverride) {
                     geometry = geometryOverride;
                 } else if (geoLocations) {
-                    geometry = new ol.geom.MultiPoint(geoLocations.map(geo => ol.proj.fromLonLat(geo)))
+                    geometry = cache.getOrCreateGeometry(id, geoLocations);
                 }
 
                 if (geometry) {
@@ -502,10 +511,24 @@ define([
                         }
                     }
 
+                    if (focused && focused.isFocusing) {
+                        if (element.id in focused[element.type === 'vertex' ? 'vertices' : 'edges']) {
+                            featureValues.focused = true
+                            featureValues.focusedDim = false
+                        } else {
+                            featureValues.focused = false
+                            featureValues.focusedDim = true
+                        }
+                    } else {
+                        featureValues.focused = false
+                        featureValues.focusedDim = false
+                    }
+
                     if (id in existingFeatures) {
                         const existingFeature = existingFeatures[id];
                         let diff = _.any(existingFeature.getProperties(), (val, name) => {
                             if (name === 'styles' || name === 'interacting') return false;
+                            if (name === 'geoLocations' && _.isEqual(val, featureValues[name])) return false;
                             if (val !== featureValues[name]) {
                                 return true
                             }

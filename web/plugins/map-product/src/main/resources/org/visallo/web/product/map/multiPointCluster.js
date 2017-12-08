@@ -15,7 +15,7 @@ define(['openlayers'], function(ol) {
         });
 
         this.resolution = undefined;
-        this.distance = options.distance !== undefined ? options.distance : 20;
+        this.distance = 20 * devicePixelRatio;
         this.features = [];
         this.geometryFunction = options.geometryFunction || (feature => feature.getGeometry());
         this.source = options.source;
@@ -68,13 +68,15 @@ define(['openlayers'], function(ol) {
         var clustered = {};
 
         const getRadius = feature => {
-            const radius = feature.get('_nodeRadius');
+            const radius = feature.get('_nodeRadius') * devicePixelRatio;
             return radius || distance;
         }
         const maxRadius = features.reduce((max, f) => {
             const radius = getRadius(f);
             return Math.max(max, radius)
         }, 0);
+        const countStats = { max: 0, min: Number.MAX_VALUE };
+        this.source.countStats = countStats;
 
         for (let i = 0; i < features.length; i++) {
             clusterFeature(features[i]);
@@ -130,22 +132,28 @@ define(['openlayers'], function(ol) {
                         count += coordsInCluster;
                         return coordsInCluster > 0;
                     });
+
+                    countStats.max = Math.max(count, countStats.max);
+                    countStats.min = Math.min(count, countStats.min);
                     self.features.push(self.createCluster(featuresToCluster, coords, count));
                 }
             }
         }
     };
 
-    MultiPointCluster.prototype.createCluster = function(features, coords, count) {
-        var centers = coords.reduce((sums, c) => {
-                return sums.map((s, i) => s + c[i])
-            }, [0, 0]),
-            average = centers.map(val => val / coords.length),
-            cluster = new ol.Feature(new ol.geom.Point(average));
-        cluster.set('features', features);
-        cluster.set('coordinates', coords);
-        cluster.set('count', count);
-        return cluster;
+    MultiPointCluster.prototype.createCluster = function(features, coordinates, count) {
+        const focusStats = { some: 0, all: false, dim: false };
+        features.forEach(feature => {
+            const focused = feature.get('focused')
+            focusStats.some += (focused ? 1 : 0);
+            focusStats.all = focusStats.all && focused;
+            focusStats.dim = focusStats.dim || feature.get('focusedDim');
+        })
+        const centers = coordinates.reduce((sums, c) => sums.map((s, i) => s + c[i]), [0, 0]);
+        const average = centers.map(val => val / coordinates.length);
+        const geometry = new ol.geom.Point(average);
+
+        return new ol.Feature({ geometry, features, coordinates, count, focusStats });
     };
 
     return MultiPointCluster;
