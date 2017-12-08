@@ -7,7 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.*;
-import org.vertexium.query.CompositeGraphQuery;
+import org.vertexium.query.EmptyResultsGraphQuery;
 import org.vertexium.query.Query;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.directory.DirectoryRepository;
@@ -73,7 +73,7 @@ public abstract class VertexiumObjectSearchRunnerWithRelatedBase extends Vertexi
         Query graphQuery = getGraph().query(queryStringParam, authorizations);
         if (elementExtendedData != null) {
             graphQuery = graphQuery.hasExtendedData(elementExtendedData.elementType, elementExtendedData.elementId, elementExtendedData.tableName);
-        } else if (!relatedToVertexIds.isEmpty()){
+        } else if (!relatedToVertexIds.isEmpty()) {
             String[] edgeLabels = getEdgeLabels(searchOptions);
             Set<String> allRelatedIds = relatedToVertexIds.stream()
                     .map(vertexId -> {
@@ -87,9 +87,7 @@ public abstract class VertexiumObjectSearchRunnerWithRelatedBase extends Vertexi
                     })
                     .collect(Collectors.toSet());
             if (allRelatedIds.isEmpty()) {
-                // If there are no element id's at this point, there are no possible results.
-                // We're using an empty CompositeGraphQuery here as a way ensure there will be no hits.
-                graphQuery = new CompositeGraphQuery(getGraph());
+                graphQuery = new EmptyResultsGraphQuery();
             } else {
                 graphQuery = graphQuery.hasId(allRelatedIds);
             }

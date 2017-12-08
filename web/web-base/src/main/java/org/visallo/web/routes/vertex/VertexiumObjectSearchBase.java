@@ -123,13 +123,6 @@ public abstract class VertexiumObjectSearchBase {
             VertexiumObjectSearchRunnerBase.QueryAndData queryAndData,
             QueryResultsIterable<? extends VertexiumObject> searchResults
     ) {
-        // CompositeGraphQuery returns 0 for getTotalHits, it would be nice to change the Vertexium API
-        // to denote this but that would be a breaking change. For now we'll test and not set total hits
-        // and let the UI handle it
-        if (!(queryAndData.getQuery() instanceof CompositeGraphQuery)) {
-            results.setTotalHits(searchResults.getTotalHits());
-        }
-
         if (searchResults instanceof IterableWithSearchTime) {
             results.setSearchTime(((IterableWithSearchTime) searchResults).getSearchTimeNanoSeconds());
         }
