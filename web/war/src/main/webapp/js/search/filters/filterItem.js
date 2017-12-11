@@ -20,10 +20,8 @@ define([
     };
 
     const GEO_PREDICATES = {
-        INTERSECTS: 'intersects',
         DISJOINT: 'disjoint',
-        WITHIN: 'within',
-        CONTAINS: 'contains'
+        WITHIN: 'within'
     }
 
     const DATA_TYPES = [
