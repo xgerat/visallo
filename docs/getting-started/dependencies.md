@@ -8,4 +8,4 @@ Please note that we've received reports of issues compiling Visallo Web Plugins/
 
 ## Browser Support
 
-Please note that the Visallo UI is primarily developed and tested under Google Chrome, Firefox 52 or later, and IE 11. It may or may not work under other versions or different web browsers.
+Please note that the Visallo UI is primarily developed and tested under Google Chrome, Firefox 52, and IE 11. It may or may not work under other versions or different web browsers.
