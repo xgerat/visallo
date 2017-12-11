@@ -6,9 +6,12 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class PropertyMetadata {
     private static final Visibility DEFAULT_VISIBILITY = new Visibility("");
@@ -27,6 +30,10 @@ public class PropertyMetadata {
      */
     public PropertyMetadata(User modifiedBy, VisibilityJson visibilityJson, Visibility propertyVisibility) {
         this(new Date(), modifiedBy, visibilityJson, propertyVisibility);
+    }
+
+    public PropertyMetadata(OffsetDateTime modifiedDate, User modifiedBy, VisibilityJson visibilityJson, Visibility visibility) {
+        this(Date.from(modifiedDate.toInstant()), modifiedBy, null, visibilityJson, visibility);
     }
 
     /**
@@ -53,6 +60,10 @@ public class PropertyMetadata {
             VisibilityJson visibilityJson,
             Visibility propertyVisibility
     ) {
+        checkNotNull(modifiedDate, "modifiedDate cannot be null");
+        checkNotNull(modifiedBy, "modifiedBy cannot be null");
+        checkNotNull(visibilityJson, "visibilityJson cannot be null");
+
         this.modifiedDate = modifiedDate;
         this.modifiedBy = modifiedBy;
         this.confidence = confidence;

@@ -278,6 +278,9 @@ public abstract class VertexiumObjectSearchRunnerBase extends SearchRunner {
         String elementType = searchOptions.getOptionalParameter(legacyParameterName, String.class);
         if (elementType != null) {
             Boolean includeChildNodes = searchOptions.getOptionalParameter("includeChildNodes", Boolean.class);
+            if (includeChildNodes == null) {
+                includeChildNodes = true;
+            }
             return Collections.singleton(new OntologyRepository.ElementTypeFilter(elementType, includeChildNodes));
         }
         return null;

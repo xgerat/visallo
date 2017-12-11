@@ -6,12 +6,16 @@ import org.vertexium.mutation.ElementMutation;
 import org.visallo.core.model.graph.ElementUpdateContext;
 
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.Temporal;
 import java.util.Date;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class VisalloExtendedData<TRaw, TGraph> {
     private static final String ROW_ID_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+    private static final ZoneId ROW_ID_ZONE_ID = ZoneId.of("GMT");
     private final String tableName;
     private final String columnName;
 
@@ -73,6 +77,12 @@ public abstract class VisalloExtendedData<TRaw, TGraph> {
 
     public static String rowIdFromDate(Date timestamp) {
         return new SimpleDateFormat(ROW_ID_DATE_FORMAT).format(timestamp);
+    }
+
+    public static String rowIdFromDate(Temporal timestamp) {
+        return DateTimeFormatter.ofPattern(ROW_ID_DATE_FORMAT)
+                .withZone(ROW_ID_ZONE_ID)
+                .format(timestamp);
     }
 
     public TRaw getValue(ExtendedDataRow row) {

@@ -3,6 +3,7 @@ package org.visallo.core.model.properties.types;
 import org.vertexium.Element;
 import org.visallo.core.model.graph.ElementUpdateContext;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
 
 /**
@@ -12,6 +13,17 @@ import java.util.Date;
 public class DateVisalloProperty extends IdentityVisalloProperty<Date> {
     public DateVisalloProperty(String key) {
         super(key);
+    }
+
+    public <T extends Element> void updateProperty(
+            ElementUpdateContext<T> ctx,
+            String propertyKey,
+            OffsetDateTime newValue,
+            PropertyMetadata metadata,
+            Long timestamp
+    ) {
+        Date date = newValue == null ? null : Date.from(newValue.toInstant());
+        updateProperty(ctx, propertyKey, date, metadata, timestamp);
     }
 
     /**

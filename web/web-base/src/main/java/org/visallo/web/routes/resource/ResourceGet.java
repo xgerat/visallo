@@ -34,11 +34,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 @Singleton
 public class ResourceGet implements ParameterizedHandler {
+    private static final Pattern hexPattern = Pattern.compile("^#.*$");
+    private static final Pattern rgbPattern = Pattern.compile("^\\s*rgb\\((\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)\\s*$");
+
     private final OntologyRepository ontologyRepository;
     private final boolean disableTint;
-
-    private static Pattern hexPattern = Pattern.compile("^#.*$");
-    private static Pattern rgbPattern = Pattern.compile("^\\s*rgb\\((\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)\\s*$");
 
     @Inject
     public ResourceGet(

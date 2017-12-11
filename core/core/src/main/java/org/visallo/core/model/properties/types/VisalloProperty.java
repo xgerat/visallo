@@ -176,7 +176,8 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
             PropertyMetadata metadata,
             Visibility visibility
     ) {
-        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata, null, visibility);
+        checkNotNull(metadata, "metadata cannot be null");
+        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata.createMetadata(), null, visibility);
     }
 
     /**

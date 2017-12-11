@@ -16,6 +16,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.User;
+import org.visallo.vertexium.model.user.InMemoryUser;
 import org.visallo.web.clientapi.model.PropertyType;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
@@ -27,6 +28,14 @@ import java.util.List;
 import java.util.Map;
 
 public class VisalloInMemoryGPWTestBase extends VisalloInMemoryTestBase {
+    private User user;
+
+    @Override
+    public void before() throws Exception {
+        super.before();
+        user = null;
+    }
+
     protected void run(GraphPropertyWorker gpw, GraphPropertyWorkerPrepareData workerPrepareData, Element element) {
         run(gpw, workerPrepareData, element, null);
     }
@@ -162,6 +171,13 @@ public class VisalloInMemoryGPWTestBase extends VisalloInMemoryTestBase {
             authorizations = getGraphAuthorizations(user, VisalloVisibility.SUPER_USER_VISIBILITY_STRING);
         }
         return new GraphPropertyWorkerPrepareData(configuration, termMentionFilters, user, authorizations, injector);
+    }
+
+    protected User getUser() {
+        if (user == null) {
+            user = new InMemoryUser("test", "Test User", "test@visallo.org", null);
+        }
+        return user;
     }
 
     protected void addPropertyWithIntent(String propertyIri, String... intents) {
