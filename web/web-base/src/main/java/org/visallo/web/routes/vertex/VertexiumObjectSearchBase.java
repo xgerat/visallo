@@ -123,6 +123,7 @@ public abstract class VertexiumObjectSearchBase {
             VertexiumObjectSearchRunnerBase.QueryAndData queryAndData,
             QueryResultsIterable<? extends VertexiumObject> searchResults
     ) {
+        results.setTotalHits(searchResults.getTotalHits());
         if (searchResults instanceof IterableWithSearchTime) {
             results.setSearchTime(((IterableWithSearchTime) searchResults).getSearchTimeNanoSeconds());
         }
