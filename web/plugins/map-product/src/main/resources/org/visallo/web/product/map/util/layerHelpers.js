@@ -233,7 +233,7 @@ define([
                             && featuresAtPixel[0].getId() === overlayId
                             && olSource.getFeatureById(overlayId)) {
                             handlers.onSelectElements({ vertices: [], edges: [] });
-                        } else if (featuresAtPixel.every(feature => sourceFeatures.includes(feature))) {
+                        } else if (featuresAtPixel.length && sourceFeatures.includes(featuresAtPixel[0])) {
                             handlers.onSelectElements(elements);
                         }
                     }
