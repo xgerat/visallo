@@ -42,6 +42,10 @@ define(['openlayers'], function(ol) {
             extent = map.getView().calculateExtent(map.getSize()),
             circleRadius = this.circleRadius || ol.extent.getWidth(extent) * 0.1 / 2;
 
+        if (!this.circleRadius) {
+            this.circleRadius = circleRadius;
+        }
+
         var circleGeometry = createCircle(center, circleRadius),
             resizeGeometry = new ol.geom.Point(this.calculateResizePoint(circleGeometry)),
             circleFeature = new ol.Feature(circleGeometry),
