@@ -343,8 +343,10 @@ define([
 
             if (property.title.startsWith('dataType:')) {
                 switch (property.dataType) {
-                    case 'geoLocation':
-                        return _.values(GEO_PREDICATES).concat(standardPredicates)
+                    case 'geoLocation': return [
+                           GEO_PREDICATES.WITHIN,
+                           GEO_PREDICATES.DISJOINT
+                       ].concat(standardPredicates);
                     default:
                         throw new Error('Unknown datatype: ' + property.dataType);
 
@@ -357,8 +359,10 @@ define([
                         PREDICATES.EQUALS
                     ].concat(standardPredicates);
 
-                case 'geoLocation':
-                    return _.values(GEO_PREDICATES).concat(standardPredicates);
+                case 'geoLocation': return [
+                        GEO_PREDICATES.WITHIN,
+                        GEO_PREDICATES.DISJOINT
+                    ].concat(standardPredicates);
 
                 case 'boolean': return [
                         PREDICATES.EQUALS

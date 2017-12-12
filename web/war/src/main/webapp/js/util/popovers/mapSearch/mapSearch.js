@@ -167,6 +167,7 @@ define([
                 this.update();
             })
             this.map.addInteraction(this.moveInteraction);
+            this.update();
         };
     }
 });
