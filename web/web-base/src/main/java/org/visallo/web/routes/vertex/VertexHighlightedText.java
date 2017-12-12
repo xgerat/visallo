@@ -13,6 +13,7 @@ import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.EntityHighlighter;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.ingest.video.VideoTranscript;
 import org.visallo.core.model.properties.MediaVisalloProperties;
@@ -23,6 +24,7 @@ import org.visallo.core.util.JsonSerializer;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.VisalloResponse;
+import org.visallo.web.WebConfiguration;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
 import java.io.InputStream;
@@ -34,16 +36,19 @@ public class VertexHighlightedText implements ParameterizedHandler {
     private final Graph graph;
     private final EntityHighlighter entityHighlighter;
     private final TermMentionRepository termMentionRepository;
+    private final Configuration configuration;
 
     @Inject
     public VertexHighlightedText(
             final Graph graph,
             final EntityHighlighter entityHighlighter,
-            final TermMentionRepository termMentionRepository
-    ) {
+            final TermMentionRepository termMentionRepository,
+            final Configuration configuration
+            ) {
         this.graph = graph;
         this.entityHighlighter = entityHighlighter;
         this.termMentionRepository = termMentionRepository;
+        this.configuration = configuration;
     }
 
     @Handle
@@ -67,6 +72,8 @@ public class VertexHighlightedText implements ParameterizedHandler {
             propertyName = VisalloProperties.TEXT.getPropertyName();
         }
 
+        Long maxTextLength = configuration.getLong(WebConfiguration.MAX_TEXT_LENGTH, -1L);
+
         StreamingPropertyValue textPropertyValue = (StreamingPropertyValue) artifactVertex.getPropertyValue(propertyKey, propertyName);
         if (textPropertyValue != null) {
             response.setContentType("text/html");
@@ -78,7 +85,7 @@ public class VertexHighlightedText implements ParameterizedHandler {
                 response.respondWithHtml("");
             } else {
                 Iterable<Vertex> termMentions = termMentionRepository.findByOutVertexAndProperty(artifactVertex.getId(), propertyKey, propertyName, authorizationsWithTermMention);
-                entityHighlighter.transformHighlightedText(inputStream, response.getOutputStream(), termMentions, workspaceId, authorizationsWithTermMention);
+                entityHighlighter.transformHighlightedText(inputStream, response.getOutputStream(), termMentions, maxTextLength, workspaceId, authorizationsWithTermMention);
             }
         }
 
