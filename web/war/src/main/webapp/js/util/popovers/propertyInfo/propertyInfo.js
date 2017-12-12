@@ -106,7 +106,12 @@ define([
                             config.canDelete = config.property.deleteable !== undefined ? config.property.deleteable !== false : propertyAcl.deleteable !== false;
                         } else if (!config.isComment && visalloData.currentWorkspaceEditable) {
                             config.canAdd = config.property.addable !== undefined ? config.property.addable !== false : propertyAcl.addable !== false;
-                            config.canEdit = config.property.updateable !== undefined ? config.property.updateable !== false : propertyAcl.updateable !== false;
+                            if (config.isVisibility) {
+                                // Only users with PUBLISH privilege can edit the element visibility
+                                config.canEdit = Boolean(visalloData.currentUser.privilegesHelper.PUBLISH);
+                            } else {
+                                config.canEdit = config.property.updateable !== undefined ? config.property.updateable !== false : propertyAcl.updateable !== false;
+                            }
                             config.canDelete = (config.property.deleteable !== undefined ? config.property.deleteable !== false : propertyAcl.deleteable !== false) &&
                                 !config.isVisibility;
                         }
@@ -147,7 +152,12 @@ define([
                 isComment = property.name === 'http://visallo.org/comment#entry',
                 metadata = _.chain(this.metadataProperties || [])
                     .map(function(name) {
-                        if ('metadata' in property) {
+                        if (isVisibility) {
+                            var prop = _.first(F.vertex.props(element, name));
+                            if (prop) {
+                                return [name, prop.value];
+                            }
+                        } else if ('metadata' in property) {
                             if (name in property.metadata) {
                                 return [name, property.metadata[name]];
                             }

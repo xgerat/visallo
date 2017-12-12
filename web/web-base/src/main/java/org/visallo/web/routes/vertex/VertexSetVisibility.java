@@ -8,9 +8,11 @@ import com.v5analytics.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
@@ -21,11 +23,13 @@ import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiVertex;
+import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.parameterProviders.SourceGuid;
 import org.visallo.web.util.VisibilityValidator;
 
 import java.util.ResourceBundle;
+import java.util.Set;
 
 @Singleton
 public class VertexSetVisibility implements ParameterizedHandler {
@@ -35,6 +39,7 @@ public class VertexSetVisibility implements ParameterizedHandler {
     private final WorkQueueRepository workQueueRepository;
     private final GraphRepository graphRepository;
     private final VisibilityTranslator visibilityTranslator;
+    private final PrivilegeRepository privilegeRepository;
 
     @Inject
     public VertexSetVisibility(
@@ -42,6 +47,7 @@ public class VertexSetVisibility implements ParameterizedHandler {
             WorkspaceRepository workspaceRepository,
             WorkQueueRepository workQueueRepository,
             GraphRepository graphRepository,
+            PrivilegeRepository privilegeRepository,
             VisibilityTranslator visibilityTranslator
     ) {
         this.graph = graph;
@@ -49,6 +55,7 @@ public class VertexSetVisibility implements ParameterizedHandler {
         this.workQueueRepository = workQueueRepository;
         this.graphRepository = graphRepository;
         this.visibilityTranslator = visibilityTranslator;
+        this.privilegeRepository = privilegeRepository;
     }
 
     @Handle
@@ -72,6 +79,11 @@ public class VertexSetVisibility implements ParameterizedHandler {
         workspaceRepository.updateEntityOnWorkspace(workspaceId, graphVertexId, user);
 
         LOGGER.info("changing vertex (%s) visibility source to %s", graphVertex.getId(), visibilitySource);
+
+        Set<String> privileges = privilegeRepository.getPrivileges(user);
+        if (!privileges.contains(Privilege.PUBLISH)) {
+            throw new VisalloException("User does not have access to modify the visibility");
+        }
 
         graphRepository.updateElementVisibilitySource(
                 graphVertex,

@@ -16,9 +16,11 @@
       {{#if canEdit}}
       <li><button class="btn-edit btn btn-small">{{ i18n 'popovers.property_info.button.edit' }}</button></li>
       {{else}}
-          {{#if canAdd}}
-            <li><button class="btn-add btn btn-small">{{ i18n 'popovers.property_info.button.add' }}</button></li>
-          {{/if}}
+          {{#unless isVisibility}}
+            {{#if canAdd}}
+              <li><button class="btn-add btn btn-small">{{ i18n 'popovers.property_info.button.add' }}</button></li>
+            {{/if}}
+          {{/unless}}
       {{/if}}
     {{/unless}}
 
