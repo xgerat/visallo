@@ -32,8 +32,12 @@ public class EntityHighlighter {
     public static final EnumSet<Options> DefaultOptions = EnumSet.of(Options.IncludeStyle);
 
     public void transformHighlightedText(InputStream text, OutputStream output, Iterable<Vertex> termMentions, String workspaceId, Authorizations authorizations) {
+        transformHighlightedText(text, output, termMentions, -1, workspaceId, authorizations);
+    }
+
+    public void transformHighlightedText(InputStream text, OutputStream output, Iterable<Vertex> termMentions, long maxTextLength, String workspaceId, Authorizations authorizations) {
         List<OffsetItem> offsetItems = convertTermMentionsToOffsetItems(termMentions, workspaceId, authorizations);
-        transformToHighlightedText(text, output, offsetItems);
+        transformToHighlightedText(text, output, offsetItems, maxTextLength);
     }
 
     public static String getHighlightedText(String text, List<OffsetItem> offsetItems) {
@@ -42,7 +46,7 @@ public class EntityHighlighter {
 
     public static String getHighlightedText(String text, List<OffsetItem> offsetItems, EnumSet<Options> options) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            transformToHighlightedText(IOUtils.toInputStream(text, StandardCharsets.UTF_8.name()), out, offsetItems, options);
+            transformToHighlightedText(IOUtils.toInputStream(text, StandardCharsets.UTF_8.name()), out, offsetItems, -1, options);
             return out.toString(StandardCharsets.UTF_8.name());
         } catch (IOException e) {
             throw new VisalloException("Unable to transform to highlighted text", e);
@@ -50,10 +54,14 @@ public class EntityHighlighter {
     }
 
     public static void transformToHighlightedText(InputStream text, OutputStream output, List<OffsetItem> offsetItems) {
-        transformToHighlightedText(text, output, offsetItems, DefaultOptions);
+        transformToHighlightedText(text, output, offsetItems, -1, DefaultOptions);
     }
 
-    public static void transformToHighlightedText(InputStream text, OutputStream output, List<OffsetItem> offsetItems, EnumSet<Options> options) {
+    public static void transformToHighlightedText(InputStream text, OutputStream output, List<OffsetItem> offsetItems, long maxTextLength) {
+        transformToHighlightedText(text, output, offsetItems, maxTextLength, DefaultOptions);
+    }
+
+    public static void transformToHighlightedText(InputStream text, OutputStream output, List<OffsetItem> offsetItems, long maxTextLength, EnumSet<Options> options) {
         try (
             InputStreamReader in = new InputStreamReader(text);
             OutputStream filteredSpaces = new NonBreakingSpaceFilteredOutputStream(output);
@@ -81,6 +89,7 @@ public class EntityHighlighter {
             char buffer[] = new char[BUFFER_SIZE];
             int offset = 0;
             int maxDepth = 0;
+            boolean closeWhenAvailable = false;
 
             do {
                 int len = in.read(buffer, 0, BUFFER_SIZE);
@@ -140,20 +149,32 @@ public class EntityHighlighter {
                         }
                     }
 
+                    if (closeWhenAvailable && started.size() == 0) {
+                        break;
+                    }
+
                     if (innerOffset < len) {
                         writeBuffer(started, items, out, buffer, innerOffset, len - innerOffset);
                     }
                     offset += len;
+                    if (maxTextLength != -1 && offset > maxTextLength) closeWhenAvailable = true;
                 }
             } while (true);
 
             if (options.contains(Options.IncludeStyle)) {
                 writeStyle(out, maxDepth);
             }
+            if (closeWhenAvailable) {
+                writeTruncated(out);
+            }
 
         } catch (IOException e) {
             throw new VisalloException("Unable to transform to highlighted text", e);
         }
+    }
+
+    private static void writeTruncated(OutputStreamWriter out) throws IOException {
+        out.write("<div class=\"truncated\">This text has exceeded the configured maximum length, and has been truncated.</div>");
     }
 
     private static void writeStyle(OutputStreamWriter out, int maxDepth) throws IOException {

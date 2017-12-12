@@ -503,7 +503,7 @@ define([
                     .then(function(artifactText) {
                         var html = self.processArtifactText(artifactText);
                         if (expand) {
-                            $section.find('.text').html(html);
+                            $section.find('.text')[0].innerHTML = html;
                         }
                     });
             }
