@@ -9,9 +9,11 @@ import org.vertexium.Authorizations;
 import org.vertexium.Direction;
 import org.vertexium.Edge;
 import org.vertexium.Graph;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
@@ -22,10 +24,12 @@ import org.visallo.core.util.SandboxStatusUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiEdge;
+import org.visallo.web.clientapi.model.Privilege;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.util.VisibilityValidator;
 
 import java.util.ResourceBundle;
+import java.util.Set;
 
 @Singleton
 public class EdgeSetVisibility implements ParameterizedHandler {
@@ -35,6 +39,7 @@ public class EdgeSetVisibility implements ParameterizedHandler {
     private final WorkspaceRepository workspaceRepository;
     private final GraphRepository graphRepository;
     private final VisibilityTranslator visibilityTranslator;
+    private final PrivilegeRepository privilegeRepository;
 
     @Inject
     public EdgeSetVisibility(
@@ -42,13 +47,15 @@ public class EdgeSetVisibility implements ParameterizedHandler {
             WorkQueueRepository workQueueRepository,
             WorkspaceRepository workspaceRepository,
             GraphRepository graphRepository,
-            VisibilityTranslator visibilityTranslator
+            VisibilityTranslator visibilityTranslator,
+            PrivilegeRepository privilegeRepository
     ) {
         this.graph = graph;
         this.workQueueRepository = workQueueRepository;
         this.workspaceRepository = workspaceRepository;
         this.graphRepository = graphRepository;
         this.visibilityTranslator = visibilityTranslator;
+        this.privilegeRepository = privilegeRepository;
     }
 
     @Handle
@@ -72,6 +79,11 @@ public class EdgeSetVisibility implements ParameterizedHandler {
         workspaceRepository.updateEntityOnWorkspace(workspaceId, graphEdge.getVertexId(Direction.OUT), user);
 
         LOGGER.info("changing edge (%s) visibility source to %s", graphEdge.getId(), visibilitySource);
+
+        Set<String> privileges = privilegeRepository.getPrivileges(user);
+        if (!privileges.contains(Privilege.PUBLISH)) {
+            throw new VisalloException("User does not have access to modify the visibility");
+        }
 
         graphRepository.updateElementVisibilitySource(
                 graphEdge,
