@@ -29,6 +29,10 @@
                         <goals>
                             <goal>yarn</goal>
                         </goals>
+                        <configuration>
+                            <arguments>install</arguments>
+                            <arguments>--production=false</arguments>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>webpack build</id>
@@ -43,7 +47,8 @@
                             <goal>yarn</goal>
                         </goals>
                         <configuration>
-                          <arguments>test</arguments>
+                            <arguments>test</arguments>
+                            <arguments>--production=false</arguments>
                         </configuration>
                         <phase>test</phase>
                     </execution>
