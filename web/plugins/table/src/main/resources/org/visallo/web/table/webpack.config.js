@@ -45,7 +45,7 @@ module.exports = {
   devtool: 'source-map',
   plugins: [
     new webpack.optimize.UglifyJsPlugin({
-        mangle: false,
+        mangle: process.env.NODE_ENV !== 'development',
         sourceMap: true,
         compress: {
             drop_debugger: false,
