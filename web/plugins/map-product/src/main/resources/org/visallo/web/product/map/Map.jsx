@@ -184,28 +184,41 @@ define([
         },
 
         onMouseOut(ol, map, features) {
-            clusterHover.hide(ol, map, features);
+            clusterHover.hide(ol, map);
         },
 
-        onContextTap({ map, pixel, originalEvent }) {
-            const vertexIds = [];
-            map.forEachFeatureAtPixel(pixel, cluster => {
-                const features = cluster.get('features');
-                if (features) {
-                    features.forEach(f => {
-                        const element = f.get('element');
-                        if (element && element.type === 'vertex') {
-                            vertexIds.push(element.id);
-                        }
-                    })
-                }
-            })
+        onContextTap(ol, { map, pixel, originalEvent }) {
+            clusterHover.hide(ol, map);
 
-            if (vertexIds.length) {
+            const productVertices = this.props.product.extendedData.vertices;
+            const featuresAtPixel = map.getFeaturesAtPixel(pixel);
+            const isValidVertex = (element) => {
+                const isAncillary = element && productVertices[element.id] && productVertices[element.id].ancillary;
+                return element && element.type === 'vertex' && !isAncillary
+            }
+            let vertexId;
+
+            if (featuresAtPixel.length) {
+                const target = featuresAtPixel[0];
+                const element = target.get('element');
+
+                if (isValidVertex(element)) {
+                    vertexId = element.id;
+                } else {
+                    const clusteredFeatures = target.get('features') || [];
+                    const clusteredFeature = clusteredFeatures.find(f => {
+                        const element = f.get('element');
+                        return isValidVertex(element);
+                    });
+                    vertexId = clusteredFeature && clusteredFeature.get('element').id;
+                }
+            }
+
+            if (vertexId) {
                 const { pageX, pageY } = originalEvent;
                 this.props.onVertexMenu(
                     originalEvent.target,
-                    vertexIds[0],
+                    vertexId,
                     { x: pageX, y: pageY }
                 );
             }
