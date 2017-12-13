@@ -148,7 +148,7 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
 
     public void onOpen(AtmosphereResource resource) throws IOException {
         setStatus(resource, UserStatus.ACTIVE);
-        incrementUserSessionCount(resource);
+        incrementUserConnectionCount(resource);
     }
 
     public void onResume(AtmosphereResourceEvent event, AtmosphereResponse response) throws IOException {
@@ -168,17 +168,14 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
     }
 
     private void onDisconnectOrClose(AtmosphereResourceEvent event) {
-        // If POST /logout was called first the session will be invalidated.
-        if (event.getResource() == null
-                || event.getResource().getRequest() == null
-                || event.getResource().getRequest().getSession() == null) {
+        if (event.getResource() == null || event.getResource().getRequest() == null) {
             return;
         }
 
-        boolean lastSession = decrementUserSessionCount(event.getResource());
-        if (lastSession) {
+        boolean lastConnection = decrementUserConnectionCount(event.getResource());
+        if (lastConnection) {
             String userId = getCurrentUserId(event.getResource());
-            LOGGER.info("last session for user %s", userId);
+            LOGGER.info("last connection for user %s", userId);
             setStatus(event.getResource(), UserStatus.OFFLINE);
             auditService.auditLogout(userId);
         }
@@ -233,44 +230,36 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
         broadcaster = resource.getBroadcaster();
         try {
             String authUserId = CurrentUser.getUserId(resource.getRequest());
-            checkNotNull(authUserId, "Could not find user in session");
+            checkNotNull(authUserId, "Could not find current user");
             User authUser = userRepository.findById(authUserId);
             checkNotNull(authUser, "Could not find user with id: " + authUserId);
 
             if (authUser.getUserStatus() != status) {
                 LOGGER.debug("Setting user %s status to %s", authUserId, status.toString());
                 userRepository.setStatus(authUserId, status);
-
-                this.workQueueRepository.pushUserStatusChange(authUser, status);
+                workQueueRepository.pushUserStatusChange(authUser, status);
             }
         } catch (Exception ex) {
-            LOGGER.error("Could not update status", ex);
-        } finally {
-            // TODO session is held open by getAppSession
-            // session.close();
+            LOGGER.error("Could not update user status", ex);
         }
     }
 
-    private void incrementUserSessionCount(AtmosphereResource resource) {
+    private void incrementUserConnectionCount(AtmosphereResource resource) {
         String userId = getCurrentUserId(resource);
         boolean autoDelete = !(resource.transport() == AtmosphereResource.TRANSPORT.WEBSOCKET);
         userSessionCounterRepository.updateSession(userId, resource.uuid(), autoDelete);
     }
 
-    private boolean decrementUserSessionCount(AtmosphereResource resource) {
+    private boolean decrementUserConnectionCount(AtmosphereResource resource) {
         String userId = getCurrentUserId(resource);
         if (userId == null) {
-            LOGGER.debug("userId could not be found in Atmosphere session");
+            LOGGER.debug("userId could not be found in CurrentUser");
             return false;
         }
         return userSessionCounterRepository.deleteSession(userId, resource.uuid()) < 1;
     }
 
     private String getCurrentUserId(AtmosphereResource resource) {
-        if (resource.getRequest().getSession() == null) {
-            return null;
-        }
-
         String userId = CurrentUser.getUserId(resource.getRequest());
         if (userId != null && userId.trim().length() > 0) {
             return userId;

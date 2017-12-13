@@ -199,7 +199,6 @@ define([
             this.on(document, 'toggleActivityPane', this.toggleActivityPane);
             this.on(document, 'escape', this.onEscapeKey);
             this.on(document, 'logout', this.logout);
-            this.on(document, 'sessionExpiration', this.onSessionExpiration);
             this.on(document, 'showVertexContextMenu', this.onShowVertexContextMenu);
             this.on(document, 'showEdgeContextMenu', this.onShowEdgeContextMenu);
             this.on(document, 'showCollapsedItemContextMenu', this.onShowCollapsedItemContextMenu);
@@ -526,13 +525,6 @@ define([
             } else {
                 console.log('View ' + data.view + " isn't supported");
             }
-        };
-
-        this.onSessionExpiration = function() {
-            this.trigger('logout', {
-                byPassLogout: true,
-                message: i18n('visallo.session.expired')
-            });
         };
 
         this.logout = function(event, data) {

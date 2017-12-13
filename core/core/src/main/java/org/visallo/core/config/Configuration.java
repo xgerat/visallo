@@ -91,6 +91,11 @@ public class Configuration {
     public static final long DEFAULT_MULTIPART_MAX_REQUEST_SIZE = 1024 * 1024 * 100;
     public static final String MULTIPART_FILE_SIZE_THRESHOLD = "multiPart.fileSizeThreshold";
     public static final int DEFAULT_MULTIPART_FILE_SIZE_THRESHOLD = 0;
+    public static final String STATUS_REFRESH_INTERVAL_SECONDS = "status.refreshIntervalSeconds";
+    public static final int STATUS_REFRESH_INTERVAL_SECONDS_DEFAULT = 10;
+    public static final String AUTH_TOKEN_PASSWORD = "auth.token.password";
+    public static final String AUTH_TOKEN_SALT = "auth.token.salt";
+    public static final String AUTH_TOKEN_EXPIRATION_IN_MINS = "auth.token.expiration_minutes";
     public static final String SYSTEM_PROPERTY_PREFIX = "visallo.";
 
     private final ConfigurationLoader configurationLoader;

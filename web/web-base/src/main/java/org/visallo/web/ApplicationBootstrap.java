@@ -25,7 +25,9 @@ import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.ShutdownService;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.auth.AuthTokenWebSocketInterceptor;
 import org.visallo.web.initializers.ApplicationBootstrapInitializer;
+import org.visallo.web.auth.AuthTokenFilter;
 
 import javax.servlet.*;
 import javax.servlet.annotation.ServletSecurity;
@@ -41,6 +43,7 @@ public class ApplicationBootstrap implements ServletContextListener {
     public static final String APP_CONFIG_LOADER = "application.config.loader";
     public static final String VISALLO_SERVLET_NAME = "visallo";
     public static final String ATMOSPHERE_SERVLET_NAME = "atmosphere";
+    public static final String AUTH_TOKEN_FILTER_NAME = "auth.token";
     public static final String DEBUG_FILTER_NAME = "debug";
     public static final String CACHE_FILTER_NAME = "cache";
     private volatile boolean isStopped = false;
@@ -151,6 +154,7 @@ public class ApplicationBootstrap implements ServletContextListener {
         addMultiPartConfig(config, servlet);
         addSecurityConstraint(servlet, config);
         addAtmosphereServlet(context, config);
+        addAuthTokenFilter(context, config);
         addDebugFilter(context);
         addCacheFilter(context);
 
@@ -171,24 +175,33 @@ public class ApplicationBootstrap implements ServletContextListener {
 
     private void addAtmosphereServlet(ServletContext context, Configuration config) {
         ServletRegistration.Dynamic servlet = context.addServlet(ATMOSPHERE_SERVLET_NAME, AtmosphereServlet.class);
-        context.addListener(SessionSupport.class);
         servlet.addMapping(Messaging.PATH + "/*");
         servlet.setAsyncSupported(true);
         servlet.setLoadOnStartup(0);
         servlet.setInitParameter(AtmosphereHandler.class.getName(), Messaging.class.getName());
-        servlet.setInitParameter(ApplicationConfig.PROPERTY_SESSION_CREATE, "false");
-        servlet.setInitParameter(ApplicationConfig.PROPERTY_SESSION_SUPPORT, "true");
         servlet.setInitParameter(ApplicationConfig.BROADCAST_FILTER_CLASSES, MessagingFilter.class.getName() + "," +
                 MessagingThrottleFilter.class.getName());
-        servlet.setInitParameter(AtmosphereInterceptor.class.getName(), HeartbeatInterceptor.class.getName());
+        servlet.setInitParameter(AtmosphereInterceptor.class.getName(), HeartbeatInterceptor.class.getName() + "," +
+                AuthTokenWebSocketInterceptor.class.getName());
         servlet.setInitParameter(ApplicationConfig.HEARTBEAT_INTERVAL_IN_SECONDS, "30");
         servlet.setInitParameter(ApplicationConfig.MAX_INACTIVE, "-1");
         servlet.setInitParameter(ApplicationConfig.BROADCASTER_CACHE, UUIDBroadcasterCache.class.getName());
         servlet.setInitParameter(ApplicationConfig.DROP_ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "true");
         servlet.setInitParameter(ApplicationConfig.WEBSOCKET_MAXTEXTSIZE, "1048576");
         servlet.setInitParameter(ApplicationConfig.WEBSOCKET_MAXBINARYSIZE, "1048576");
+        servlet.setInitParameter(Configuration.AUTH_TOKEN_PASSWORD, config.get(Configuration.AUTH_TOKEN_PASSWORD, null));
+        servlet.setInitParameter(Configuration.AUTH_TOKEN_SALT, config.get(Configuration.AUTH_TOKEN_SALT, null));
 
         addSecurityConstraint(servlet, config);
+    }
+
+    private void addAuthTokenFilter(ServletContext context, Configuration config) {
+        FilterRegistration.Dynamic filter = context.addFilter(AUTH_TOKEN_FILTER_NAME, AuthTokenFilter.class);
+        filter.setInitParameter(Configuration.AUTH_TOKEN_PASSWORD, config.get(Configuration.AUTH_TOKEN_PASSWORD, null));
+        filter.setInitParameter(Configuration.AUTH_TOKEN_SALT, config.get(Configuration.AUTH_TOKEN_SALT, null));
+        filter.setInitParameter(Configuration.AUTH_TOKEN_EXPIRATION_IN_MINS, config.get(Configuration.AUTH_TOKEN_EXPIRATION_IN_MINS, null));
+        filter.setAsyncSupported(true);
+        filter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
     }
 
     private void addDebugFilter(ServletContext context) {

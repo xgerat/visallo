@@ -23,8 +23,6 @@ import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.User;
 import org.visallo.vertexium.model.user.InMemoryUser;
-import org.visallo.web.CurrentUser;
-import org.visallo.web.SessionUser;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
 
 import javax.servlet.http.HttpServletRequest;
@@ -87,8 +85,6 @@ public abstract class RouteTestBase {
     @Mock
     protected HttpSession httpSession;
 
-    protected SessionUser sessionUser;
-
     protected ProxyUser user;
 
     protected User nonProxiedUser;
@@ -116,11 +112,9 @@ public abstract class RouteTestBase {
         nonProxiedUser = new InMemoryUser("jdoe", "Jane Doe", "jane.doe@email.com", currentWorkspaceId);
         when(userRepository.findById(eq(USER_ID))).thenReturn(nonProxiedUser);
 
-        sessionUser = new SessionUser(USER_ID);
         user = new ProxyUser(USER_ID, userRepository);
 
-        when(request.getSession()).thenReturn(httpSession);
-        when(httpSession.getAttribute(eq(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME))).thenReturn(sessionUser);
+        when(request.getSession()).thenThrow(UnsupportedOperationException.class);
 
         when(request.getAttribute(eq(WORKSPACE_ID_ATTRIBUTE_NAME))).thenReturn(WORKSPACE_ID);
 

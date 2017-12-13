@@ -26,12 +26,6 @@ public class MessagingFilterTest {
     @Mock
     private org.atmosphere.cpr.AtmosphereRequest request;
 
-    @Mock
-    private javax.servlet.http.HttpSession session;
-
-    @Mock
-    private SessionUser sessionUser;
-
     @Before
     public void before() {
         messagingFilter = new MessagingFilter();
@@ -42,113 +36,47 @@ public class MessagingFilterTest {
     public void testShouldNotSendSetActiveWorkspaceMessage() {
         JSONObject message = new JSONObject();
         message.put("type", MessagingFilter.TYPE_SET_ACTIVE_WORKSPACE);
-
         assertFalse(messagingFilter.shouldSendMessage(message, null));
     }
 
     @Test
     public void testShouldSendMessageSessionNull() {
         JSONObject message = new JSONObject();
-
         assertFalse(messagingFilter.shouldSendMessage(message, null));
-    }
-
-    @Test
-    public void testShouldSendMessageSessionNullAndSessionExpiration() {
-        JSONObject message = new JSONObject();
-        message.put("type", MessagingFilter.TYPE_SESSION_EXPIRATION);
-
-        assertTrue(messagingFilter.shouldSendMessage(message, null));
-    }
-
-    @Test
-    public void testShouldSendMessageSessionNotNullAndSessionExpirationAndSessionIdPermissions() {
-        when(sessionUser.getUserId()).thenReturn("user123");
-        when(session.getAttribute(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME)).thenReturn(sessionUser);
-        when(session.getId()).thenReturn("session123");
-
-        JSONObject message = new JSONObject("{ permissions: { sessionIds: ['session123'] } }");
-        message.put("type", MessagingFilter.TYPE_SESSION_EXPIRATION);
-
-        assertTrue(messagingFilter.shouldSendMessage(message, session));
-    }
-
-    @Test
-    public void testShouldNotSendMessageSessionNotNullAndSessionExpirationAndSessionIdPermission() {
-        when(sessionUser.getUserId()).thenReturn("user123");
-        when(session.getAttribute(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME)).thenReturn(sessionUser);
-        when(session.getId()).thenReturn("session123");
-
-        JSONObject message = new JSONObject("{ permissions: { sessionIds: ['session456'] } }");
-        message.put("type", MessagingFilter.TYPE_SESSION_EXPIRATION);
-
-        assertFalse(messagingFilter.shouldSendMessage(message, session));
     }
 
     @Test
     public void testShouldSendMessageSessionNotNull() {
         JSONObject message = new JSONObject();
-
-        assertTrue(messagingFilter.shouldSendMessage(message, session));
+        assertTrue(messagingFilter.shouldSendMessage(message, request));
     }
 
     @Test
     public void testShouldSendMessageBasedOnUserPermissions() {
-        when(sessionUser.getUserId()).thenReturn("user123");
-        when(session.getAttribute(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME)).thenReturn(sessionUser);
-
+        when(CurrentUser.getUserId(request)).thenReturn("user123");
         JSONObject message = new JSONObject("{ permissions: { users: ['user123'] } }");
-
-        assertTrue(messagingFilter.shouldSendMessage(message, session));
+        assertTrue(messagingFilter.shouldSendMessage(message, request));
     }
 
     @Test
     public void testShouldNotSendMessageBasedOnUserPermissions() {
-        when(sessionUser.getUserId()).thenReturn("user123");
-        when(session.getAttribute(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME)).thenReturn(sessionUser);
-
+        when(CurrentUser.getUserId(request)).thenReturn("user123");
         JSONObject message = new JSONObject("{ permissions: { users: ['user456'] } }");
-
-        assertFalse(messagingFilter.shouldSendMessage(message, session));
-    }
-
-    @Test
-    public void testShouldSendMessageBasedOnSessionIdPermissions() {
-        when(session.getId()).thenReturn("session123");
-
-        JSONObject message = new JSONObject("{ permissions: { sessionIds: ['session123'] } }");
-
-        assertTrue(messagingFilter.shouldSendMessage(message, session));
-    }
-
-    @Test
-    public void testShouldNotSendMessageBasedOnSessionIdPermissions() {
-        when(session.getId()).thenReturn("session123");
-
-        JSONObject message = new JSONObject("{ permissions: { sessionIds: ['session456'] } }");
-
-        assertFalse(messagingFilter.shouldSendMessage(message, session));
+        assertFalse(messagingFilter.shouldSendMessage(message, request));
     }
 
     @Test
     public void testShouldSendMessageBasedOnWorkspacesPermissions() {
         when(userRepository.getCurrentWorkspaceId("user123")).thenReturn("workspace123");
-        when(sessionUser.getUserId()).thenReturn("user123");
-        when(session.getAttribute(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME)).thenReturn(sessionUser);
-
+        when(CurrentUser.getUserId(request)).thenReturn("user123");
         JSONObject message = new JSONObject("{ permissions: { workspaces: ['workspace123'] } }");
-
-        assertTrue(messagingFilter.shouldSendMessage(message, session));
+        assertTrue(messagingFilter.shouldSendMessage(message, request));
     }
 
     @Test
     public void testShouldNotSendMessageBasedOnWorkspacesPermissions() {
         when(userRepository.getCurrentWorkspaceId("user123")).thenReturn("workspace123");
-        when(sessionUser.getUserId()).thenReturn("user123");
-        when(session.getAttribute(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME)).thenReturn(sessionUser);
-
         JSONObject message = new JSONObject("{ permissions: { workspaces: ['workspace456'] } }");
-
-        assertFalse(messagingFilter.shouldSendMessage(message, session));
+        assertFalse(messagingFilter.shouldSendMessage(message, request));
     }
 }

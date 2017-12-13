@@ -12,7 +12,6 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.User;
 import org.visallo.web.CurrentUser;
-import org.visallo.web.SessionUser;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -36,15 +35,6 @@ public class VisalloBaseParameterProviderTest {
     @Mock
     private WorkspaceRepository workspaceRepository;
 
-    @Mock
-    private HttpSession session;
-
-    @Before
-    public void before() {
-        when(request.getSession()).thenReturn(session);
-        when(request.getSession(false)).thenReturn(session);
-    }
-
     @Test
     public void testGetUserWhenSetInRequestAlready() {
         ProxyUser user = new ProxyUser(USER_ID, userRepository);
@@ -54,9 +44,8 @@ public class VisalloBaseParameterProviderTest {
     }
 
     @Test
-    public void testGetUserWhenSetInSession() {
-        SessionUser sessionUser = new SessionUser(USER_ID);
-        when(session.getAttribute(CurrentUser.SESSIONUSER_ATTRIBUTE_NAME)).thenReturn(sessionUser);
+    public void testGetUserWhenSetInRequest() {
+        when(CurrentUser.getUserId(request)).thenReturn(USER_ID);
         User foundUser = VisalloBaseParameterProvider.getUser(request, userRepository);
         assertEquals(USER_ID, foundUser.getUserId());
     }

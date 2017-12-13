@@ -12,13 +12,12 @@ import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class MessagingFilter implements PerRequestBroadcastFilter {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(MessagingFilter.class);
-    public static final String TYPE_SESSION_EXPIRATION = "sessionExpiration";
     public static final String TYPE_SET_ACTIVE_WORKSPACE = "setActiveWorkspace";
     private UserRepository userRepository;
 
@@ -37,7 +36,7 @@ public class MessagingFilter implements PerRequestBroadcastFilter {
             }
             JSONObject json = new JSONObject(message.toString());
 
-            if (shouldSendMessage(json, r.getRequest().getSession())) {
+            if (shouldSendMessage(json, r.getRequest())) {
                 return new BroadcastAction(message);
             } else {
                 return new BroadcastAction(BroadcastAction.ACTION.ABORT, message);
@@ -48,49 +47,37 @@ public class MessagingFilter implements PerRequestBroadcastFilter {
         }
     }
 
-    boolean shouldSendMessage(JSONObject json, HttpSession session) {
+    boolean shouldSendMessage(JSONObject json, HttpServletRequest request) {
         String type = json.optString("type", null);
-        if (type != null) {
-            switch (type) {
-                case TYPE_SET_ACTIVE_WORKSPACE:
-                    return false;
-                case TYPE_SESSION_EXPIRATION:
-                    if (session == null) {
-                        return true;
-                    }
-                    break;
-            }
-        }
-
-        if (session == null) {
+        if (TYPE_SET_ACTIVE_WORKSPACE.equals(type)) {
             return false;
         }
 
-        return shouldSendMessageByPermissions(json, session);
+        if (request == null) {
+            return false;
+        }
+
+        return shouldSendMessageByPermissions(json, request);
     }
 
-    private boolean shouldSendMessageByPermissions(JSONObject json, HttpSession session) {
+    private boolean shouldSendMessageByPermissions(JSONObject json, HttpServletRequest request) {
         JSONObject permissionsJson = json.optJSONObject("permissions");
         if (permissionsJson != null) {
-            if (shouldRejectMessageByUsers(permissionsJson, session)) {
+            if (shouldRejectMessageByUsers(permissionsJson, request)) {
                 return false;
             }
 
-            if (shouldRejectMessageToSessionIds(permissionsJson, session)) {
-                return false;
-            }
-
-            if (shouldRejectMessageToWorkspaces(permissionsJson, session)) {
+            if (shouldRejectMessageToWorkspaces(permissionsJson, request)) {
                 return false;
             }
         }
         return true;
     }
 
-    private boolean shouldRejectMessageToWorkspaces(JSONObject permissionsJson, HttpSession session) {
+    private boolean shouldRejectMessageToWorkspaces(JSONObject permissionsJson, HttpServletRequest request) {
         JSONArray workspaces = permissionsJson.optJSONArray("workspaces");
         if (workspaces != null) {
-            String currentUserId = CurrentUser.getUserId(session);
+            String currentUserId = CurrentUser.getUserId(request);
             if (currentUserId == null) {
                 return true;
             }
@@ -107,20 +94,10 @@ public class MessagingFilter implements PerRequestBroadcastFilter {
         return false;
     }
 
-    private boolean shouldRejectMessageToSessionIds(JSONObject permissionsJson, HttpSession session) {
-        JSONArray sessionIds = permissionsJson.optJSONArray("sessionIds");
-        if (sessionIds != null) {
-            if (!JSONUtil.isInArray(sessionIds, session.getId())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean shouldRejectMessageByUsers(JSONObject permissionsJson, HttpSession session) {
+    private boolean shouldRejectMessageByUsers(JSONObject permissionsJson, HttpServletRequest request) {
         JSONArray users = permissionsJson.optJSONArray("users");
         if (users != null) {
-            String currentUserId = CurrentUser.getUserId(session);
+            String currentUserId = CurrentUser.getUserId(request);
             if (currentUserId != null && !JSONUtil.isInArray(users, currentUserId)) {
                 return true;
             }

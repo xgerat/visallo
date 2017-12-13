@@ -47,9 +47,9 @@
   dependencies:
     lodash "^4.2.0"
 
-"@visallo/visallo-jsdoc-template@^1.1.6":
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/@visallo/visallo-jsdoc-template/-/visallo-jsdoc-template-1.1.6.tgz#4c705b3d963c51a94d7904a3f75e1aa6532bc4f0"
+"@visallo/visallo-jsdoc-template@^1.1.7":
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/@visallo/visallo-jsdoc-template/-/visallo-jsdoc-template-1.1.7.tgz#12a24ed941ff3d29e720538b7e001f92f0be0b61"
   dependencies:
     escodegen "^1.8.1"
 
@@ -1651,9 +1651,9 @@ ee-first@1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/ee-first/-/ee-first-1.1.1.tgz#590c61156b0ae2f4f0255732a158b266bc56b21d"
 
-ejs@2.3.4:
-  version "2.3.4"
-  resolved "https://registry.yarnpkg.com/ejs/-/ejs-2.3.4.tgz#3c76caa09664b3583b0037af9dc136e79ec68b98"
+ejs@2.5.5:
+  version "2.5.5"
+  resolved "https://registry.yarnpkg.com/ejs/-/ejs-2.5.5.tgz#6ef4e954ea7dcf54f66aad2fe7aa421932d9ed77"
 
 encodeurl@~1.0.1:
   version "1.0.1"

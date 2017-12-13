@@ -50,11 +50,6 @@ define([
                     dispatch(productActions.get({ productId, invalidate: true }))
                 });
             },
-            sessionExpiration: function(data) {
-                dispatchMain('rebroadcastEvent', {
-                    eventName: 'sessionExpiration'
-                });
-            },
             userStatusChange: (function() {
                 var previousById = {};
                 return function(data) {
