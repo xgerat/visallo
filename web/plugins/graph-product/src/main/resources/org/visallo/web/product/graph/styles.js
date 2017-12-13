@@ -148,6 +148,8 @@ define([], function() {
                         'text-outline-width': 2,
                         'text-halign': 'center',
                         'text-valign': 'bottom',
+                        'text-max-width': 200 * pixelRatio,
+                        'text-wrap': 'ellipsis',
                         content: 'Loading…',
                         opacity: 1,
                         color: '#999',
@@ -202,7 +204,7 @@ define([], function() {
                     css: {
                         'background-color': '#fff',
                         'background-image': 'data(imageSrc)',
-                        content: 'data(truncatedTitle)',
+                        content: 'data(title)',
                     }
                 },
                 {
@@ -211,7 +213,14 @@ define([], function() {
                         'background-color': '#fff',
                         'background-image': 'data(imageSrc)',
                         shape: 'rectangle',
-                        content: 'data(truncatedTitle)',
+                        content: 'data(title)',
+                    }
+                },
+                {
+                    selector: 'node.fullTitle',
+                    css: {
+                        'text-wrap': 'wrap',
+                        'text-max-width': 300 * pixelRatio
                     }
                 },
                 {
