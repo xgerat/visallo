@@ -518,7 +518,7 @@ define([
             this.olEvents.push(map.on('pointerup', function(event) {
                 const { pointerEvent } = event;
                 if (pointerEvent && pointerEvent.button === 2) {
-                    self.props.onContextTap(event);
+                    self.props.onContextTap(ol, event);
                 }
             }));
 

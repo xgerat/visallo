@@ -40,7 +40,9 @@ define([
         })
 
         this.before('teardown', function() {
-            this.unsubscribePadding();
+            if (_.isFunction(this.unsubscribePadding)) {
+                this.unsubscribePadding();
+            }
         });
 
         this.setupMap = function() {

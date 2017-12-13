@@ -351,6 +351,8 @@ define([
                     .then(features => {
                         return features.map((feature, i) => {
                             feature.setId(`${layer.get('id')}:${i}`)
+                            feature.set('element', element)
+
                             return feature
                         })
                     })
