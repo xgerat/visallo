@@ -213,16 +213,16 @@ define([
 
             this.objects = _.chain(objects)
                 .sortBy(function(v) {
-                    var descriptors = [],
-                        concept = F.vertex.concept(v);
-
+                    var descriptors = [];
                     // Image/Video/Audio before documents
-                    descriptors.push(
-                        F.vertex.displayType(v) === 'document' ? '1' : '0'
-                    );
-
+                    if (v.type === 'vertex') {
+                        descriptors.push(
+                            F.vertex.displayType(v) === 'document' ? '1' : '0'
+                        );
+                    }
                     // Sort by title
                     descriptors.push(F.vertex.title(v).toLowerCase());
+
                     return descriptors.join('');
                 })
                 .sortBy(function(v) {
