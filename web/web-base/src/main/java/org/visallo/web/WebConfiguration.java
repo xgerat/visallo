@@ -22,6 +22,7 @@ public class WebConfiguration {
     public static final String VERTEX_RELATIONSHIPS_MAX_PER_SECTION = PREFIX + "vertex.relationships.maxPerSection";
     public static final String DETAIL_HISTORY_STACK_MAX = PREFIX + "detail.history.stack.max";
     public static final String MAX_SELECTION_PARAGRAPHS_FOR_TERM_POPOVER = PREFIX + "detail.text.popover.maxSelectionParagraphs";
+    public static final String MAX_TEXT_LENGTH = PREFIX + "detail.text.maxTextLength";
     public static final String FIELD_JUSTIFICATION_VALIDATION = PREFIX + "field.justification.validation";
     public static final String SEARCH_DISABLE_WILDCARD_SEARCH = PREFIX + "search.disableWildcardSearch";
     public static final String SEARCH_EXACT_MATCH = PREFIX + "search.exactMatch";
@@ -105,6 +106,7 @@ public class WebConfiguration {
         DEFAULTS.put(DETAIL_HISTORY_STACK_MAX, "5");
 
         DEFAULTS.put(MAX_SELECTION_PARAGRAPHS_FOR_TERM_POPOVER, "5");
+        DEFAULTS.put(MAX_TEXT_LENGTH, "1500000");
 
         DEFAULTS.put(Configuration.VIDEO_PREVIEW_FRAMES_COUNT, Integer.toString(ArtifactThumbnailRepository.DEFAULT_FRAMES_PER_PREVIEW));
 
