@@ -36,15 +36,20 @@ define([
     });
     const LAYOUT_OPTIONS = {
         // Customize layout options
-        random: { padding: 10 },
+        circle: {
+            nodeDimensionsIncludeLabels: true
+        },
+        bettergrid: {},
         cose: {
+            nodeDimensionsIncludeLabels: true,
             animate: function(els) {
                 return els.length < MAX_ELEMENTS_BEFORE_NO_ANIMATE_LAYOUT;
             },
             edgeElasticity: 10
         },
         dagre: {
-
+            nodeDimensionsIncludeLabels: true,
+            spacingFactor: 1.3
         }
     };
     const PREVIEW_DEBOUNCE_SECONDS = 3;
@@ -474,6 +479,9 @@ define([
             var opts = {
                 name: layout,
                 fit: false,
+                animate: true,
+                animationDuration: 250,
+                animationEasing: 'ease-in-out-quad',
                 stop: () => {
                     this.layoutDone = true;
                     if (!onlySelected) {

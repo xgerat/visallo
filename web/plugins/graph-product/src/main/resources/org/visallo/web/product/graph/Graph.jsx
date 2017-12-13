@@ -478,11 +478,11 @@ define([
         onMouseOver({ cy, target }) {
             clearTimeout(this.hoverMouseOverTimeout);
 
-            if (target !== cy && target.is('node.v')) {
+            if (target !== cy && target.is('node.v,node.c')) {
                 this.hoverMouseOverTimeout = _.delay(() => {
-                    if (target.data('isTruncated')) {
-                        var nId = target.id();
-                        this.setState({ hovering: nId })
+                    const hovering = target.id();
+                    if (hovering !== this.state.hovering) {
+                        this.setState({ hovering })
                     }
                 }, 500);
             }
@@ -490,7 +490,7 @@ define([
 
         onMouseOut({ cy, target }) {
             clearTimeout(this.hoverMouseOverTimeout);
-            if (target !== cy && target.is('node.v')) {
+            if (target !== cy && target.is('node.v,node.c')) {
                 if (this.state.hovering) {
                     this.setState({ hovering: null })
                 }
@@ -941,8 +941,8 @@ define([
                     }
                 } else if (type === 'vertex') {
                     selected = id in verticesSelectedById;
-                    classes = mapVertexToClasses(id, vertices, focusing, registry['org.visallo.graph.node.class']);
-                    data = mapVertexToData(id, vertices, registry['org.visallo.graph.node.transformer'], hovering);
+                    classes = mapVertexToClasses(id, vertices, focusing, hovering, registry['org.visallo.graph.node.class']);
+                    data = mapVertexToData(id, vertices, registry['org.visallo.graph.node.transformer']);
 
                     if (data) {
                         renderedNodeIds[id] = true;
@@ -950,12 +950,12 @@ define([
                 } else {
                     const vertexIds = getVertexIdsFromCollapsedNode(collapsedNodes, id);
                     selected = vertexIds.some(id => id in verticesSelectedById)
-                    classes = mapCollapsedNodeToClasses(id, collapsedNodes, focusing, vertexIds, registry['org.visallo.graph.collapsed.class']);
+                    classes = mapCollapsedNodeToClasses(id, collapsedNodes, focusing, vertexIds, hovering, registry['org.visallo.graph.collapsed.class']);
                     const nodeTitle = title || generateCollapsedNodeTitle(node, vertices, productVertices, collapsedNodes);
                     data = {
                         ...node,
                         vertexIds,
-                        truncatedTitle: F.string.truncate(nodeTitle, 3),
+                        title: nodeTitle,
                         imageSrc: this.state.collapsedImageDataUris[id] && this.state.collapsedImageDataUris[id].imageDataUri || 'img/loading-large@2x.png'
                     };
                 }
@@ -1093,7 +1093,7 @@ define([
                         _.mapObject(ghosts, (ghost, ghostId) => {
                             if (cyNode.data.vertexIds.includes(ghostId)) {
                                 const ghostData = {
-                                    ...mapVertexToData(ghostId, vertices, registry['org.visallo.graph.node.transformer'], hovering),
+                                    ...mapVertexToData(ghostId, vertices, registry['org.visallo.graph.node.transformer']),
                                     parent: rootNode.id,
                                     id: `${ghostId}-ANIMATING`,
                                     animateTo: {
@@ -1105,7 +1105,7 @@ define([
                                 nodes.push({
                                     ...cyNode,
                                     data: ghostData,
-                                    classes: mapVertexToClasses(ghostId, vertices, focusing, registry['org.visallo.graph.node.class']),
+                                    classes: mapVertexToClasses(ghostId, vertices, focusing, hovering, registry['org.visallo.graph.node.class']),
                                     position: retina.pointsToPixels(ghosts[nodeData.id]),
                                     grabbable: false,
                                     selectable: false
@@ -1495,9 +1495,10 @@ define([
         return cls.join(' ');
     };
 
-    const mapVertexToClasses = (id, vertices, focusing, classers) => {
+    const mapVertexToClasses = (id, vertices, focusing, hovering, classers) => {
+        const vertexLoaded = (id in vertices);
         let cls = [];
-        if (id in vertices) {
+        if (vertexLoaded) {
             const vertex = vertices[id];
 
             /**
@@ -1528,12 +1529,16 @@ define([
         if (focusing.isFocusing) {
             return classes + ' focus-dim'
         }
+        if (vertexLoaded && id === hovering) {
+            return classes + ' fullTitle'
+        }
         return classes;
     };
 
-    const mapCollapsedNodeToClasses = (collapsedNodeId, collapsedNodes, focusing, vertexIds, classers) => {
+    const mapCollapsedNodeToClasses = (collapsedNodeId, collapsedNodes, focusing, vertexIds, hovering, classers) => {
+        const loaded = (collapsedNodeId in collapsedNodes);
         const cls = [];
-        if (collapsedNodeId in collapsedNodes) {
+        if (loaded) {
             const collapsedNode = collapsedNodes[collapsedNodeId];
 
             /**
@@ -1558,7 +1563,14 @@ define([
         } else {
             cls.push('partial');
         }
-        return cls.join(' ');
+
+        let classes = cls.join(' ');
+
+        if (loaded && collapsedNodeId === hovering) {
+            return classes + ' fullTitle';
+        }
+
+        return classes;
     };
 
     const getCyItemTypeAsString = (item) => {
@@ -1590,17 +1602,15 @@ define([
         return title || i18n('org.visallo.web.product.graph.collapsedNode.entities', children.length);
     };
 
-    const vertexToCyNode = (vertex, transformers, hovering) => {
-        const result = memoizeFor('vertexToCyNode', vertex, function() {
+    const vertexToCyNode = (vertex, transformers) => {
+        return memoizeFor('vertexToCyNode', vertex, function() {
             const title = F.vertex.title(vertex);
-            const truncatedTitle = F.string.truncate(title, 3);
             const conceptType = F.vertex.prop(vertex, 'conceptType');
             const imageSrc = F.vertex.image(vertex, null, 150);
             const selectedImageSrc = F.vertex.selectedImage(vertex, null, 150);
             const startingData = {
                 id: vertex.id,
-                isTruncated: title !== truncatedTitle,
-                truncatedTitle,
+                title,
                 conceptType,
                 imageSrc,
                 selectedImageSrc
@@ -1622,21 +1632,15 @@ define([
                 return data;
             }, startingData);
         });
-
-        if (hovering === vertex.id) {
-            return { ...result, truncatedTitle: F.vertex.title(vertex) }
-        }
-
-        return result;
     }
 
-    const mapVertexToData = (id, vertices, transformers, hovering) => {
+    const mapVertexToData = (id, vertices, transformers) => {
         if (id in vertices) {
             if (vertices[id] === null) {
                 return;
             } else {
                 const vertex = vertices[id];
-                return vertexToCyNode(vertex, transformers, hovering);
+                return vertexToCyNode(vertex, transformers);
             }
         } else {
             return { id }

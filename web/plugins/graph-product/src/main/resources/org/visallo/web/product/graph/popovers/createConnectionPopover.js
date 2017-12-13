@@ -132,7 +132,7 @@ define([
 
             var node = this.nodes[this.currentNodeIndex % 2],
                 other = this.nodes[(this.currentNodeIndex + 1) % 2],
-                otherTitle = other.data('truncatedTitle'),
+                otherTitle = other.data('title'),
                 currentNodePosition = node.renderedPosition(),
                 otherNodePosition = other.renderedPosition();
 
