@@ -286,7 +286,7 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
 
             if (children != null && children.size() > 0) {
                 if (removeChildren) {
-                    Queue<String> childIdQueue = Queues.newSynchronousQueue();
+                    Queue<String> childIdQueue = Queues.newArrayDeque();
                     childIdQueue.addAll(children);
 
                     while (!childIdQueue.isEmpty()) {
@@ -368,7 +368,6 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
                     children.remove(i);
                     break;
                 }
-                i++;
             }
             if (children.size() == 0) {
                 ctx.getGraph().softDeleteVertex(parentId, authorizations);
@@ -380,12 +379,15 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
             } else {
                 EdgeBuilderByVertexId edgeBuilder = ctx.getGraph().prepareEdge(
                         edgeId,
+                        productVertex.getId(),
                         parentId,
-                        childId,
                         WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI,
                         visibility
                 );
                 edgeBuilder.setProperty(GraphProductOntology.NODE_CHILDREN.getPropertyName(), children, visibility);
+
+                edgeBuilder.save(authorizations);
+                ctx.flush();
             }
         }
     }

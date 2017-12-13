@@ -254,7 +254,7 @@ define([
             }));
         },
 
-        removeElements: ({ productId, elements, undoable}) => (dispatch, getState) => {
+        removeElements: ({ productId, elements, undoable }) => (dispatch, getState) => {
             const state = getState();
             const workspaceId = state.workspace.currentId;
 
@@ -268,11 +268,44 @@ define([
                 const removeElements = getAdditionalRemovedElementIds(product, elements, true);
                 const removeCollapsedNodes = removeElements.collapsedNodeIds || [];
                 const removeVertices = removeElements.vertexIds || [];
+                const childUpdates = removeVertices.reduce((updatedParents, id) => {
+                    const productVertex = productVertices[id];
+                    const parent = productVertex.parent !== 'root' ? productCompoundNodes[productVertex.parent] : null;
+
+                    if (parent && !removeCollapsedNodes.includes(parent.id)) {
+                        updatedParents[parent.id] = {
+                            ...parent,
+                            children: parent.children.filter(childId => childId !== id)
+                        }
+                    }
+
+                    return updatedParents
+                }, {});
 
                 let undoPayload = {};
                 if (undoable) {
-                    const updateVertices = removeVertices
-                        .map(id => productVertices[id])
+                    const emptyCollapsedNodes = _.difference(removeElements.collapsedNodeIds, elements.collapsedNodeIds);
+                    const recollapse = emptyCollapsedNodes.map(collapsedNodeId => {
+                        const { parent, children, pos, ...rest } = productCompoundNodes[collapsedNodeId];
+                        return { parent, children, pos }
+                    });
+                    const addVertices = removeVertices
+                        .map(id => {
+                            let productVertex = productVertices[id];
+                            const oldParent = productCompoundNodes[productVertex.parent];
+
+                            if (oldParent && emptyCollapsedNodes.includes(oldParent.id)) {
+                                const newParent = productCompoundNodes[oldParent.parent] || { id: 'root', pos: { x: 0, y: 0 }};
+
+                                productVertex = {
+                                    ...productVertex,
+                                    parent: productCompoundNodes[productVertex.parent].parent,
+                                    pos: calculatePositionFromParents(productVertex, oldParent, newParent, false)
+                                }
+                            }
+
+                            return productVertex
+                        })
                         .reduce(
                             (vertices, productVertex) => ({
                                 [productVertex.id]: productVertex,
@@ -280,20 +313,14 @@ define([
                             }),
                             {}
                         );
-                    const updateCollapsedNodes = removeCollapsedNodes
-                        .map(({ id }) => productCompoundNodes[id])
-                        .reduce(
-                            (nodes, productNode) => ({
-                                [productNode.id]: productNode,
-                                ...nodes
-                            }),
-                            {}
-                        );
+                    const addChildren = _.pick(productCompoundNodes, Object.keys(childUpdates));
+
                     undoPayload = {
                         undoScope: productId,
                         undo: {
                             productId,
-                            updateVertices: { ...updateVertices, ...updateCollapsedNodes}
+                            updateVertices: { ...addVertices, ...addChildren },
+                            recollapse
                         },
                         redo: {
                             productId,
@@ -312,6 +339,16 @@ define([
                         ...undoPayload
                     }
                 });
+
+                dispatch({
+                    type: 'PRODUCT_GRAPH_SET_POSITIONS',
+                    payload: {
+                        productId,
+                        updateVertices: childUpdates,
+                        workspaceId
+                    }
+                })
+
                 dispatch(selectionActions.remove({
                     selection: { vertices: removeVertices }
                 }));
@@ -329,7 +366,19 @@ define([
             }
         },
 
-        undoRemoveElements: ({ productId, updateVertices }) => api.updatePositions({ productId, updateVertices }),
+        undoRemoveElements: ({ productId, updateVertices, recollapse }) => (dispatch, getState) => {
+            const state = getState();
+            const snapToGrid = state.user.current.uiPreferences.snapToGrid === 'true';
+
+            return dispatch(api.setPositions({ productId, snapToGrid, updateVertices }))
+                .then(() => {
+                    if (recollapse) {
+                        recollapse.forEach(collapseData =>
+                            dispatch(api.collapseNodes({ productId, collapseData, undoable: false }))
+                        )
+                    }
+                })
+        },
 
         redoRemoveElements: ({ productId, removeElements }) => api.removeElements({ productId, elements: removeElements }),
 
@@ -552,15 +601,23 @@ define([
             }
         }
 
-        collapsedNodeIds.forEach(id => {
-            const node = collapsedNodes[id];
-            let parent = collapsedNodes[node.parent];
-            while (parent) {
-                const children = parent.children.filter(childId => childId !== id);
+        const removedIds = [].concat(
+            removeElements.vertexIds,
+            removeElements.collapsedNodeIds,
+            additionalVertexIds,
+            additionalCollapsedNodeIds
+        ).filter(id => id)
+
+        _.values(collapsedNodes).forEach(collapsedNode => {
+            while (collapsedNode) {
+                const children = _.difference(collapsedNode.children, removedIds);
+
                 if (children.length === 0) {
-                    additionalCollapsedNodeIds.push(parent.id);
+                    additionalCollapsedNodeIds.push(collapsedNode.id);
+                    removedIds.push(collapsedNode.id)
                 }
-                parent = collapsedNodes[parent.parent];
+
+                collapsedNode = collapsedNodes[collapsedNode.parent];
             }
         });
 
