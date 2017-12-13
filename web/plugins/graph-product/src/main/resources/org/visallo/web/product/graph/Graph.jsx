@@ -1086,34 +1086,37 @@ define([
             const cyCollapsedNodes = filterByRoot(collapsedNodes).reduce((nodes, nodeData) => {
                 const cyNode = cyNodeConfig(nodeData);
 
-                renderedNodeIds[nodeData.id] = true;
+                if (nodeData.children.some(childId => productVertices[childId] && !productVertices[childId].unauthorized)) {
+                    renderedNodeIds[nodeData.id] = true;
 
-                if (ghosts) {
-                    _.mapObject(ghosts, (ghost, ghostId) => {
-                        if (cyNode.data.vertexIds.includes(ghostId)) {
-                            const ghostData = {
-                                ...mapVertexToData(ghostId, vertices, registry['org.visallo.graph.node.transformer'], hovering),
-                                parent: rootNode.id,
-                                id: `${ghostId}-ANIMATING`,
-                                animateTo: {
-                                    id: ghostId,
-                                    pos: {...cyNode.position}
-                                }
-                            };
+                    if (ghosts) {
+                        _.mapObject(ghosts, (ghost, ghostId) => {
+                            if (cyNode.data.vertexIds.includes(ghostId)) {
+                                const ghostData = {
+                                    ...mapVertexToData(ghostId, vertices, registry['org.visallo.graph.node.transformer'], hovering),
+                                    parent: rootNode.id,
+                                    id: `${ghostId}-ANIMATING`,
+                                    animateTo: {
+                                        id: ghostId,
+                                        pos: {...cyNode.position}
+                                    }
+                                };
 
-                            nodes.push({
-                                ...cyNode,
-                                data: ghostData,
-                                classes: mapVertexToClasses(ghostId, vertices, focusing, registry['org.visallo.graph.node.class']),
-                                position: retina.pointsToPixels(ghosts[nodeData.id]),
-                                grabbable: false,
-                                selectable: false
-                            });
-                        }
-                    });
+                                nodes.push({
+                                    ...cyNode,
+                                    data: ghostData,
+                                    classes: mapVertexToClasses(ghostId, vertices, focusing, registry['org.visallo.graph.node.class']),
+                                    position: retina.pointsToPixels(ghosts[nodeData.id]),
+                                    grabbable: false,
+                                    selectable: false
+                                });
+                            }
+                        });
+                    }
+
+                    nodes.push(cyNode);
                 }
 
-                nodes.push(cyNode);
                 return nodes;
             }, []);
 
