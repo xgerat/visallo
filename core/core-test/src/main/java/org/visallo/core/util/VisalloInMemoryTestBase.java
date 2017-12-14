@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.TextIndexHint;
+import org.vertexium.Vertex;
 import org.vertexium.inmemory.InMemoryGraph;
 import org.visallo.core.cache.CacheService;
 import org.visallo.core.cache.NopCacheService;
@@ -28,6 +29,8 @@ import org.visallo.core.model.user.*;
 import org.visallo.core.model.workQueue.TestWorkQueueRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.*;
+import org.visallo.core.model.workspace.product.GetExtendedDataParams;
+import org.visallo.core.model.workspace.product.WorkProductExtendedData;
 import org.visallo.core.model.workspace.product.WorkProductService;
 import org.visallo.core.security.AuditService;
 import org.visallo.core.security.DirectVisibilityTranslator;
@@ -44,6 +47,8 @@ import org.visallo.vertexium.model.workspace.VertexiumWorkspaceRepository;
 import java.util.*;
 
 public abstract class VisalloInMemoryTestBase {
+    public static final String GRAPH_WORK_PRODUCT_KIND = "org.visallo.web.product.graph.GraphWorkProduct";
+    public static final String MAP_WORK_PRODUCT_KIND = "org.visallo.web.product.map.MapWorkProduct";
     private WorkspaceRepository workspaceRepository;
     private Graph graph;
     private GraphRepository graphRepository;
@@ -72,6 +77,8 @@ public abstract class VisalloInMemoryTestBase {
     private ArtifactThumbnailRepository artifactThumbnailRepository;
     private AuditService auditService;
     private User user;
+    private WorkProductService graphWorkProduct;
+    private WorkProductService mapWorkProduct;
 
     @Before
     public void before() throws Exception {
@@ -103,6 +110,8 @@ public abstract class VisalloInMemoryTestBase {
         artifactThumbnailRepository = null;
         auditService = null;
         user = null;
+        graphWorkProduct = null;
+        mapWorkProduct = null;
     }
 
     protected WorkspaceRepository getWorkspaceRepository() {
@@ -455,7 +464,94 @@ public abstract class VisalloInMemoryTestBase {
     }
 
     protected WorkProductService getWorkProductServiceByKind(String kind) {
+        if (kind.equals(GRAPH_WORK_PRODUCT_KIND)) {
+            return getGraphWorkProduct();
+        }
+        if (kind.equals(MAP_WORK_PRODUCT_KIND)) {
+            return getMapWorkProduct();
+        }
         throw new VisalloException("unhandled getWorkProductServiceByKind: " + kind);
+    }
+
+    protected WorkProductService getGraphWorkProduct() {
+        if (graphWorkProduct != null) {
+            return graphWorkProduct;
+        }
+        graphWorkProduct = new WorkProductService() {
+            @Override
+            public WorkProductExtendedData getExtendedData(
+                    Graph graph,
+                    Vertex workspaceVertex,
+                    Vertex productVertex,
+                    GetExtendedDataParams params,
+                    User user,
+                    Authorizations authorizations
+            ) {
+                return getWorkProductExtendedData(
+                        GRAPH_WORK_PRODUCT_KIND,
+                        graph,
+                        workspaceVertex,
+                        productVertex,
+                        params,
+                        user,
+                        authorizations
+                );
+            }
+
+            @Override
+            public String getKind() {
+                return GRAPH_WORK_PRODUCT_KIND;
+            }
+        };
+        return graphWorkProduct;
+    }
+
+    protected WorkProductService getMapWorkProduct() {
+        if (mapWorkProduct != null) {
+            return mapWorkProduct;
+        }
+        mapWorkProduct = new WorkProductService() {
+            @Override
+            public WorkProductExtendedData getExtendedData(
+                    Graph graph,
+                    Vertex workspaceVertex,
+                    Vertex productVertex,
+                    GetExtendedDataParams params,
+                    User user,
+                    Authorizations authorizations
+            ) {
+                return getWorkProductExtendedData(
+                        MAP_WORK_PRODUCT_KIND,
+                        graph,
+                        workspaceVertex,
+                        productVertex,
+                        params,
+                        user,
+                        authorizations
+                );
+            }
+
+            @Override
+            public String getKind() {
+                return MAP_WORK_PRODUCT_KIND;
+            }
+        };
+        return mapWorkProduct;
+    }
+
+    protected WorkProductExtendedData getWorkProductExtendedData(
+            String workProductKind,
+            Graph graph,
+            Vertex workspaceVertex,
+            Vertex productVertex,
+            GetExtendedDataParams params,
+            User user,
+            Authorizations authorizations
+    ) {
+        WorkProductExtendedData data = new WorkProductExtendedData();
+        data.setEdges(new HashMap<>());
+        data.setVertices(new HashMap<>());
+        return data;
     }
 
     public LongRunningProcessRepository getLongRunningProcessRepository() {
