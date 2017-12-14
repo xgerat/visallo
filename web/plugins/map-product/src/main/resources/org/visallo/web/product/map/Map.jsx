@@ -8,7 +8,8 @@ define([
     'components/RegistryInjectorHOC',
     'util/vertex/formatters',
     'util/deepObjectCache',
-    'util/mapConfig'
+    'util/mapConfig',
+    './util/cache'
 ], function(
     createReactClass,
     PropTypes,
@@ -19,7 +20,8 @@ define([
     RegistryInjectorHOC,
     F,
     DeepObjectCache,
-    mapConfig) {
+    mapConfig,
+    clusterCache) {
     'use strict';
 
     const iconAnchor = [0.5, 1.0];
@@ -490,6 +492,8 @@ define([
         },
 
         clearCaches() {
+            clusterCache.clear();
+
             if (this.mounted) {
                 Object.keys(this.caches).forEach(k => {
                     Object.keys(this.caches[k]).forEach(key => this.caches[k][key].clear())

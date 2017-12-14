@@ -494,10 +494,12 @@ define([
 
                             if (selected.length === 0 && !geometryOverride && normalImage && _.isFunction(normalImage.getStroke)) {
                                 const newSelected = normal[0].clone();
+                                const prevStroke = normal[0].getImage().getStroke();
                                 const newStroke = new ol.style.Stroke({
                                     color: '#0088cc',
-                                    width: normal[0].getImage().getStroke().getWidth() || 1
+                                    width:  prevStroke && prevStroke.getWidth() || 1
                                 })
+
                                 newSelected.image_ = normal[0].getImage().clone({
                                     stroke: newStroke,
                                     opacity: 1
@@ -529,14 +531,17 @@ define([
                     if (id in existingFeatures) {
                         const existingFeature = existingFeatures[id];
                         let diff = _.any(existingFeature.getProperties(), (val, name) => {
-                            if (name === 'styles' || name === 'interacting') return false;
-                            if (name === 'geoLocations' && _.isEqual(val, featureValues[name])) return false;
-                            if (val !== featureValues[name]) {
-                                return true
+                            switch (name) {
+                                case 'styles':
+                                case 'interacting':
+                                    return false
+                                case 'geoLocations':
+                                    return !_.isEqual(val, featureValues[name])
+                                default:
+                                    return val !== featureValues[name]
                             }
-                            return false;
-
                         })
+
                         if (diff) {
                             changed = true
                             if (existingFeature.get('interacting')) {
