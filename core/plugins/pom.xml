@@ -15,6 +15,7 @@
 
     <modules>
         <module>model-queue-inmemory</module>
+        <module>model-simpleorm</module>
         <module>model-vertexium</module>
         <module>model-vertexium-inmemory</module>
         <module>model-vertexium-test</module>

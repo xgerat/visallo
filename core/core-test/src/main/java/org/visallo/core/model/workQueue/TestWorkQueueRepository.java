@@ -44,6 +44,10 @@ public class TestWorkQueueRepository extends WorkQueueRepository {
         queues.clear();
     }
 
+    public List<JSONObject> getBroadcastJsonValues() {
+        return broadcastJsonValues;
+    }
+
     public JSONObject getLastBroadcastedJson() {
         int size = broadcastJsonValues.size();
         return size > 0 ? broadcastJsonValues.get(size - 1) : null;

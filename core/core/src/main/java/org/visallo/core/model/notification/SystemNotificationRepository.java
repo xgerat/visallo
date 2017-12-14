@@ -1,51 +1,33 @@
 package org.visallo.core.model.notification;
 
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.json.JSONObject;
+import org.vertexium.Graph;
+import org.visallo.core.model.graph.GraphRepository;
+import org.visallo.core.model.user.GraphAuthorizationRepository;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Singleton
-public class SystemNotificationRepository extends NotificationRepository {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(SystemNotificationRepository.class);
-    private static final String VISIBILITY_STRING = "";
+public abstract class SystemNotificationRepository extends NotificationRepository {
     private final UserRepository userRepository;
 
     @Inject
     public SystemNotificationRepository(
-            SimpleOrmSession simpleOrmSession,
+            Graph graph,
+            GraphRepository graphRepository,
+            GraphAuthorizationRepository graphAuthorizationRepository,
             UserRepository userRepository
     ) {
-        super(simpleOrmSession);
+        super(graph, graphRepository, graphAuthorizationRepository);
         this.userRepository = userRepository;
     }
 
-    public List<SystemNotification> getActiveNotifications(User user) {
-        Date now = new Date();
-        List<SystemNotification> activeNotifications = new ArrayList<>();
-        for (SystemNotification notification : getSimpleOrmSession().findAll(
-                SystemNotification.class,
-                userRepository.getSimpleOrmContext(user)
-        )) {
-            if (notification.getStartDate().before(now)) {
-                if (notification.getEndDate() == null || notification.getEndDate().after(now)) {
-                    activeNotifications.add(notification);
-                }
-            }
-        }
-        LOGGER.debug("returning %d active system notifications", activeNotifications.size());
-        return activeNotifications;
-    }
+    public abstract List<SystemNotification> getActiveNotifications(User user);
 
-    public SystemNotification createNotification(
+    public abstract SystemNotification createNotification(
             SystemNotificationSeverity severity,
             String title,
             String message,
@@ -54,17 +36,7 @@ public class SystemNotificationRepository extends NotificationRepository {
             Date startDate,
             Date endDate,
             User user
-    ) {
-        if (startDate == null) {
-            startDate = new Date();
-        }
-        SystemNotification notification = new SystemNotification(startDate, title, message, actionEvent, actionPayload);
-        notification.setSeverity(severity);
-        notification.setStartDate(startDate);
-        notification.setEndDate(endDate);
-        getSimpleOrmSession().save(notification, VISIBILITY_STRING, userRepository.getSimpleOrmContext(user));
-        return notification;
-    }
+    );
 
     public SystemNotification createNotification(
             SystemNotificationSeverity severity,
@@ -87,36 +59,18 @@ public class SystemNotificationRepository extends NotificationRepository {
         return createNotification(severity, title, message, actionEvent, actionPayload, startDate, endDate, user);
     }
 
-    public SystemNotification getNotification(String rowKey, User user) {
-        return getSimpleOrmSession().findById(
-                SystemNotification.class,
-                rowKey,
-                userRepository.getSimpleOrmContext(user)
-        );
-    }
+    public abstract SystemNotification getNotification(String id, User user);
 
-    public SystemNotification updateNotification(SystemNotification notification, User user) {
-        getSimpleOrmSession().save(notification, VISIBILITY_STRING, userRepository.getSimpleOrmContext(user));
-        return notification;
-    }
+    public abstract SystemNotification updateNotification(SystemNotification notification, User user);
 
     public void endNotification(SystemNotification notification, User user) {
         notification.setEndDate(new Date());
         updateNotification(notification, user);
     }
 
-    public List<SystemNotification> getFutureNotifications(Date maxDate, User user) {
-        Date now = new Date();
-        List<SystemNotification> futureNotifications = new ArrayList<>();
-        for (SystemNotification notification : getSimpleOrmSession().findAll(
-                SystemNotification.class,
-                userRepository.getSimpleOrmContext(user)
-        )) {
-            if (notification.getStartDate().after(now) && notification.getStartDate().before(maxDate)) {
-                futureNotifications.add(notification);
-            }
-        }
-        LOGGER.debug("returning %d future system notifications", futureNotifications.size());
-        return futureNotifications;
+    public abstract List<SystemNotification> getFutureNotifications(Date maxDate, User user);
+
+    protected UserRepository getUserRepository() {
+        return userRepository;
     }
 }

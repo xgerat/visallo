@@ -1,7 +1,6 @@
 package org.visallo.core.util;
 
-import com.v5analytics.simpleorm.InMemorySimpleOrmSession;
-import com.v5analytics.simpleorm.SimpleOrmSession;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
@@ -15,13 +14,17 @@ import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.formula.FormulaEvaluator;
 import org.visallo.core.model.WorkQueueNames;
-import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
+import org.visallo.core.model.thumbnails.ThumbnailRepository;
+import org.visallo.core.model.thumbnails.InMemoryThumbnailRepository;
 import org.visallo.core.model.file.ClassPathFileSystemRepository;
 import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.model.graph.GraphRepository;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.lock.NonLockingLockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
+import org.visallo.core.model.notification.InMemorySystemNotificationRepository;
+import org.visallo.core.model.notification.InMemoryUserNotificationRepository;
+import org.visallo.core.model.notification.SystemNotificationRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
@@ -64,7 +67,7 @@ public abstract class VisalloInMemoryTestBase {
     private FormulaEvaluator formulaEvaluator;
     private TermMentionRepository termMentionRepository;
     private UserNotificationRepository userNotificationRepository;
-    private SimpleOrmSession simpleOrmSession;
+    private SystemNotificationRepository systemNotificationRepository;
     private UserSessionCounterRepository userSessionCounterRepository;
     private TimeRepository timeRepository;
     private PrivilegeRepository privilegeRepository;
@@ -74,7 +77,7 @@ public abstract class VisalloInMemoryTestBase {
     private WorkspaceHelper workspaceHelper;
     private CacheService cacheService;
     private Map configurationMap;
-    private ArtifactThumbnailRepository artifactThumbnailRepository;
+    private ThumbnailRepository thumbnailRepository;
     private AuditService auditService;
     private User user;
     private WorkProductService graphWorkProduct;
@@ -97,7 +100,7 @@ public abstract class VisalloInMemoryTestBase {
         formulaEvaluator = null;
         termMentionRepository = null;
         userNotificationRepository = null;
-        simpleOrmSession = null;
+        systemNotificationRepository = null;
         userSessionCounterRepository = null;
         timeRepository = null;
         privilegeRepository = null;
@@ -107,7 +110,7 @@ public abstract class VisalloInMemoryTestBase {
         workspaceHelper = null;
         configurationMap = null;
         cacheService = null;
-        artifactThumbnailRepository = null;
+        thumbnailRepository = null;
         auditService = null;
         user = null;
         graphWorkProduct = null;
@@ -209,24 +212,41 @@ public abstract class VisalloInMemoryTestBase {
         if (userNotificationRepository != null) {
             return userNotificationRepository;
         }
-        userNotificationRepository = new UserNotificationRepository(
-                getSimpleOrmSession(),
+        userNotificationRepository = new InMemoryUserNotificationRepository(
+                getGraph(),
+                getGraphRepository(),
+                getGraphAuthorizationRepository(),
                 getWorkQueueRepository()
         ) {
             @Override
             protected UserRepository getUserRepository() {
                 return VisalloInMemoryTestBase.this.getUserRepository();
             }
+
+            @Override
+            protected AuthorizationRepository getAuthorizationRepository() {
+                return VisalloInMemoryTestBase.this.getAuthorizationRepository();
+            }
         };
         return userNotificationRepository;
     }
 
-    protected SimpleOrmSession getSimpleOrmSession() {
-        if (simpleOrmSession != null) {
-            return simpleOrmSession;
+    protected SystemNotificationRepository getSystemNotificationRepository() {
+        if (systemNotificationRepository != null) {
+            return systemNotificationRepository;
         }
-        simpleOrmSession = new InMemorySimpleOrmSession();
-        return simpleOrmSession;
+        systemNotificationRepository = new InMemorySystemNotificationRepository(
+                getGraph(),
+                getGraphRepository(),
+                getGraphAuthorizationRepository(),
+                getUserRepository()
+        ) {
+            @Override
+            protected AuthorizationRepository getAuthorizationRepository() {
+                return VisalloInMemoryTestBase.this.getAuthorizationRepository();
+            }
+        };
+        return systemNotificationRepository;
     }
 
     protected WorkQueueRepository getWorkQueueRepository() {
@@ -265,6 +285,14 @@ public abstract class VisalloInMemoryTestBase {
             throw new VisalloException("Can only clear work queue items from " + TestWorkQueueRepository.class.getName());
         }
         ((TestWorkQueueRepository) workQueueRepository).clearQueue();
+    }
+
+    protected List<JSONObject> getBroadcastJsonValues() {
+        WorkQueueRepository workQueueRepository = getWorkQueueRepository();
+        if (!(workQueueRepository instanceof TestWorkQueueRepository)) {
+            throw new VisalloException("Can only clear work queue items from " + TestWorkQueueRepository.class.getName());
+        }
+        return ((TestWorkQueueRepository) workQueueRepository).getBroadcastJsonValues();
     }
 
     protected OntologyRepository getOntologyRepository() {
@@ -324,7 +352,6 @@ public abstract class VisalloInMemoryTestBase {
         }
         userRepository = new VertexiumUserRepository(
                 getConfiguration(),
-                getSimpleOrmSession(),
                 getGraphAuthorizationRepository(),
                 getGraph(),
                 getOntologyRepository(),
@@ -600,16 +627,14 @@ public abstract class VisalloInMemoryTestBase {
         return cacheService;
     }
 
-    public ArtifactThumbnailRepository getArtifactThumbnailRepository() {
-        if (artifactThumbnailRepository != null) {
-            return artifactThumbnailRepository;
+    public ThumbnailRepository getThumbnailRepository() {
+        if (thumbnailRepository != null) {
+            return thumbnailRepository;
         }
-        artifactThumbnailRepository = new ArtifactThumbnailRepository(
-                getSimpleOrmSession(),
-                getUserRepository(),
+        thumbnailRepository = new InMemoryThumbnailRepository(
                 getOntologyRepository()
         );
-        return artifactThumbnailRepository;
+        return thumbnailRepository;
     }
 
     public AuditService getAuditService() {

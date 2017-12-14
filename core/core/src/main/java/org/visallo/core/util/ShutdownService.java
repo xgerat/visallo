@@ -2,8 +2,6 @@ package org.visallo.core.util;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Singleton;
-import com.v5analytics.simpleorm.SimpleOrmSession;
-import org.vertexium.Graph;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.bootstrap.VisalloBootstrap;
 

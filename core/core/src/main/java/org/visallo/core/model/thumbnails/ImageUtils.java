@@ -1,9 +1,8 @@
-package org.visallo.core.model.artifactThumbnails;
+package org.visallo.core.model.thumbnails;
 
 import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
 
 public class ImageUtils {
 

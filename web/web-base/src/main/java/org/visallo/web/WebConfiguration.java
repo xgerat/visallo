@@ -2,7 +2,7 @@ package org.visallo.web;
 
 import com.google.common.base.Joiner;
 import org.visallo.core.config.Configuration;
-import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
+import org.visallo.core.model.thumbnails.ThumbnailRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.MetadataVisalloProperty;
 import org.visallo.core.model.properties.types.VisalloPropertyBase;
@@ -108,7 +108,7 @@ public class WebConfiguration {
         DEFAULTS.put(MAX_SELECTION_PARAGRAPHS_FOR_TERM_POPOVER, "5");
         DEFAULTS.put(MAX_TEXT_LENGTH, "1500000");
 
-        DEFAULTS.put(Configuration.VIDEO_PREVIEW_FRAMES_COUNT, Integer.toString(ArtifactThumbnailRepository.DEFAULT_FRAMES_PER_PREVIEW));
+        DEFAULTS.put(Configuration.VIDEO_PREVIEW_FRAMES_COUNT, Integer.toString(ThumbnailRepository.DEFAULT_FRAMES_PER_PREVIEW));
 
         // Justification field validation
         DEFAULTS.put(FIELD_JUSTIFICATION_VALIDATION, JustificationFieldValidation.OPTIONAL.toString());

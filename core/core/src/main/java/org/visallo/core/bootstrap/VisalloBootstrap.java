@@ -5,7 +5,6 @@ import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
 import com.google.inject.matcher.Matchers;
-import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.vertexium.Graph;
 import org.visallo.core.cache.CacheService;
 import org.visallo.core.config.Configuration;
@@ -13,10 +12,13 @@ import org.visallo.core.email.EmailRepository;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.geocoding.GeocoderRepository;
 import org.visallo.core.http.HttpRepository;
+import org.visallo.core.model.thumbnails.ThumbnailRepository;
 import org.visallo.core.model.directory.DirectoryRepository;
 import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
+import org.visallo.core.model.notification.SystemNotificationRepository;
+import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.search.SearchRepository;
 import org.visallo.core.model.user.*;
@@ -155,9 +157,6 @@ public class VisalloBootstrap extends AbstractModule {
         bind(OntologyRepository.class)
                 .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.ONTOLOGY_REPOSITORY))
                 .in(Scopes.SINGLETON);
-        bind(SimpleOrmSession.class)
-                .toProvider(getSimpleOrmSessionProvider(configuration, Configuration.SIMPLE_ORM_SESSION))
-                .in(Scopes.SINGLETON);
         bind(HttpRepository.class)
                 .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.HTTP_REPOSITORY))
                 .in(Scopes.SINGLETON);
@@ -187,22 +186,16 @@ public class VisalloBootstrap extends AbstractModule {
                 .in(Scopes.SINGLETON);
         bind(TimeRepository.class)
                 .toInstance(new TimeRepository());
+        bind(UserNotificationRepository.class)
+                .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.USER_NOTIFICATION_REPOSITORY))
+                .in(Scopes.SINGLETON);
+        bind(SystemNotificationRepository.class)
+                .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.SYSTEM_NOTIFICATION_REPOSITORY))
+                .in(Scopes.SINGLETON);
+        bind(ThumbnailRepository.class)
+                .toProvider(VisalloBootstrap.getConfigurableProvider(configuration, Configuration.THUMBNAIL_REPOSITORY))
+                .in(Scopes.SINGLETON);
         injectProviders();
-    }
-
-    private Provider<? extends SimpleOrmSession> getSimpleOrmSessionProvider(
-            Configuration configuration,
-            String simpleOrmSessionConfigurationName
-    ) {
-        return (Provider<SimpleOrmSession>) () -> {
-            Provider<? extends SimpleOrmSession> provider = VisalloBootstrap.getConfigurableProvider(
-                    configuration,
-                    simpleOrmSessionConfigurationName
-            );
-            SimpleOrmSession simpleOrmSession = provider.get();
-            getShutdownService().register(new SimpleOrmSessionShutdownListener(simpleOrmSession));
-            return simpleOrmSession;
-        };
     }
 
     private Provider<? extends Graph> getGraphProvider(Configuration configuration, String configurationPrefix) {

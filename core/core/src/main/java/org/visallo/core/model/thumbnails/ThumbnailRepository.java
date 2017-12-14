@@ -1,14 +1,11 @@
-package org.visallo.core.model.artifactThumbnails;
+package org.visallo.core.model.thumbnails;
 
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.vertexium.Vertex;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.types.BooleanVisalloProperty;
 import org.visallo.core.model.properties.types.IntegerVisalloProperty;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -23,27 +20,18 @@ import java.io.InputStream;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 
-@Singleton
-public class ArtifactThumbnailRepository {
-    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ArtifactThumbnailRepository.class);
-    private static final String VISIBILITY_STRING = "";
+public abstract class ThumbnailRepository {
+    private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(ThumbnailRepository.class);
     public static int DEFAULT_FRAMES_PER_PREVIEW = 20;
     public static int PREVIEW_FRAME_WIDTH = 360;
     public static int PREVIEW_FRAME_HEIGHT = 240;
-    private final SimpleOrmSession simpleOrmSession;
-    private final UserRepository userRepository;
     private BooleanVisalloProperty yAxisFlippedProperty;
     private IntegerVisalloProperty clockwiseRotationProperty;
 
     @Inject
-    public ArtifactThumbnailRepository(
-            SimpleOrmSession simpleOrmSession,
-            UserRepository userRepository,
-            final OntologyRepository ontologyRepository
+    public ThumbnailRepository(
+            OntologyRepository ontologyRepository
     ) {
-        this.simpleOrmSession = simpleOrmSession;
-        this.userRepository = userRepository;
-
         String yAxisFlippedPropertyIri = ontologyRepository.getPropertyIRIByIntent("media.yAxisFlipped", PUBLIC);
         if (yAxisFlippedPropertyIri != null) {
             this.yAxisFlippedProperty = new BooleanVisalloProperty(yAxisFlippedPropertyIri);
@@ -55,36 +43,43 @@ public class ArtifactThumbnailRepository {
         }
     }
 
-    public ArtifactThumbnail getThumbnail(String artifactVertexId, String thumbnailType, int width, int height, User user) {
-        String id = ArtifactThumbnail.createId(artifactVertexId, thumbnailType, width, height);
-        return simpleOrmSession.findById(ArtifactThumbnail.class, id, userRepository.getSimpleOrmContext(user));
-    }
+    public abstract Thumbnail getThumbnail(
+            String vertexId,
+            String thumbnailType,
+            int width,
+            int height,
+            String workspaceId,
+            User user
+    );
 
-    public byte[] getThumbnailData(String artifactVertexId, String thumbnailType, int width, int height, User user) {
-        ArtifactThumbnail artifactThumbnail = getThumbnail(artifactVertexId, thumbnailType, width, height, user);
-        if (artifactThumbnail == null) {
+    public byte[] getThumbnailData(String vertexId, String thumbnailType, int width, int height, String workspaceId, User user) {
+        Thumbnail thumbnail = getThumbnail(vertexId, thumbnailType, width, height, workspaceId, user);
+        if (thumbnail == null) {
             return null;
         }
-        return artifactThumbnail.getData();
+        return thumbnail.getData();
     }
 
-    public ArtifactThumbnail createThumbnail(Vertex artifactVertex, String propertyKey, String thumbnailType, InputStream in, int[] boundaryDims, User user) throws IOException {
-        ArtifactThumbnail thumbnail = generateThumbnail(artifactVertex, propertyKey, thumbnailType, in, boundaryDims);
-        simpleOrmSession.save(thumbnail, VISIBILITY_STRING, userRepository.getSimpleOrmContext(user));
-        return thumbnail;
-    }
+    public abstract Thumbnail createThumbnail(
+            Vertex vertex,
+            String propertyKey,
+            String thumbnailType,
+            InputStream in,
+            int[] boundaryDims,
+            User user
+    );
 
-    public ArtifactThumbnail generateThumbnail(Vertex artifactVertex, String propertyKey, String thumbnailType, InputStream in, int[] boundaryDims) {
+    public Thumbnail generateThumbnail(Vertex vertex, String propertyKey, String thumbnailType, InputStream in, int[] boundaryDims) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         String format;
         int type;
         try {
             BufferedImage originalImage = ImageIO.read(in);
-            checkNotNull(originalImage, "Could not generateThumbnail: read original image for artifact " + artifactVertex.getId());
+            checkNotNull(originalImage, "Could not generateThumbnail: read original image for vertex " + vertex.getId());
             type = ImageUtils.thumbnailType(originalImage);
             format = ImageUtils.thumbnailFormat(originalImage);
 
-            BufferedImage transformedImage = getTransformedImage(originalImage, artifactVertex, propertyKey);
+            BufferedImage transformedImage = getTransformedImage(originalImage, vertex, propertyKey);
 
             //Get new image dimensions, which will be used for the icon.
             int[] transformedImageDims = new int[]{transformedImage.getWidth(), transformedImage.getHeight()};
@@ -110,23 +105,23 @@ public class ArtifactThumbnailRepository {
             //Write the bufferedImage to a file.
             ImageIO.write(resizedImage, format, out);
 
-            return new ArtifactThumbnail(artifactVertex.getId(), thumbnailType, out.toByteArray(), format, width, height);
+            return new Thumbnail(vertex.getId(), thumbnailType, out.toByteArray(), format, width, height);
         } catch (IOException e) {
             throw new VisalloResourceNotFoundException("Error reading InputStream");
         }
     }
 
-    public BufferedImage getTransformedImage(BufferedImage originalImage, Vertex artifactVertex, String propertyKey) {
+    public BufferedImage getTransformedImage(BufferedImage originalImage, Vertex vertex, String propertyKey) {
         int cwRotationNeeded = 0;
         if (clockwiseRotationProperty != null) {
-            Integer nullable = clockwiseRotationProperty.getPropertyValue(artifactVertex, propertyKey);
+            Integer nullable = clockwiseRotationProperty.getPropertyValue(vertex, propertyKey);
             if (nullable != null) {
                 cwRotationNeeded = nullable;
             }
         }
         boolean yAxisFlipNeeded = false;
         if (yAxisFlippedProperty != null) {
-            Boolean nullable = yAxisFlippedProperty.getPropertyValue(artifactVertex, propertyKey);
+            Boolean nullable = yAxisFlippedProperty.getPropertyValue(vertex, propertyKey);
             if (nullable != null) {
                 yAxisFlipNeeded = nullable;
             }

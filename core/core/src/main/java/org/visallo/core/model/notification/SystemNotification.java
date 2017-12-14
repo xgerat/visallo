@@ -1,31 +1,21 @@
 package org.visallo.core.model.notification;
 
-import com.v5analytics.simpleorm.Entity;
-import com.v5analytics.simpleorm.Field;
 import org.json.JSONObject;
 
 import java.util.Date;
 import java.util.UUID;
 
-@Entity(tableName = "systemNotifications")
 public class SystemNotification extends Notification {
-    @Field
     private SystemNotificationSeverity severity;
-
-    @Field
     private Date startDate;
-
-    @Field
     private Date endDate;
 
-    // Used by SimpleOrm to create instance
-    @SuppressWarnings("UnusedDeclaration")
-    protected SystemNotification() {
-        super();
+    public SystemNotification(Date startDate, String title, String message, String actionEvent, JSONObject actionPayload) {
+        this(createId(startDate), title, message, actionEvent, actionPayload);
     }
 
-    SystemNotification(Date startDate, String title, String message, String actionEvent, JSONObject actionPayload) {
-        super(createId(startDate), title, message, actionEvent, actionPayload);
+    public SystemNotification(String id, String title, String message, String actionEvent, JSONObject actionPayload) {
+        super(id, title, message, actionEvent, actionPayload);
     }
 
     private static String createId(Date startDate) {

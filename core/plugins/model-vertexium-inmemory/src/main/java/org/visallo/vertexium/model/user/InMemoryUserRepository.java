@@ -3,7 +3,6 @@ package org.visallo.vertexium.model.user;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.json.JSONObject;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
@@ -25,7 +24,6 @@ public class InMemoryUserRepository extends UserRepository {
     @Inject
     public InMemoryUserRepository(
             Configuration configuration,
-            SimpleOrmSession simpleOrmSession,
             UserSessionCounterRepository userSessionCounterRepository,
             WorkQueueRepository workQueueRepository,
             LockRepository lockRepository,
@@ -34,7 +32,6 @@ public class InMemoryUserRepository extends UserRepository {
     ) {
         super(
                 configuration,
-                simpleOrmSession,
                 userSessionCounterRepository,
                 workQueueRepository,
                 lockRepository,

@@ -48,7 +48,6 @@ public class Configuration {
     public static final String WORK_QUEUE_REPOSITORY = "repository.workQueue";
     public static final String LONG_RUNNING_PROCESS_REPOSITORY = "repository.longRunningProcess";
     public static final String DIRECTORY_REPOSITORY = "repository.directory";
-    public static final String SIMPLE_ORM_SESSION = "simpleOrmSession";
     public static final String HTTP_REPOSITORY = "repository.http";
     public static final String GEOCODER_REPOSITORY = "repository.geocoder";
     public static final String EMAIL_REPOSITORY = "repository.email";
@@ -57,6 +56,9 @@ public class Configuration {
     public static final String FILE_SYSTEM_REPOSITORY = "repository.fileSystem";
     public static final String AUTHORIZATION_REPOSITORY = "repository.authorization";
     public static final String PRIVILEGE_REPOSITORY = "repository.privilege";
+    public static final String USER_NOTIFICATION_REPOSITORY = "repository.userNotification";
+    public static final String SYSTEM_NOTIFICATION_REPOSITORY = "repository.systemNotification";
+    public static final String THUMBNAIL_REPOSITORY = "repository.thumbnail";
     public static final String CACHE_SERVICE = "service.cache";
     public static final String AUDIT_SERVICE = "service.audit";
     public static final String GRAPH_PROVIDER = "graph";

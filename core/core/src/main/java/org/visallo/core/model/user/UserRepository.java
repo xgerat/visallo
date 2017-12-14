@@ -1,7 +1,5 @@
 package org.visallo.core.model.user;
 
-import com.v5analytics.simpleorm.SimpleOrmContext;
-import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,7 +31,6 @@ public abstract class UserRepository {
     public static final VisalloVisibility VISIBILITY = new VisalloVisibility(VISIBILITY_STRING);
     public static final String OWL_IRI = "http://visallo.org/user";
     public static final String USER_CONCEPT_IRI = "http://visallo.org/user#user";
-    private final SimpleOrmSession simpleOrmSession;
     private final UserSessionCounterRepository userSessionCounterRepository;
     private final WorkQueueRepository workQueueRepository;
     private final LockRepository lockRepository;
@@ -45,7 +42,6 @@ public abstract class UserRepository {
 
     protected UserRepository(
             Configuration configuration,
-            SimpleOrmSession simpleOrmSession,
             UserSessionCounterRepository userSessionCounterRepository,
             WorkQueueRepository workQueueRepository,
             LockRepository lockRepository,
@@ -53,7 +49,6 @@ public abstract class UserRepository {
             PrivilegeRepository privilegeRepository
     ) {
         this.configuration = configuration;
-        this.simpleOrmSession = simpleOrmSession;
         this.userSessionCounterRepository = userSessionCounterRepository;
         this.workQueueRepository = workQueueRepository;
         this.lockRepository = lockRepository;
@@ -225,16 +220,6 @@ public abstract class UserRepository {
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public SimpleOrmContext getSimpleOrmContext(User user) {
-        Set<String> authorizationsSet = authorizationRepository.getAuthorizations(user);
-        String[] authorizations = authorizationsSet.toArray(new String[authorizationsSet.size()]);
-        return getSimpleOrmContext(authorizations);
-    }
-
-    public SimpleOrmContext getSimpleOrmContext(String... authorizations) {
-        return simpleOrmSession.createContext(authorizations);
     }
 
     public User getSystemUser() {

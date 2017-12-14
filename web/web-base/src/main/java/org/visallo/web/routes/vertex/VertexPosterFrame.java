@@ -13,12 +13,13 @@ import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
-import org.visallo.core.model.artifactThumbnails.ArtifactThumbnailRepository;
 import org.visallo.core.model.properties.MediaVisalloProperties;
+import org.visallo.core.model.thumbnails.ThumbnailRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.VisalloResponse;
+import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,21 +28,22 @@ import java.io.OutputStream;
 public class VertexPosterFrame implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VertexPosterFrame.class);
     private final Graph graph;
-    private final ArtifactThumbnailRepository artifactThumbnailRepository;
+    private final ThumbnailRepository thumbnailRepository;
 
     @Inject
     public VertexPosterFrame(
             final Graph graph,
-            final ArtifactThumbnailRepository artifactThumbnailRepository
+            final ThumbnailRepository thumbnailRepository
     ) {
         this.graph = graph;
-        this.artifactThumbnailRepository = artifactThumbnailRepository;
+        this.thumbnailRepository = thumbnailRepository;
     }
 
     @Handle
     public void handle(
             @Required(name = "graphVertexId") String graphVertexId,
             @Optional(name = "width") Integer width,
+            @ActiveWorkspaceId String workspaceId,
             Authorizations authorizations,
             User user,
             VisalloResponse response
@@ -60,7 +62,12 @@ public class VertexPosterFrame implements ParameterizedHandler {
             response.addHeader("Content-Disposition", "inline; filename=thumbnail" + boundaryDims[0] + ".jpg");
             response.setMaxAge(VisalloResponse.EXPIRES_1_HOUR);
 
-            byte[] thumbnailData = artifactThumbnailRepository.getThumbnailData(artifactVertex.getId(), "poster-frame", boundaryDims[0], boundaryDims[1], user);
+            byte[] thumbnailData = thumbnailRepository.getThumbnailData(
+                    artifactVertex.getId(),
+                    "poster-frame",
+                    boundaryDims[0], boundaryDims[1],
+                    workspaceId,
+                    user);
             if (thumbnailData != null) {
                 LOGGER.debug("Cache hit for: %s (poster-frame) %d x %d", graphVertexId, boundaryDims[0], boundaryDims[1]);
                 try (OutputStream out = response.getOutputStream()) {
@@ -84,7 +91,7 @@ public class VertexPosterFrame implements ParameterizedHandler {
                 response.addHeader("Content-Disposition", "inline; filename=thumbnail" + boundaryDims[0] + ".jpg");
                 response.setMaxAge(VisalloResponse.EXPIRES_1_HOUR);
 
-                byte[] thumbnailData = artifactThumbnailRepository.createThumbnail(artifactVertex, rawPosterFrame.getKey(), "poster-frame", in, boundaryDims, user).getData();
+                byte[] thumbnailData = thumbnailRepository.createThumbnail(artifactVertex, rawPosterFrame.getKey(), "poster-frame", in, boundaryDims, user).getData();
                 try (OutputStream out = response.getOutputStream()) {
                     out.write(thumbnailData);
                 }

@@ -1,30 +1,18 @@
 package org.visallo.core.model.notification;
 
-import com.v5analytics.simpleorm.Field;
-import com.v5analytics.simpleorm.Id;
-import org.visallo.core.exception.VisalloException;
 import org.apache.commons.codec.binary.Hex;
 import org.json.JSONObject;
+import org.visallo.core.exception.VisalloException;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public abstract class Notification {
     static final String ACTION_EVENT_EXTERNAL_URL = "EXTERNAL_URL";
-
-    @Id
     private String id;
-
-    @Field
     private String title;
-
-    @Field
     private String message;
-
-    @Field
     private String actionEvent;
-
-    @Field
     private JSONObject actionPayload;
 
     protected Notification(String id, String title, String message, String actionEvent, JSONObject actionPayload) {
@@ -98,8 +86,6 @@ public abstract class Notification {
     }
 
     protected abstract void populateJSONObject(JSONObject json);
-
-
 
     protected abstract String getType();
 

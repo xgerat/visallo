@@ -4,7 +4,6 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.google.inject.Inject;
-import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.visallo.core.bootstrap.InjectHelper;
@@ -40,7 +39,6 @@ public abstract class CommandLineTool {
     private WorkQueueRepository workQueueRepository;
     private OntologyRepository ontologyRepository;
     private VisibilityTranslator visibilityTranslator;
-    private SimpleOrmSession simpleOrmSession;
     private ShutdownService shutdownService;
     private JCommander jCommander;
     private boolean frameworkInitialized;
@@ -184,17 +182,8 @@ public abstract class CommandLineTool {
     }
 
     @Inject
-    public final void setSimpleOrmSession(SimpleOrmSession simpleOrmSession) {
-        this.simpleOrmSession = simpleOrmSession;
-    }
-
-    @Inject
     public void setShutdownService(ShutdownService shutdownService) {
         this.shutdownService = shutdownService;
-    }
-
-    public SimpleOrmSession getSimpleOrmSession() {
-        return simpleOrmSession;
     }
 
     public Graph getGraph() {

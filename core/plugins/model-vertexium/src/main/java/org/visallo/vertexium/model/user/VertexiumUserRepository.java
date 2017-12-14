@@ -4,7 +4,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.json.JSONObject;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
@@ -51,7 +50,6 @@ public class VertexiumUserRepository extends UserRepository {
     @Inject
     public VertexiumUserRepository(
             Configuration configuration,
-            SimpleOrmSession simpleOrmSession,
             GraphAuthorizationRepository graphAuthorizationRepository,
             Graph graph,
             OntologyRepository ontologyRepository,
@@ -63,7 +61,6 @@ public class VertexiumUserRepository extends UserRepository {
     ) {
         super(
                 configuration,
-                simpleOrmSession,
                 userSessionCounterRepository,
                 workQueueRepository,
                 lockRepository,
@@ -391,7 +388,7 @@ public class VertexiumUserRepository extends UserRepository {
         if (!value.equals(user.getCustomProperties().get(propertyName))) {
             Vertex userVertex = findByIdUserVertex(user.getUserId());
             userVertex.setProperty(propertyName, value, VISIBILITY.getVisibility(), authorizations);
-            if (user instanceof ProxyUser){
+            if (user instanceof ProxyUser) {
                 User proxiedUser = ((ProxyUser) user).getProxiedUser();
                 if (proxiedUser instanceof VertexiumUser) {
                     user = proxiedUser;
@@ -402,5 +399,9 @@ public class VertexiumUserRepository extends UserRepository {
             }
             graph.flush();
         }
+    }
+
+    public Vertex getUserVertex(String userId) {
+        return findByIdUserVertex(userId);
     }
 }

@@ -1,7 +1,9 @@
 package org.visallo.vertexium.model.user;
 
 import org.junit.Test;
-import org.visallo.core.model.user.*;
+import org.visallo.core.model.user.AuthorizationRepository;
+import org.visallo.core.model.user.UserListener;
+import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.util.VisalloInMemoryTestBase;
 
 import java.util.Collection;
@@ -18,7 +20,6 @@ public class VertexiumUserRepositoryTest extends VisalloInMemoryTestBase {
         }
         vertexiumUserRepository = new VertexiumUserRepository(
                 getConfiguration(),
-                getSimpleOrmSession(),
                 getGraphAuthorizationRepository(),
                 getGraph(),
                 getOntologyRepository(),

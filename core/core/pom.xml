@@ -97,10 +97,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.v5analytics.simpleorm</groupId>
-            <artifactId>simple-orm-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
         </dependency>

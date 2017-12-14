@@ -1,33 +1,18 @@
 package org.visallo.core.model.notification;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.v5analytics.simpleorm.Entity;
-import com.v5analytics.simpleorm.Field;
 import org.json.JSONObject;
 
 import java.util.*;
 
-@Entity(tableName = "userNotifications")
 public class UserNotification extends Notification {
-    @Field
     private String userId;
-
-    @Field
     private Date sentDate;
-
-    @Field
     private Integer expirationAgeAmount;
-
-    @Field
     private ExpirationAgeUnit expirationAgeUnit;
-
-    @Field
     private boolean markedRead;
-
-    @Field
     private boolean notified;
 
-    // Used by SimpleOrm to create instance
     @SuppressWarnings("UnusedDeclaration")
     protected UserNotification() {
         super();
@@ -55,7 +40,20 @@ public class UserNotification extends Notification {
             Date sentDate,
             ExpirationAge expirationAge
     ) {
-        super(createRowKey(sentDate), title, message, actionEvent, actionPayload);
+        this(createRowKey(sentDate), userId, title, message, actionEvent, actionPayload, sentDate, expirationAge);
+    }
+
+    public UserNotification(
+            String id,
+            String userId,
+            String title,
+            String message,
+            String actionEvent,
+            JSONObject actionPayload,
+            Date sentDate,
+            ExpirationAge expirationAge
+    ) {
+        super(id, title, message, actionEvent, actionPayload);
         this.userId = userId;
         this.sentDate = sentDate;
         this.markedRead = false;

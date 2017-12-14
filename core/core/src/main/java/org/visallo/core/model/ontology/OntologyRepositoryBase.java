@@ -36,8 +36,10 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
+import org.visallo.core.model.thumbnails.ThumbnailOntology;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessProperties;
+import org.visallo.core.model.notification.NotificationOntology;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.properties.types.VisalloProperty;
 import org.visallo.core.model.properties.types.VisalloPropertyBase;
@@ -114,6 +116,8 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             importResourceOwl(OntologyRepositoryBase.class, "search.owl", SearchProperties.IRI, authorizations);
             importResourceOwl(OntologyRepositoryBase.class, "longRunningProcess.owl", LongRunningProcessProperties.OWL_IRI, authorizations);
             importResourceOwl(OntologyRepositoryBase.class, "ping.owl", PingOntology.BASE_IRI, authorizations);
+            importResourceOwl(OntologyRepositoryBase.class, "notification.owl", NotificationOntology.IRI, authorizations);
+            importResourceOwl(OntologyRepositoryBase.class, "thumbnail.owl", ThumbnailOntology.IRI, authorizations);
 
             for (Map.Entry<String, Map<String, String>> owlGroup : config.getMultiValue(Configuration.ONTOLOGY_REPOSITORY_OWL).entrySet()) {
                 String iri = owlGroup.getValue().get("iri");

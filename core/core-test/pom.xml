@@ -40,11 +40,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.v5analytics.simpleorm</groupId>
-            <artifactId>simple-orm-in-memory</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>org.visallo</groupId>
             <artifactId>visallo-model-queue-inmemory</artifactId>
             <version>${v5.visallo.version}</version>

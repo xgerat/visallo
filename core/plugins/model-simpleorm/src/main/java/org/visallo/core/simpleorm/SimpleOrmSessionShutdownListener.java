@@ -1,4 +1,4 @@
-package org.visallo.core.bootstrap;
+package org.visallo.core.simpleorm;
 
 import com.v5analytics.simpleorm.SimpleOrmSession;
 import org.visallo.core.util.ShutdownListener;

@@ -1,48 +1,42 @@
-package org.visallo.core.model.artifactThumbnails;
+package org.visallo.core.model.thumbnails;
 
 import org.apache.commons.lang.StringUtils;
-import com.v5analytics.simpleorm.Entity;
-import com.v5analytics.simpleorm.Field;
-import com.v5analytics.simpleorm.Id;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-@Entity(tableName = "artifactThumbnail")
-public class ArtifactThumbnail {
-    @Id
+public class Thumbnail {
     private String id;
-
-    @Field
     private byte[] data;
-
-    @Field
     private String format;
 
-    // Used by SimpleOrm to create instance
     @SuppressWarnings("UnusedDeclaration")
-    protected ArtifactThumbnail() {
+    protected Thumbnail() {
     }
 
-    public ArtifactThumbnail(
-            String artifactVertexId,
+    public Thumbnail(
+            String vertexId,
             String type,
             byte[] data,
             String format,
             int width, int height
     ) {
-        this.id = createId(artifactVertexId, type, width, height);
+        this.id = createId(vertexId, type, width, height);
         this.data = data;
         this.format = format;
     }
 
-    public static String createId(String artifactVertexId, String type, int width, int height) {
-        return artifactVertexId
+    public static String createId(String vertexId, String type, int width, int height) {
+        return vertexId
                 + ":" + type
                 + ":" + StringUtils.leftPad(Integer.toString(width), 8, '0')
                 + ":" + StringUtils.leftPad(Integer.toString(height), 8, '0');
+    }
+
+    public String getId() {
+        return id;
     }
 
     public byte[] getData() {
