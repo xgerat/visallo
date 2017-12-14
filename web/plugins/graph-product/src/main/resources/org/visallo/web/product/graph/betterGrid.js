@@ -1,10 +1,11 @@
 define([], function() {
     'use strict';
 
-    function BetterGrid(options) {
-        this.spaceX = options && options.spaceX || 390;
-        this.spaceY = options && options.spaceY || 150;
-        this.options = options;
+    function BetterGrid(options = {}) {
+        const { spaceX = 300, spaceY = 100, ...rest } = options;
+        this.spaceX = spaceX * devicePixelRatio;
+        this.spaceY = spaceY * devicePixelRatio;
+        this.options = rest;
     }
 
     BetterGrid.prototype.run = function() {
