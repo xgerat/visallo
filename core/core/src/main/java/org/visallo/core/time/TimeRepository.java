@@ -1,5 +1,7 @@
 package org.visallo.core.time;
 
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 public class TimeRepository {
@@ -9,5 +11,9 @@ public class TimeRepository {
 
     public long currentTimeMillis() {
         return System.currentTimeMillis();
+    }
+
+    public ZonedDateTime getNowDateTimeUtc() {
+        return ZonedDateTime.now(ZoneOffset.UTC);
     }
 }

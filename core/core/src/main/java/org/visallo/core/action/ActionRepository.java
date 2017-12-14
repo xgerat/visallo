@@ -21,7 +21,8 @@ public class ActionRepository {
     }
 
     public Action getActionFromActionData(JSONObject json) {
-        String type = json.getString(Action.PROPERTY_TYPE);
+        String type = json.optString(Action.PROPERTY_TYPE);
+        checkNotNull(type, "Action json missing \"" + Action.PROPERTY_TYPE + "\" property");
         for (Action action : getActions()) {
             if (action.getClass().getName().equals(type)) {
                 return action;

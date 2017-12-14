@@ -7,6 +7,8 @@ import org.vertexium.Graph;
 import org.vertexium.TextIndexHint;
 import org.vertexium.Vertex;
 import org.vertexium.inmemory.InMemoryGraph;
+import org.visallo.core.action.Action;
+import org.visallo.core.action.ActionRepository;
 import org.visallo.core.cache.CacheService;
 import org.visallo.core.cache.NopCacheService;
 import org.visallo.core.config.Configuration;
@@ -39,6 +41,7 @@ import org.visallo.core.security.AuditService;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.LoggingAuditService;
 import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.time.MockTimeRepository;
 import org.visallo.core.time.TimeRepository;
 import org.visallo.core.user.User;
 import org.visallo.vertexium.model.longRunningProcess.VertexiumLongRunningProcessRepository;
@@ -80,6 +83,7 @@ public abstract class VisalloInMemoryTestBase {
     private ThumbnailRepository thumbnailRepository;
     private AuditService auditService;
     private User user;
+    private ActionRepository actionRepository;
     private WorkProductService graphWorkProduct;
     private WorkProductService mapWorkProduct;
 
@@ -113,6 +117,7 @@ public abstract class VisalloInMemoryTestBase {
         thumbnailRepository = null;
         auditService = null;
         user = null;
+        actionRepository = null;
         graphWorkProduct = null;
         mapWorkProduct = null;
     }
@@ -425,7 +430,7 @@ public abstract class VisalloInMemoryTestBase {
         if (timeRepository != null) {
             return timeRepository;
         }
-        timeRepository = new TimeRepository();
+        timeRepository = new MockTimeRepository();
         return timeRepository;
     }
 
@@ -643,6 +648,32 @@ public abstract class VisalloInMemoryTestBase {
         }
         auditService = new LoggingAuditService();
         return auditService;
+    }
+
+    public ActionRepository getActionRepository() {
+        if (actionRepository != null) {
+            return actionRepository;
+        }
+        actionRepository = new ActionRepository(getConfiguration()) {
+            @Override
+            protected Collection<Action> getActions() {
+                return getActionRepositoryActions();
+            }
+
+            @Override
+            public Action getActionFromActionData(JSONObject json) {
+                return getActionRepositoryActionFromActionData(json);
+            }
+        };
+        return actionRepository;
+    }
+
+    protected Action getActionRepositoryActionFromActionData(JSONObject json) {
+        return getActionRepository().getActionFromActionData(json);
+    }
+
+    protected Collection<Action> getActionRepositoryActions() {
+        return new ArrayList<>();
     }
 
     public Authorizations getGraphAuthorizations(String... authorizations) {

@@ -4,6 +4,9 @@ import org.vertexium.Element;
 import org.visallo.core.model.graph.ElementUpdateContext;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 /**
@@ -19,6 +22,35 @@ public class DateVisalloProperty extends IdentityVisalloProperty<Date> {
             ElementUpdateContext<T> ctx,
             String propertyKey,
             OffsetDateTime newValue,
+            PropertyMetadata metadata
+    ) {
+        updateProperty(ctx, propertyKey, newValue, metadata, null);
+    }
+
+    public <T extends Element> void updateProperty(
+            ElementUpdateContext<T> ctx,
+            String propertyKey,
+            OffsetDateTime newValue,
+            PropertyMetadata metadata,
+            Long timestamp
+    ) {
+        Date date = newValue == null ? null : Date.from(newValue.toInstant());
+        updateProperty(ctx, propertyKey, date, metadata, timestamp);
+    }
+
+    public <T extends Element> void updateProperty(
+            ElementUpdateContext<T> ctx,
+            String propertyKey,
+            ZonedDateTime newValue,
+            PropertyMetadata metadata
+    ) {
+        updateProperty(ctx, propertyKey, newValue, metadata, null);
+    }
+
+    public <T extends Element> void updateProperty(
+            ElementUpdateContext<T> ctx,
+            String propertyKey,
+            ZonedDateTime newValue,
             PropertyMetadata metadata,
             Long timestamp
     ) {
@@ -108,5 +140,29 @@ public class DateVisalloProperty extends IdentityVisalloProperty<Date> {
             return true;
         }
         return existingValue.compareTo(newValue) > 0;
+    }
+
+    public ZonedDateTime getPropertyValueDateTimeUtc(Element element, String propertyKey) {
+        return getPropertyValueDateTime(element, propertyKey, ZoneOffset.UTC);
+    }
+
+    public ZonedDateTime getPropertyValueDateTime(Element element, String propertyKey, ZoneId zoneId) {
+        Date value = getPropertyValue(element, propertyKey);
+        if (value == null) {
+            return null;
+        }
+        return ZonedDateTime.ofInstant(value.toInstant(), zoneId);
+    }
+
+    public ZonedDateTime getFirstPropertyValueDateTimeUtc(Element element) {
+        return getFirstPropertyValueDateTime(element, ZoneOffset.UTC);
+    }
+
+    public ZonedDateTime getFirstPropertyValueDateTime(Element element, ZoneId zoneId) {
+        Date value = getFirstPropertyValue(element);
+        if (value == null) {
+            return null;
+        }
+        return ZonedDateTime.ofInstant(value.toInstant(), zoneId);
     }
 }
