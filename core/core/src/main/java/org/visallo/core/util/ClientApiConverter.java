@@ -19,6 +19,7 @@ import org.visallo.web.clientapi.model.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -604,5 +605,19 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
 
     public static JSONObject clientApiToJSONObject(Object obj) {
         return new JSONObject(clientApiToString(obj));
+    }
+
+    public static Long toClientApiDate(Date date) {
+        if (date == null) {
+            return null;
+        }
+        return date.getTime();
+    }
+
+    public static Long toClientApiDate(ZonedDateTime date) {
+        if (date == null) {
+            return null;
+        }
+        return date.toInstant().toEpochMilli();
     }
 }
