@@ -1,6 +1,6 @@
 define([], function() {
-    const GRAPH_SNAP_TO_GRID = 175;
-    const GRAPH_SNAP_TO_GRID_Y = 75;
+    const GRAPH_SNAP_TO_GRID = 300;
+    const GRAPH_SNAP_TO_GRID_Y = 100;
     const GRAPH_NODE_HEIGHT = 100;
 
     return snapPosition;
