@@ -300,6 +300,7 @@ define([
                     onTap: this.onTap,
                     onTapHold: this.onTapHold,
                     onTapStart: this.onTapStart,
+                    onTapEnd: this.onTapEnd,
                     onCxtTapStart: this.onTapStart,
                     onCxtTapEnd: this.onCxtTapEnd,
                     onContextTap: this.onContextTap,
@@ -727,6 +728,11 @@ define([
 
         onTapStart(event) {
             const { cy, target } = event;
+
+            if (event.originalEvent.ctrlKey || event.originalEvent.metaKey) {
+                cy.boxSelectionEnabled(false);
+            }
+
             if (cy !== target && event.originalEvent.ctrlKey) {
                 cy.autoungrabify(true);
                 if (target.hasClass('v')) {
@@ -775,6 +781,14 @@ define([
                     this.coalesceSelection('add', getCyItemTypeAsString(target), target);
                 }
 
+            }
+        },
+
+        onTapEnd(event) {
+            const { cy, target } = event;
+
+            if (!cy.boxSelectionEnabled()) {
+                cy.boxSelectionEnabled(true);
             }
         },
 
