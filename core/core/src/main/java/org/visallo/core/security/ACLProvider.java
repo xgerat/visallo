@@ -299,6 +299,28 @@ public abstract class ACLProvider {
         return VisalloProperties.COMMENT.isSameName(propertyName);
     }
 
+    protected final boolean isArtifact(Element e, OntologyElement ontologyElement) {
+        if (e != null && e instanceof Vertex) {
+            return isDisplayTypeArtifact((Concept) ontologyElement);
+        }
+        return false;
+    }
+
+    protected final boolean isArtifact(ClientApiElement e, OntologyElement ontologyElement) {
+        if (e != null && e instanceof ClientApiVertex) {
+            return isDisplayTypeArtifact((Concept) ontologyElement);
+        }
+        return false;
+    }
+
+    protected final boolean isArtifactPropertyUpdateable(OntologyProperty ontologyProperty) {
+        if (ontologyProperty != null) {
+            String displayType = ontologyProperty.getDisplayType();
+            return displayType != null && !displayType.equals("longText");
+        }
+        return false;
+    }
+
     protected final boolean isAuthor(Element element, String propertyKey, String propertyName, User user, String workspaceId) {
         if (element == null) {
             return false;
@@ -323,6 +345,17 @@ public abstract class ACLProvider {
         } else {
             return false;
         }
+    }
+
+    private boolean isDisplayTypeArtifact(Concept concept) {
+        String displayType = concept.getDisplayType();
+        if (displayType != null) {
+            return displayType.equals("image")
+                    || displayType.equals("video")
+                    || displayType.equals("audio")
+                    || displayType.equals("document");
+        }
+        return false;
     }
 
     private void appendACL(Collection<? extends ClientApiObject> clientApiObject, Ontology ontology, User user, String workspaceId) {
