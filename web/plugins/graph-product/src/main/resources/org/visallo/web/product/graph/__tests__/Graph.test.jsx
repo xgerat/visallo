@@ -50,6 +50,7 @@ it('Should only call extension functions on vertex changes', () => {
         workspace: { editable: true },
         uiPreferences: { },
         product: { extendedData: { vertices: {}, edges: {e1: {}, e2: {}}, compoundNodes: {} } },
+        hasPreview: true,
         productElementIds: {
             vertices: {
                 v1: { id:'v1', parent: 'root', type: 'vertex', pos: {x:0,y:0} },

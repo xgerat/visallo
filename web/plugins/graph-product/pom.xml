@@ -30,8 +30,7 @@
                             <goal>yarn</goal>
                         </goals>
                         <configuration>
-                            <arguments>install</arguments>
-                            <arguments>--production=false</arguments>
+                            <arguments>install --production=false</arguments>
                         </configuration>
                     </execution>
                     <execution>
@@ -48,7 +47,6 @@
                         </goals>
                         <configuration>
                             <arguments>test</arguments>
-                            <arguments>--production=false</arguments>
                         </configuration>
                         <phase>test</phase>
                     </execution>
