@@ -171,8 +171,7 @@
                                     <goal>yarn</goal>
                                 </goals>
                                 <configuration>
-                                    <arguments>install</arguments>
-                                    <arguments>--production=false</arguments>
+                                    <arguments>install --production=false</arguments>
                                 </configuration>
                             </execution>
                             <execution>

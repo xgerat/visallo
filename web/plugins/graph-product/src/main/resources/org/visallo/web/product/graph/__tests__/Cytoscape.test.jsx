@@ -16,6 +16,7 @@ const DEFAULT_NODE = {
     selectable: undefined,
     selected: false
 };
+const product = { id: 'p1' }
 
 var cy;
 beforeEach(() => cy = cytoscape.primeMockInstance())
@@ -29,7 +30,7 @@ it('Should start with no cyNodes', () => {
 it('Should trigger preview after starting', () => {
     cy.png = jest.fn()
     const preview = jest.fn()
-    const component = render({ hasPreview: false, initialProductDisplay: true, onUpdatePreview: preview })
+    const component = render({ hasPreview: false, onUpdatePreview: preview })
     expect(preview).toHaveBeenCalled()
     expect(cy.png).toHaveBeenCalled()
 })
@@ -37,32 +38,12 @@ it('Should trigger preview after starting', () => {
 it('Should not preview after starting if already has preview', () => {
     cy.png = jest.fn()
     const preview = jest.fn()
-    const component = render({ hasPreview: true, initialProductDisplay: true, onUpdatePreview: preview })
+    const component = render({ hasPreview: true, onUpdatePreview: preview })
     expect(preview).not.toHaveBeenCalled()
     expect(cy.png).not.toHaveBeenCalled()
 
-    component.update(comp({ hasPreview: true, initialProductDisplay: false, onUpdatePreview: preview }))
+    component.update(comp({ hasPreview: true, onUpdatePreview: preview }))
     expect(preview).not.toHaveBeenCalled()
-})
-
-it('Should fit when nodes are added without position', () => {
-    cy.emit = jest.fn()
-    cy.add = jest.fn()
-    cy.png = jest.fn()
-    cy.nodes = jest.fn()
-    cy.style = jest.fn(() => ({ containerCss: () => 1000 }))
-    const node = { ...DEFAULT_NODE, data: { id: 'id0' } }
-
-    cy.add.mockReturnValue([node])
-    cy.nodes.mockReturnValue({
-        size: () => 1,
-        boundingBox: () => ({ x1: 0, x2: 10, y1: 0, y2: 10, w: 10, h: 10 })
-    })
-    
-    const component = render({ initialProductDisplay: false, elements: { nodes: [node] } })
-    expect(cy.png).toHaveBeenCalledTimes(1)
-    expect(cy.add).toHaveBeenCalledWith(node)
-    expect(cy.emit).toHaveBeenCalledWith('pan zoom viewport')
 })
 
 it('Should not fit when nodes are added with position', () => {
@@ -79,7 +60,7 @@ it('Should not fit when nodes are added with position', () => {
         boundingBox: () => ({ x1: 0, x2: 10, y1: 0, y2: 10, w: 10, h: 10 })
     })
     
-    const component = render({ initialProductDisplay: false, elements: { nodes: [node] } })
+    const component = render({ elements: { nodes: [node] } })
     expect(cy.png).toHaveBeenCalledTimes(1)
     expect(cy.add).toHaveBeenCalledWith(node)
     expect(cy.emit).not.toHaveBeenCalled()
@@ -87,7 +68,7 @@ it('Should not fit when nodes are added with position', () => {
 
 it('should cleanup cytoscape instance on unmount', () => {
     cy.destroy = jest.fn()
-    const component = render()
+    const component = render({})
     component.unmount()
     expect(cy.destroy).toHaveBeenCalled()
 })
@@ -108,6 +89,7 @@ function render(props = {}) {
 
 function comp(props = {}) {
     return <Cytoscape
+        product={product}
         {...props}
         onCollapseSelectedNodes={() => {}}
         requestUpdate={() => {}}

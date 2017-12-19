@@ -64,6 +64,7 @@
       "util/retina": "<rootDir>/__mocks__/util/retina.js",
       "util/vertex/formatters": "<rootDir>/__mocks__/util/vertexFormatters.js",
       "util/withContextMenu": "<rootDir>/__mocks__/util/withContextMenu.js",
+      "util/deepObjectCache": "<rootDir>/__mocks__/util/deepObjectCache.js",
       "util/formatters": "<rootDir>/__mocks__/util/formatters.js",
       "colorjs": "<rootDir>/node_modules/color-js/color.js",
       "fast-json-patch": "<rootDir>/node_modules/fast-json-patch/dist/json-patch-duplex.min.js",

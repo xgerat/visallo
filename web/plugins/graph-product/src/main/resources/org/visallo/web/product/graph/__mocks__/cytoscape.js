@@ -38,6 +38,7 @@ function cytoscape(cfg) {
         // Blank
         notify() {},
         trigger() {},
+        png() {},
 
         // Settings functions
         ...settingsFns
