@@ -72,9 +72,13 @@ define([
         });
 
         this.onOpenInSearch = function(event) {
+            const { searchUrl, search } = this.attr;
+            const { url: parametersUrl, ...searchParameters } = search;
+            const url = parametersUrl || searchUrl;
+
             this.trigger('searchByParameters', {
-                url: this.attr.searchUrl,
-                parameters: this.attr.search
+                url,
+                parameters: searchParameters
             });
             this.teardown();
         };

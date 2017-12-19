@@ -245,9 +245,13 @@ define([
         };
 
         this.handleClick = function(object) {
-            var self = this,
-                report = this.attr.report,
-                filters = object.filters;
+            const self = this;
+            const report = this.attr.report;
+            const endpointId = report.endpointParameters && report.endpointParameters.id;
+            const d3Target = d3.event && d3.event.target;
+            let filters = object.filters;
+            let filtersPromise;
+            let searchUrl;
 
             if (filters) {
                 filters = _.reject(filters, function(filter) {
@@ -260,6 +264,17 @@ define([
                         return true;
                     }
                 })
+
+                if (filters && endpointId) {
+                    filtersPromise = this.dataRequest('search', 'get', endpointId)
+                        .then(search => {
+                            searchUrl = search.url;
+                            const savedFilters = JSON.parse(search.parameters.filter) || [];
+                            return _.uniq([ ...filters, ...savedFilters ], ({ propertyId }) => propertyId)
+                        })
+                } else {
+                    filtersPromise = filters;
+                }
             }
 
             if (report && _.isString(report.clickHandlerModulePath)) {
@@ -272,30 +287,39 @@ define([
                         throw new Error('Click handler must be a function', clickHandler);
                     });
             } else if (object && object.conceptId) {
-                // FIXME: extend original search params
-                this.popupSearch('/vertex/search', {
-                    q: '*',
-                    conceptType: object.conceptId,
-                    filter: JSON.stringify([])
+                Promise.resolve(filtersPromise).then((filters = []) => {
+                    this.popupSearch('/vertex/search', {
+                        q: '*',
+                        conceptType: object.conceptId,
+                        filter: JSON.stringify(filters)
+                    }, d3Target)
                 })
             } else if (object && object.edgeLabel) {
-                // FIXME: extend original search params
-                this.popupSearch('/edge/search', {
-                    q: '*',
-                    edgeLabel: object.edgeLabel,
-                    filter: JSON.stringify([])
+                Promise.resolve(filtersPromise).then((filters = []) => {
+                    this.popupSearch('/edge/search', {
+                        q: '*',
+                        edgeLabel: object.edgeLabel,
+                        filter: JSON.stringify(filters)
+                    }, d3Target)
                 })
             } else if (object && _.isArray(filters)) {
                 if (report.endpoint === '/search/run') {
-                    this.popupSearch(report.endpoint, {
-                        id: report.endpointParameters.id,
-                        filter: JSON.stringify(filters),
-                        includeChildNodes: true
-                    })
+                    Promise.resolve(filtersPromise).then((filters = []) => {
+                        this.popupSearch(report.endpoint, {
+                            id: report.endpointParameters.id,
+                            filter: JSON.stringify(filters),
+                            url: searchUrl,
+                            includeChildNodes: true
+                        }, d3Target)
+                    });
                 } else {
                     var params = _.omit(report.endpointParameters, 'size', 'aggregations');
-                    params.filter = JSON.stringify(JSON.parse(params.filter || '[]').concat(filters));
-                    this.popupSearch('/element/search', params);
+                    Promise.resolve(filtersPromise).then((filters = []) => {
+                        this.popupSearch('/element/search', {
+                            ...params,
+                            filter: JSON.stringify(filters)
+                        }, d3Target);
+                    })
                 }
             } else if (object && (/^other$/i).test(object.label)) {
                 if (report.endpoint === '/search/run') {
@@ -304,13 +328,14 @@ define([
                         aggregation = aggregationStr && JSON.parse(aggregationStr);
 
                     if (aggregation) {
-                        // FIXME: extend original search params
-                        this.popupSearch(report.endpoint, {
-                            id: report.endpointParameters.id,
-                            filter: JSON.stringify([{
-                                propertyId: aggregation.field,
-                                predicate: 'hasNot'
-                            }])
+                        Promise.resolve(filtersPromise).then((filters = []) => {
+                            this.popupSearch(report.endpoint, {
+                                id: report.endpointParameters.id,
+                                filter: JSON.stringify([ ...filters, {
+                                    propertyId: aggregation.field,
+                                    predicate: 'hasNot'
+                                }])
+                            }, d3Target)
                         })
                     }
                 }
