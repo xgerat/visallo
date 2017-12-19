@@ -10,6 +10,7 @@ define([
     './collapsedNodeImageHelpers',
     'util/vertex/formatters',
     'util/retina',
+    'util/deepObjectCache',
     'components/RegistryInjectorHOC'
 ], function(
     createReactClass,
@@ -23,6 +24,7 @@ define([
     CollapsedNodeImageHelpers,
     F,
     retina,
+    DeepObjectCache,
     RegistryInjectorHOC) {
     'use strict';
 
@@ -30,6 +32,7 @@ define([
     const MaxPreviewPopovers = 5;
     const MaxEdgesBetween = 5;
     const REQUEST_UPDATE_DEBOUNCE = 300;
+    const FORCE_UPDATE_DEBOUNCE = 1000;
 
     const noop = function() {};
     const generateCompoundEdgeId = edge => edge.outVertexId + edge.inVertexId + edge.label;
@@ -47,6 +50,16 @@ define([
         return display + num;
     };
     const propTypesElementObjects = { vertices: PropTypes.object, edges: PropTypes.object };
+    const decorationParentFor = _.memoize((id, { isFocusing, focused }) => ({
+        group: 'nodes',
+        data: { id },
+        classes: 'decorationParent' + (
+            isFocusing && focused ? ' dec-focus' :
+            isFocusing && !focused ? ' dec-focus-dim' : ''
+        ),
+        selectable: false,
+        grabbable: false
+    }), (id, { isFocusing, focused}) => [id, isFocusing, focused].join(','));
 
     let memoizeForStorage = {};
     const memoizeClear = (...prefixes) => {
@@ -56,6 +69,10 @@ define([
         } else {
             memoizeForStorage = {};
         }
+    }
+    const memoizeGet = function(key, elements, idFn) {
+        const fullKey = `${key}-${idFn ? idFn() : elements.id}`;
+        return memoizeForStorage[fullKey];
     }
     const memoizeFor = function(key, elements, fn, idFn) {
         if (!key) throw new Error('Cache key must be specified');
@@ -76,6 +93,7 @@ define([
         memoizeForStorage[fullKey] = { elements, value: fn() };
         return memoizeForStorage[fullKey].value
     }
+    const styleCache = new DeepObjectCache();
 
     const Graph = createReactClass({
 
@@ -83,8 +101,8 @@ define([
             workspace: PropTypes.shape({
                 editable: PropTypes.bool
             }).isRequired,
+            hasPreview: PropTypes.bool.isRequired,
             product: PropTypes.shape({
-                previewMD5: PropTypes.string,
                 extendedData: PropTypes.shape(propTypesElementObjects).isRequired
             }).isRequired,
             edgeLabels: PropTypes.bool,
@@ -110,9 +128,7 @@ define([
 
         getInitialState() {
             return {
-                viewport: this.props.viewport || {},
                 animatingGhosts: {},
-                initialProductDisplay: true,
                 draw: null,
                 paths: null,
                 hovering: null,
@@ -120,16 +136,13 @@ define([
             }
         },
 
-        saveViewport(props) {
-            var productId = this.props.product.id;
-            if (this.currentViewport && productId in this.currentViewport) {
-                var viewport = this.currentViewport[productId];
-                props.onSaveViewport(productId, viewport);
-            }
-        },
-
         componentWillMount() {
             this.requestUpdateDebounce = _.debounce(this.requestUpdate, REQUEST_UPDATE_DEBOUNCE)
+            this.forceUpdateDebounce = _.debounce(() => {
+                if (this.mounted) {
+                    this.forceUpdate()
+                }
+            }, FORCE_UPDATE_DEBOUNCE);
         },
 
         componentDidMount() {
@@ -246,17 +259,14 @@ define([
                     $(document).trigger('defocusPaths');
                 }
             }
-            if (nextProps.product.id === this.props.product.id) {
-                this.setState({ viewport: {}, initialProductDisplay: false })
-            } else {
+            if (nextProps.product.id !== this.props.product.id) {
                 this.teardownPreviews();
-                this.saveViewport(nextProps)
-                this.setState({ viewport: nextProps.viewport || {}, initialProductDisplay: true })
             }
         },
 
         componentWillUnmount() {
             this.mounted = false;
+            styleCache.clear();
             this.removeEvents.forEach(({ node, func, events }) => {
                 $(node).off(events, func);
             })
@@ -264,7 +274,6 @@ define([
             this.teardownPreviews();
             this.popoverHelper.destroy();
             this.popoverHelper = null;
-            this.saveViewport(this.props)
         },
 
         teardownPreviews(vertexIds) {
@@ -281,11 +290,10 @@ define([
         },
 
         render() {
-            var { viewport, initialProductDisplay, draw, paths } = this.state,
-                { panelPadding, registry, workspace, product, interacting } = this.props,
+            var { draw, paths } = this.state,
+                { panelPadding, registry, workspace, product, interacting, hasPreview } = this.props,
                 { editable } = workspace,
-                { previewMD5 } = product,
-                config = {...CONFIGURATION(this.props), ...viewport},
+                config = CONFIGURATION(this.props),
                 events = {
                     onSelect: this.onSelect,
                     onRemove: this.onRemove,
@@ -303,9 +311,7 @@ define([
                     onTapEnd: this.onTapEnd,
                     onCxtTapStart: this.onTapStart,
                     onCxtTapEnd: this.onCxtTapEnd,
-                    onContextTap: this.onContextTap,
-                    onPan: this.onViewport,
-                    onZoom: this.onViewport
+                    onContextTap: this.onContextTap
                 },
                 menuHandlers = {
                     onMenuCreateVertex: this.onMenuCreateVertex,
@@ -324,8 +330,7 @@ define([
                         {...menuHandlers}
                         product={product}
                         requestUpdate={this.requestUpdateDebounce}
-                        initialProductDisplay={initialProductDisplay}
-                        hasPreview={Boolean(previewMD5)}
+                        hasPreview={hasPreview}
                         config={config}
                         panelPadding={panelPadding}
                         elements={cyElements}
@@ -416,6 +421,7 @@ define([
         requestUpdate() {
             if (this.mounted) {
                 memoizeClear();
+                styleCache.clear();
                 this.forceUpdate();
             }
         },
@@ -868,13 +874,6 @@ define([
             }
         },
 
-        onViewport({ cy }) {
-            var zoom = cy.zoom(), pan = cy.pan();
-            if (!this.currentViewport) this.currentViewport = {};
-            const viewport = { zoom, pan: {...pan}};
-            this.currentViewport[this.props.product.id] = viewport;
-        },
-
         droppableTransformPosition(rpos) {
             const cy = this.cytoscape.state.cy;
             const pan = cy.pan();
@@ -988,7 +987,7 @@ define([
             const renderedNodeIds = {};
 
             const cyVertices = filterByRoot(productVertices).reduce((nodes, nodeData) => {
-                const { id, parent } = nodeData;
+                const { id, parent, ancillary } = nodeData;
                 const cyNode = cyNodeConfig(nodeData);
 
                 if (ghosts && id in ghosts) {
@@ -1020,7 +1019,7 @@ define([
                         return nodes;
                     }
                     const vertex = vertices[id];
-                    const applyDecorations = memoizeFor('org.visallo.graph.node.decoration#applyTo', vertex, () => {
+                    const applyDecorations = !ancillary && memoizeFor('org.visallo.graph.node.decoration#applyTo', vertex, () => {
                         return _.filter(registry['org.visallo.graph.node.decoration'], function(e) {
                             /**
                              * @callback org.visallo.graph.node.decoration~applyTo
@@ -1031,41 +1030,49 @@ define([
                             return !_.isFunction(e.applyTo) || e.applyTo(vertex);
                         });
                     });
-                    if (applyDecorations.length) {
+                    if (applyDecorations && applyDecorations.length) {
                         const parentId = 'decP' + id;
                         cyNode.data.parent = parentId;
                         const decorations = memoizeFor('org.visallo.graph.node.decoration#data', vertex, () => {
-                            return applyDecorations.map(dec => {
-                                const data = mapDecorationToData(dec, vertex, () => this.forceUpdate());
-                                if (!data) {
-                                    return;
+                            return applyDecorations.map((dec, index) => {
+                                const data = mapDecorationToData(dec, vertex, data => {
+                                    if (data) {
+                                        const cache = memoizeGet('org.visallo.graph.node.decoration#data', vertex);
+                                        if (cache && index < cache.value.length) {
+                                            cache.value[index] = cyDecoration(data);
+                                            this.forceUpdateDebounce();
+                                        }
+                                    }
+                                })
+                                if (data) {
+                                    return cyDecoration(data);
                                 }
-                                var { padding } = dec;
-                                return {
-                                    group: 'nodes',
-                                    classes: mapDecorationToClasses(dec, vertex),
-                                    data: {
-                                        ...data,
-                                        id: idForDecoration(dec, vertex.id),
-                                        alignment: dec.alignment,
-                                        padding,
-                                        parent: parentId,
-                                        vertex
-                                    },
-                                    position: { x: -1, y: -1 },
-                                    grabbable: false,
-                                    selectable: false
+
+                                function cyDecoration(data) {
+                                    var { padding } = dec;
+                                    return {
+                                        group: 'nodes',
+                                        classes: mapDecorationToClasses(dec, vertex),
+                                        data: {
+                                            ...data,
+                                            id: idForDecoration(dec, vertex.id),
+                                            alignment: dec.alignment,
+                                            padding,
+                                            parent: parentId,
+                                            vertex
+                                        },
+                                        position: { x: -1, y: -1 },
+                                        grabbable: false,
+                                        selectable: false
+                                    }
                                 }
                             })
                         });
 
-                        nodes.push({
-                            group: 'nodes',
-                            data: { id: parentId },
-                            classes: 'decorationParent',
-                            selectable: false,
-                            grabbable: false
-                        });
+                        nodes.push(decorationParentFor(parentId, {
+                            isFocusing: focusing.isFocusing,
+                            focused: id in focusing.vertices
+                        }))
                         nodes.push(cyNode);
                         decorations.forEach(d => {
                             if (d) nodes.push(d);
@@ -1474,9 +1481,11 @@ define([
             }
             var p = Promise.resolve(data);
             p.catch(e => console.error(e))
-            p.tap(() => {
-                update()
-            });
+            if (_.isFunction(data.then)) {
+                p.tap(result => {
+                    update(result)
+                });
+            }
             return p;
         };
         const getIfFulfilled = p => {
@@ -1677,7 +1686,7 @@ define([
             userPanningEnabled: true,
             zoomingEnabled: true,
             userZoomingEnabled: true,
-            style: styles({ pixelRatio, edgesCount, edgeLabels, styleExtensions })
+            style: styleCache.getOrUpdate(styles, pixelRatio, edgesCount, edgeLabels, styleExtensions)
         }
     };
 

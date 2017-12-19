@@ -8,7 +8,7 @@ define([], function() {
     const IMAGE_ASPECT_RATIO = 4 / 3;
     const VIDEO_ASPECT_RATIO = 19 / 9;
 
-    return function({ pixelRatio, edgesCount, edgeLabels, styleExtensions }) {
+    return function(pixelRatio, edgesCount, edgeLabels, styleExtensions) {
         const OVERLAY_COLOR = '#0088cc';
         const OVERLAY_OPACITY = 0.2;
         const OVERLAY_DIM_OPACITY = 0.25;
@@ -114,6 +114,12 @@ define([], function() {
                             }
                             return OVERLAY_DIM_OPACITY;
                         }
+                    }
+                },
+                {
+                    selector: '*.dec-focus-dim .decoration',
+                    css: {
+                        opacity: OVERLAY_DIM_OPACITY
                     }
                 },
                 {

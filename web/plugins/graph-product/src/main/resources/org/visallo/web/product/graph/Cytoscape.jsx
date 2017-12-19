@@ -27,7 +27,7 @@ define([
     const ANIMATION = { duration: 400, easing: 'spring(250, 20)' };
     const ANIMATION_SLOW = { ...ANIMATION, duration: 800 };
     const PanelPaddingBorder = 35;
-    const MAX_ELEMENTS_BEFORE_NO_ANIMATE_LAYOUT = 50;
+    const MAX_ELEMENTS_BEFORE_NO_ANIMATE = 50;
     const DEFAULT_PNG = Object.freeze({
         bg: 'white',
         full: true,
@@ -36,20 +36,13 @@ define([
     });
     const LAYOUT_OPTIONS = {
         // Customize layout options
-        circle: {
-            nodeDimensionsIncludeLabels: true
-        },
+        concentric: {},
         bettergrid: {},
-        cose: {
-            nodeDimensionsIncludeLabels: true,
-            animate: function(els) {
-                return els.length < MAX_ELEMENTS_BEFORE_NO_ANIMATE_LAYOUT;
-            },
-            edgeElasticity: 10
-        },
         dagre: {
-            nodeDimensionsIncludeLabels: true,
             spacingFactor: 1.3
+        },
+        cose: {
+            edgeElasticity: 10
         }
     };
     const PREVIEW_DEBOUNCE_SECONDS = 3;
@@ -88,7 +81,6 @@ define([
     const Cytoscape = createReactClass({
 
         propTypes: {
-            initialProductDisplay: PropTypes.bool,
             hasPreview: PropTypes.bool,
             editable: PropTypes.bool,
             onCollapseSelectedNodes: PropTypes.func.isRequired,
@@ -105,7 +97,6 @@ define([
                 elements: { nodes: [], edges: [] },
                 fit: false,
                 hasPreview: false,
-                initialProductDisplay: false,
                 panelPadding: { left:0, right:0, top:0, bottom:0 },
                 onReady() {},
                 onGhostFinished() {},
@@ -183,11 +174,13 @@ define([
 
         componentDidUpdate(prevProps, prevState) {
             const { cy } = this.state;
-            const { elements, drawEdgeToMouseFrom, initialProductDisplay, hasPreview, drawPaths: newPaths } = this.props;
+            const { elements, drawEdgeToMouseFrom, hasPreview, drawPaths: newPaths } = this.props;
             const oldPaths = prevProps.drawPaths;
             const newData = { elements };
             const oldData = cy.json()
             const disableSelection = Boolean(drawEdgeToMouseFrom);
+            const newProduct = (!this.previousProductId) || (this.props.product.id !== this.previousProductId);
+            this.previousProductId = this.props.product.id
 
             if (oldPaths && oldPaths !== newPaths) {
                 cy.$('.path-edge').removeStyle('display opacity line-color source-arrow-color target-arrow-color');
@@ -210,12 +203,12 @@ define([
             const [oldNodes, newNodes] = getTypeData('nodes')
             const [oldEdges, newEdges] = getTypeData('edges')
 
-            const viewport = this.updateConfiguration(this.previousConfig, this.props.config);
+            this.updateConfiguration(this.previousConfig, this.props.config);
             let deferredNodes = [], decorations = [], ghostAnimations = [];
             let nodeChanges, edgeChanges;
             cy.batch(() => {
-                nodeChanges = this.makeChanges(oldNodes, newNodes, deferredNodes, decorations, ghostAnimations)
-                edgeChanges = this.makeChanges(oldEdges, newEdges, null, null);
+                nodeChanges = this.makeChanges(oldNodes, newNodes, newProduct, deferredNodes, decorations, ghostAnimations)
+                edgeChanges = this.makeChanges(oldEdges, newEdges, newProduct);
             })
             deferredNodes.forEach(n => n());
             cy.batch(() => decorations.forEach(n => n()));
@@ -223,50 +216,16 @@ define([
 
             cy.autounselectify(disableSelection)
 
-            this.adjustViewport(cy, viewport, shouldFit())
-            if ((initialProductDisplay && !hasPreview) || nodeChanges || edgeChanges) {
+            if (newProduct) {
+                _.defer(() => {
+                    this.fit(null, { animate: false });
+                })
+            }
+
+            if ((newProduct && !hasPreview) || nodeChanges || edgeChanges) {
                 this.updatePreview();
             }
             ghostAnimations.forEach(a => a());
-
-            function shouldFit() {
-                const hasViewport = viewport && (viewport.pan || viewport.zoom)
-                if (initialProductDisplay && !hasViewport) return true;
-                const wasEmpty = oldNodes.length === 0;
-                const hasNodes = newNodes.length
-                const positionIsEmpty = node => !node.position || (node.position.x === 0 && node.position.y === 0);
-
-                if (wasEmpty && hasNodes) {
-                    return _.every(newNodes, positionIsEmpty);
-                }
-
-                return false;
-            }
-        },
-
-        adjustViewport(cy, viewport, fit) {
-            const { pan, zoom } = viewport || {};
-            if (pan || zoom) {
-                var newViewport = { zoom, pan: {...pan} };
-                if (this.props.animate) {
-                    this.panDisabled = this.zoomDisabled = true;
-                    cy.stop().animate(newViewport, {
-                        ...ANIMATION,
-                        queue: false,
-                        complete: () => {
-                            this.panDisabled = this.zoomDisabled = false;
-                            if (fit) {
-                                this.fit(null, { animate: false });
-                            }
-                        }
-                    })
-                    return true
-                } else {
-                    this.disableEvent('pan zoom', () => cy.viewport(newViewport));
-                }
-            } else if (fit) {
-                this.fit(null, { animate: false });
-            }
         },
 
         _updatePreview() {
@@ -473,13 +432,18 @@ define([
         onMenuLayout(layout, options) {
             const { cy } = this.state;
             const onlySelected = options && options.onlySelected;
-            const elements = onlySelected ? cy.collection(cy.nodes().filter(':selected')) : cy.$('.v,.c');
+            const elements = cy.collection(
+                cy.$(onlySelected ? '.v:selected,.c:selected,.e' : '.v,.c,.e')
+            );
             const defaultOptions = {...LAYOUT_OPTIONS[layout] };
 
             var opts = {
                 name: layout,
                 fit: false,
-                animate: true,
+                nodeDimensionsIncludeLabels: true,
+                animate: function(els) {
+                    return els.length < MAX_ELEMENTS_BEFORE_NO_ANIMATE;
+                },
                 animationDuration: 250,
                 animationEasing: 'ease-in-out-quad',
                 stop: () => {
@@ -488,24 +452,37 @@ define([
                         this.fit();
                     }
                 },
-                ..._.each(defaultOptions || {}, function(optionValue, optionName) {
-                    if (_.isFunction(optionValue)) {
-                        defaultOptions[optionName] = optionValue(elements, options);
-                    }
-                }),
+                ...defaultOptions,
                 ...options
             };
 
             const ids = _.map(elements, node => node.id())
             this.layoutDone = false;
             this.moving = _.indexBy([...Object.keys(this.moving), ...ids]);
+            const forceDirected = layout === 'cose';
 
-            if (onlySelected) {
-                elements.layout(opts).run();
-            } else {
-                cy.layout(opts).run();
+            // Force directed has issues if we don't pass the decoration
+            // parents (because we don't want those to layout, so just hack
+            // them to not show parents.
+            if (forceDirected) {
+                elements.forEach(({_private: el }) => {
+                    el._restoreParent = el.parent;
+                    el._restoreDataParent = el.data.parent;
+                    el.parent = null;
+                    el.data.parent = null;
+                })
             }
 
+            elements.layout(opts).run();
+
+            if (forceDirected) {
+                elements.forEach(({ _private: el }) => {
+                    el.parent = el._restoreParent;
+                    el.data.parent = el._restoreDataParent;
+                    el._restoreParent = null;
+                    el._restoreDataParent = null;
+                })
+            }
         },
 
         onControlsZoom(dir) {
@@ -595,7 +572,6 @@ define([
 
         updateConfiguration(previous, nextConfig) {
             const { cy } = this.state;
-            var retViewport = null;
 
             if (previous) {
                 let { style, pan, zoom, ...other } = nextConfig
@@ -613,18 +589,16 @@ define([
                         .fromJson(style)
                         .update();
                 }
-
-                retViewport = { pan, zoom }
             }
 
             this.previousConfig = nextConfig
-            return retViewport;
         },
 
-        makeChanges(older, newer, reparenting, decorations, ghostAnimations) {
+        makeChanges(older, newer, newProduct, reparenting, decorations, ghostAnimations) {
             const { interacting } = this.props;
             const { cy } = this.state;
 
+            const animate = !newProduct;
             const add = [];
             const remove = [...older];
             const modify = [];
@@ -698,7 +672,7 @@ define([
 
                                     if (positionChangedWithinTolerance) {
                                         modifiedPosition = true;
-                                        if (this.props.animate) {
+                                        if (animate && this.props.animate && modify.length < MAX_ELEMENTS_BEFORE_NO_ANIMATE) {
                                             this.positionDisabled = true;
                                             this.updateDecorationPositions(cyNode, { toPosition: item.position, animate: true });
                                             cyNode.stop().animate({ position: item.position }, { ...ANIMATION, complete: () => {

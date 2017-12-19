@@ -65,19 +65,33 @@ define(['updeep'], function(u) {
         return u({
             workspaces: {
                 [workspaceId]: {
-                    products: {
-                        [productId]: { previewMD5: md5 }
+                    previewHashes: {
+                        [productId]: md5
                     }
                 }
             }
         }, state);
     }
 
+    function extractPreviews(products = []) {
+        return (products || []).reduce((result, product) => {
+            const { products, previewHashes } = result;
+            const { previewMD5, ...rest } = product;
+
+            products[product.id] = rest;
+            previewHashes[product.id] = previewMD5;
+
+            return result;
+        }, { products: {}, previewHashes: {} });
+    }
+
     function updateList(state, { loading, loaded, workspaceId, products }) {
+        const { products: productsNoHash, previewHashes } = extractPreviews(products);
         return u({
             workspaces: {
                 [workspaceId]: {
-                    products: u.constant(_.indexBy(products || [], 'id')),
+                    products: u.constant(productsNoHash),
+                    previewHashes: u.constant(previewHashes),
                     loading,
                     loaded
                 }
@@ -96,7 +110,8 @@ define(['updeep'], function(u) {
     }
 
     function updateProduct(state, { product }) {
-        const { id, workspaceId } = product;
+        const { previewMD5, ...productNoPreview } = product;
+        const { id, workspaceId } = productNoPreview;
         const existing = state.workspaces[workspaceId].products[id];
         const localData = existing && existing.localData || {};
         product.localData = localData;
@@ -105,7 +120,10 @@ define(['updeep'], function(u) {
             workspaces: {
                 [workspaceId]: {
                     products: {
-                        [id]: u.constant(product)
+                        [id]: u.constant(productNoPreview)
+                    },
+                    previewHashes: {
+                        [id]: previewMD5
                     }
                 }
             }
@@ -116,7 +134,8 @@ define(['updeep'], function(u) {
         return u({
             workspaces: {
                 [workspaceId]: {
-                    products: u.omit(productId)
+                    products: u.omit(productId),
+                    previewHashes: u.omit(productId)
                 }
             }
         }, state);

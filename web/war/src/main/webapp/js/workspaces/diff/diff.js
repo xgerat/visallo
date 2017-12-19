@@ -211,17 +211,19 @@ define([
                         if (isElementVertex) {
                             outputItem.vertexId = elementId;
                             outputItem.vertex = verticesById[elementId];
+                            const conceptType = diffs[0].conceptType || diffs[0].elementConcept;
                             if (outputItem.vertex) {
                                 outputItem.title = F.vertex.title(outputItem.vertex);
                             } else {
                                 outputItem.vertex = {
                                     id: elementId,
+                                    type: 'vertex',
                                     properties: [],
+                                    conceptType,
                                     'http://visallo.org#visibilityJson': diffs[0].visibilityJson
                                 };
                                 outputItem.title = diffs[0].title;
                             }
-                            const conceptType = diffs[0].conceptType || diffs[0].elementConcept;
                             if (conceptType) {
                                 var concept = self.ontologyConcepts.byId[conceptType];
                                 if (concept) {
@@ -241,6 +243,7 @@ define([
                             } else {
                                 outputItem.edge = {
                                     id: elementId,
+                                    type: 'edge',
                                     properties: [],
                                     'http://visallo.org#visibilityJson': diffs[0].visibilityJson
                                 };

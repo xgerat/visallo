@@ -77,7 +77,7 @@ define([
                     <li className="dropdown-submenu layouts requires-EDIT">
                     <a onMouseUp={this.props.onEvent} tabIndex="-1" href="#">{i18n('graph.contextmenu.layout')}</a>
                     <ul className="dropdown-menu">
-                        <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["circle", {}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.circle')}</a></li>
+                        <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["concentric", {}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.circle')}</a></li>
                         <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["bettergrid", {}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.grid')}</a></li>
                         <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["dagre", {}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.hierarchical')}</a></li>
                         <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["cose", {}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.force_directed')}</a></li>
@@ -90,9 +90,9 @@ define([
                     <li className="dropdown-submenu layouts-multi requires-EDIT">
                     <a onMouseUp={this.props.onEvent} tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.selection')}</a>
                     <ul className="dropdown-menu">
-                        <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["circle",{"onlySelected":true}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.circle')}</a></li>
+                        <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["concentric",{"onlySelected":true}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.circle')}</a></li>
                         <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["bettergrid", {"onlySelected":true}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.grid')}</a></li>
-                        <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["cose", {"onlySelected":true}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.force_directed')}</a></li>
+                        <li><a onMouseUp={this.props.onEvent} data-func="Layout" data-args='["dagre", {"onlySelected":true}]' tabIndex="-1" href="#">{i18n('graph.contextmenu.layout.hierarchical')}</a></li>
                         {this.renderLayoutExtensions(true)}
                     </ul>
                     </li>
