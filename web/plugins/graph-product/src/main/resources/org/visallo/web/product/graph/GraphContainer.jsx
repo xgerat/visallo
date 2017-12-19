@@ -416,7 +416,6 @@ define([
             return {
                 ...props,
                 selection: productSelectors.getSelectedElementsInProduct(state),
-                viewport: productSelectors.getViewport(state),
                 focusing: productSelectors.getFocusedElementsInProduct(state),
                 interacting: productSelectors.getInteracting(state),
                 ghosts,
@@ -451,7 +450,6 @@ define([
 
                 onAddRelated: (productId, vertices) => dispatch(graphActions.addRelated(productId, vertices)),
                 onUpdatePositions: (productId, positions) => dispatch(graphActions.updatePositions(productId, positions, { undoable: true })),
-                onSaveViewport: (productId, { pan, zoom }) => dispatch(productActions.updateViewport(productId, { pan, zoom })),
                 onSearch(event) {
                     event.preventDefault();
                     if (!$('.search-pane.visible').length) {

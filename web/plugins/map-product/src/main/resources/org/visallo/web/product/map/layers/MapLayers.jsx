@@ -15,7 +15,6 @@ define([
 
         propTypes: {
             product: PropTypes.shape({
-                previewMD5: PropTypes.string,
                 extendedData: PropTypes.shape({
                     vertices: PropTypes.object,
                     edges: PropTypes.object }

@@ -80,7 +80,13 @@ define([
         }),
 
         updatePreview: ({ productId, dataUrl }) => (dispatch, getState) => {
+            const state = getState();
+            const workspaceId = state.workspace.currentId;
             ajax('POST', '/product', { productId, preview: dataUrl })
+                .then(product => {
+                    const { previewMD5: md5 } = product;
+                    dispatch(api.previewChanged({ productId, workspaceId, md5 }));
+                })
         },
 
         updateLocalData: ({productId, key, value}) => (dispatch, getState) => {

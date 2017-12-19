@@ -11,12 +11,12 @@ define([
         propTypes: {
             selected: PropTypes.string,
             editable: PropTypes.bool.isRequired,
+            previewHash: PropTypes.string,
             product: PropTypes.shape({
                 id: PropTypes.string.isRequired,
                 title: PropTypes.string.isRequired,
                 workspaceId: PropTypes.string.isRequired,
                 kind: PropTypes.string.isRequired,
-                previewMD5: PropTypes.string,
                 loading: PropTypes.bool
             }).isRequired
         },
@@ -41,12 +41,12 @@ define([
             }
         },
         render() {
-            const { product, selected, editable } = this.props;
+            const { product, previewHash, selected, editable } = this.props;
             const { confirmDelete, editing, invalid, loading } = this.state;
-            const { previewMD5, id, kind, title, workspaceId } = product;
+            const { id, kind, title, workspaceId } = product;
             const isSelected = selected === id;
-            const previewStyle = previewMD5 ? {
-                backgroundImage: `url(product/preview?productId=${encodeURIComponent(id)}&workspaceId=${encodeURIComponent(workspaceId)}&md5=${previewMD5})`
+            const previewStyle = previewHash ? {
+                backgroundImage: `url(product/preview?productId=${encodeURIComponent(id)}&workspaceId=${encodeURIComponent(workspaceId)}&md5=${previewHash})`
             } : {};
             const buttons = loading ?
                 ([
@@ -76,7 +76,7 @@ define([
                     onClick={this.onSelect}
                     onMouseLeave={this.onLeaveItem}>
                     <div className="buttons">{editable ? buttons : null}</div>
-                    <div className={previewMD5 ? 'preview' : 'no-preview'} style={previewStyle}/>
+                    <div className={previewHash ? 'preview' : 'no-preview'} style={previewStyle}/>
                     <div className="content">
                         <h1>{ editing ? (
                             <input maxLength={MaxTitleLength} required

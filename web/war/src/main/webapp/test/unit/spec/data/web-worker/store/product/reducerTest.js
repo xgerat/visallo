@@ -16,7 +16,7 @@ define([
     describe('productReducer', () => {
 
         it('should update product list', () => {
-            const products = [{id: 'p1'}];
+            const products = [{id: 'p1', previewMD5: 'h1'}];
             const nextState = reducer(genState({}), {
                 type: 'PRODUCT_LIST',
                 payload: {loading: false, loaded: true, products, workspaceId}
@@ -26,7 +26,8 @@ define([
                     [workspaceId]: {
                         loading: false,
                         loaded: true,
-                        products: {p1: {id: 'p1'}}
+                        products: {p1: {id: 'p1'}},
+                        previewHashes: { p1: 'h1' }
                     }
                 }
             });

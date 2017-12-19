@@ -17,6 +17,10 @@ define(['reselect', '../element/selectors'], function(reselect, elementSelectors
         return productWorkspaces[workspaceId];
     })
 
+    const getPreviewHashesById = createSelector([getProductState], (productState) => {
+        return productState ? productState.previewHashes : {};
+    })
+
     const getProductsById = createSelector([getProductState], (productState) => {
         return productState ? productState.products : {};
     })
@@ -44,6 +48,10 @@ define(['reselect', '../element/selectors'], function(reselect, elementSelectors
 
     const getProduct = createSelector([getProductsById, getSelectedId], (productsById, productId) => {
         return productId ? productsById[productId] : null;
+    })
+
+    const getPreviewHash = createSelector([getPreviewHashesById, getSelectedId], (previewHashes, productId) => {
+        return productId ? previewHashes[productId] : null;
     })
 
     const getElementIdsInProduct = createSelector([getProduct], (product) => {
@@ -103,7 +111,9 @@ define(['reselect', '../element/selectors'], function(reselect, elementSelectors
         getProduct,
         getViewport,
         getProducts,
+        getPreviewHash,
         getProductsById,
+        getPreviewHashesById,
         getProductTypes,
         getInteracting,
         getElementIdsInProduct,

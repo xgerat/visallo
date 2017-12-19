@@ -54,6 +54,7 @@ define([
                 return {
                     padding: state.panel.padding,
                     product,
+                    hasPreview: Boolean(productSelectors.getPreviewHash(state)),
                     extension: productExtensions[0]
                 }
             } else if (extensions.length && loaded) {

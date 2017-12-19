@@ -107,6 +107,58 @@ define([
             fn.callCount.should.equal(2)
         })
 
+        it('should support value args', function() {
+            const fn = sinon.spy(function(...args) {
+                return args.join(',')
+            })
+            /* eslint no-new-wrappers:0 */
+            let result = this.cache.getOrUpdate(fn, 'testing', 123, false, 32.5, undefined, null)
+            let result2 = this.cache.getOrUpdate(fn, new String('testing'), 123, false, 32.5, undefined, null)
+            result.should.equal('testing,123,false,32.5,,')
+            result2.should.equal('testing,123,false,32.5,,')
+            fn.callCount.should.equal(1)
+        })
+
+        it('should support value args changing', function() {
+            const fn = sinon.spy(function(...args) {
+                return args.join(',')
+            })
+            /* eslint no-new-wrappers:0 */
+            let result = this.cache.getOrUpdate(fn, 'testing', 123, false, 32.5, undefined, null)
+            let result2 = this.cache.getOrUpdate(fn, new String('testing'), 124, false, 32.5, undefined, null)
+            result.should.equal('testing,123,false,32.5,,')
+            result2.should.equal('testing,124,false,32.5,,')
+            fn.callCount.should.equal(2)
+        })
+
+        it('should support object and value args', function() {
+            const fn = sinon.spy(function(...args) {
+                return args.map(a => a.result || a).join(',')
+            })
+            const p1 = { result: '0' }
+            const p2 = { result: '1' }
+            let result = this.cache.getOrUpdate(fn, p1, 2, p2, false)
+            let result2 = this.cache.getOrUpdate(fn, p1, 2, p2, false)
+            result.should.equal('0,2,1,false')
+            result2.should.equal('0,2,1,false')
+            fn.callCount.should.equal(1)
+        })
+
+        it('should support object and value args, value root', function() {
+            const fn = sinon.spy(function(...args) {
+                return args.map(a => a && a.result || a).join(',')
+            })
+            const p1 = 'testing'
+            let result = this.cache.getOrUpdate(fn, 3, p1, true)
+            let result2 = this.cache.getOrUpdate(fn, 3, p1, true)
+            result.should.equal('3,testing,true')
+            result2.should.equal('3,testing,true')
+            fn.callCount.should.equal(1)
+
+            let result3 = this.cache.getOrUpdate(fn, 3, p1, true, undefined)
+            result3.should.equal('3,testing,true,')
+            fn.callCount.should.equal(2)
+        })
     })
 
 })

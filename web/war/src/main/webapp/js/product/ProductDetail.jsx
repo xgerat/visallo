@@ -27,12 +27,12 @@ define([
 
         render() {
             var { Component } = this.state;
-            var { product, editable } = this.props;
+            var { product, editable, hasPreview } = this.props;
             var { extendedData, title } = product;
 
             return (
                 Component && extendedData ?
-                    (<Component product={this.props.product}></Component>) :
+                    (<Component product={this.props.product} hasPreview={hasPreview}></Component>) :
                     (<ProductDetailEmpty
                         editable={editable}
                         type={i18n(this.props.extension.identifier + '.name')}
