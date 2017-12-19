@@ -1,7 +1,9 @@
 package org.visallo.web;
 
 import org.apache.catalina.Context;
+import org.apache.catalina.Manager;
 import org.apache.catalina.connector.Connector;
+import org.apache.catalina.session.StandardManager;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.webresources.StandardRoot;
 import org.apache.coyote.ProtocolHandler;
@@ -67,6 +69,12 @@ public class TomcatWebServer extends WebServer {
         webRoot.setCacheMaxSize(100000);
         webRoot.setCachingAllowed(true);
         context.setResources(webRoot);
+
+        // prevent session creation and persistence
+        StandardManager manager = new StandardManager();
+        manager.setPathname("");
+        manager.setMaxActive(0);
+        context.setManager(manager);
 
         LOGGER.info("getSessionTimeout() is %d minutes", context.getSessionTimeout());
 
