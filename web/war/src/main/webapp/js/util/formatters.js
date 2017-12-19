@@ -584,7 +584,7 @@ define([
                 if (truncated.length > maxChars) {
                     // Use standard truncation (set amount of characters)
                     truncated = string.substring(0, maxChars) + ellipsis;
-                } else if (truncated !== string) {
+                } else if (truncated !== string.replace(/\s+/g, ' ')) {
                     truncated = truncated + ellipsis;
                 }
 

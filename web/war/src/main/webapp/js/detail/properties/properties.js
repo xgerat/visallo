@@ -30,6 +30,49 @@ define([
         alreadyWarnedAboutMissingOntology = {};
 
     const truncatedValueCache = {};
+    const getOrUpdateValue = (element, propName, propKey, expanded) => {
+        if (!element) throw new Error('Valid element must be provided')
+        if (!propName || !propKey) throw new Error('Property name and property key must be provided')
+
+        const cacheKey = `${element.id}:${propKey}:${propName}`;
+        let value = truncatedValueCache[cacheKey];
+        const elementChanged = value && value.element !== element;
+
+        if (value) {
+            if (!elementChanged && (expanded === undefined || value.expanded === expanded)) {
+                return truncatedValueCache[cacheKey]
+            } else {
+                if (elementChanged) {
+                    const full = F.vertex.prop(element, propName, propKey);
+                    const truncated = F.string.truncate(full, 20);
+
+                    value = {
+                        ...value,
+                        full,
+                        truncated,
+                        toggleable: full.trim().replace(/\s+/g, ' ') !== truncated
+                    }
+                }
+                if (expanded !== undefined) {
+                    value.expanded = expanded;
+                }
+            }
+        } else {
+            const full = F.vertex.prop(element, propName, propKey);
+            const truncated = F.string.truncate(full, 20);
+
+            value = {
+                element,
+                expanded: expanded || false,
+                full,
+                truncated,
+                toggleable: full.trim().replace(/\s+/g, ' ') !== truncated
+            }
+        }
+
+        truncatedValueCache[cacheKey] = value;
+        return truncatedValueCache[cacheKey]
+    }
 
     return component;
 
@@ -760,34 +803,25 @@ define([
                         } else if (isSandboxStatus(property) || isRelationshipLabel(property)) {
                             valueSpan.textContent = property.value;
                         } else {
-                            const textContent = F.vertex.prop(vertex, property.name, property.key);
-                            const truncatedTextContent = F.string.truncate(textContent, 20);
+                            const { full, truncated, expanded, toggleable } = getOrUpdateValue(vertex, property.name, property.key);
 
-                            valueSpan.textContent = truncatedValueCache[property.key] && truncatedValueCache[property.key].expanded
-                                ? textContent : truncatedTextContent;
+                            valueSpan.textContent = expanded ? full : truncated;
 
-                            if (textContent.trim() !== truncatedTextContent) {
-                                truncatedValueCache[property.key] = {
-                                    expanded: false,
-                                    ...truncatedValueCache[property.key],
-                                    full: textContent,
-                                    truncated: truncatedTextContent
-                                };
-
+                            if (toggleable) {
                                 $('<span/>').addClass('value-expand')
-                                    .text(i18n('properties.value.expand'))
-                                    .appendTo($valueSpan)
+                                    .data('expanded', expanded)
+                                    .text(expanded ? i18n('properties.value.collapse') : i18n('properties.value.expand'))
                                     .on('click', function(e) {
-                                        const cachedValue = truncatedValueCache[property.key]
-                                        const shouldExpand = !cachedValue.expanded;
+                                        const expanded = !$(this).data('expanded');
+                                        $(this).data('expanded', expanded);
 
-                                        $valueSpan.contents()
-                                            .filter((i, ele) => ele.nodeType === Node.TEXT_NODE)[0].nodeValue =
-                                            shouldExpand ? cachedValue.full : cachedValue.truncated;
-                                        $(this).text(shouldExpand ? i18n('properties.value.collapse') : i18n('properties.value.expand'))
+                                        const { full, truncated } = getOrUpdateValue(vertex, property.name, property.key, expanded);
+                                        const textNode = $valueSpan.contents().filter((i, ele) => ele.nodeType === Node.TEXT_NODE)[0];
 
-                                        truncatedValueCache[property.key].expanded = shouldExpand;
-                                    });
+                                        textNode.nodeValue = expanded ? full : truncated;
+                                        $(this).text(expanded ? i18n('properties.value.collapse') : i18n('properties.value.expand'))
+                                    })
+                                    .appendTo($valueSpan);
                             }
                         }
                     });
