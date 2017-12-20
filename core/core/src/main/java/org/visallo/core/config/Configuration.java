@@ -73,6 +73,8 @@ public class Configuration {
     public static final String DEFAULT_SEARCH_RESULT_COUNT = "search.defaultSearchCount";
     public static final String LOCK_REPOSITORY_PATH_PREFIX = "lockRepository.pathPrefix";
     public static final String DEFAULT_LOCK_REPOSITORY_PATH_PREFIX = "/visallo/locks";
+    public static final String LOCK_REPOSITORY_ACQUIRE_TIMEOUT = "lockRepository.acquireTimeout";
+    public static final int DEFAULT_LOCK_ACQUIRE_TIMEOUT_SECONDS = 300;
     public static final String CACHE_REPOSITORY_PATH_PREFIX = "cacheService.pathPrefix";
     public static final String DEFAULT_CACHE_REPOSITORY_PATH_PREFIX = "/visallo/cache";
     public static final String USER_SESSION_COUNTER_PATH_PREFIX = "userSessionCounter.pathPrefix";
