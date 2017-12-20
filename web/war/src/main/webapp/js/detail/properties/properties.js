@@ -32,9 +32,9 @@ define([
     const truncatedValueCache = {};
     const getOrUpdateValue = (element, propName, propKey, expanded) => {
         if (!element) throw new Error('Valid element must be provided')
-        if (!propName || !propKey) throw new Error('Property name and property key must be provided')
+        if (!propName) throw new Error('Property name must be provided')
 
-        const cacheKey = `${element.id}:${propKey}:${propName}`;
+        const cacheKey = `${element.id}:${(propKey || '')}:${propName}`;
         let value = truncatedValueCache[cacheKey];
         const elementChanged = value && value.element !== element;
 
