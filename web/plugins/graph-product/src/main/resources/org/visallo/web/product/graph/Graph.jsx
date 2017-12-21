@@ -182,7 +182,8 @@ define([
                         draw: {
                             vertexId,
                             connectionType
-                        }
+                        },
+                        paths: null
                     });
                 },
                 editCollapsedNode: (event, { collapsedNodeId }) => { this.onEditCollapsedNode(collapsedNodeId)},
@@ -745,7 +746,8 @@ define([
                     this.setState({
                         draw: {
                             vertexId: target.id()
-                        }
+                        },
+                        paths: null
                     });
                 }
             }
