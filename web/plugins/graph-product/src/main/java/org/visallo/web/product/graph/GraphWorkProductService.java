@@ -4,6 +4,7 @@ import com.google.common.collect.Queues;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.vertexium.*;
+import org.vertexium.util.CloseableUtils;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.graph.GraphRepository;
@@ -96,19 +97,25 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
                 .collect(Collectors.toList());
         Map<String, Boolean> othersById = graph.doVerticesExist(ids, authorizations);
 
-        for (Edge propertyVertexEdge : productVertexEdges) {
-            String otherId = propertyVertexEdge.getOtherVertexId(productVertex.getId());
-            GraphWorkProductVertex vertexOrNode = new GraphWorkProductVertex();
-            vertexOrNode.setId(otherId);
-            if (!othersById.getOrDefault(otherId, false)) {
-                vertexOrNode.setUnauthorized(true);
+        Iterator<Edge> edgeIterator = productVertexEdges.iterator();
+        try {
+            while (edgeIterator.hasNext()) {
+                Edge propertyVertexEdge = edgeIterator.next();
+                String otherId = propertyVertexEdge.getOtherVertexId(productVertex.getId());
+                GraphWorkProductVertex vertexOrNode = new GraphWorkProductVertex();
+                vertexOrNode.setId(otherId);
+                if (!othersById.getOrDefault(otherId, false)) {
+                    vertexOrNode.setUnauthorized(true);
+                }
+                populateProductVertexWithWorkspaceEdge(propertyVertexEdge, vertexOrNode);
+                if ("vertex".equals(vertexOrNode.getType())) {
+                    vertices.put(otherId, vertexOrNode);
+                } else {
+                    compoundNodes.put(otherId, vertexOrNode);
+                }
             }
-            populateProductVertexWithWorkspaceEdge(propertyVertexEdge, vertexOrNode);
-            if ("vertex".equals(vertexOrNode.getType())) {
-                vertices.put(otherId, vertexOrNode);
-            } else {
-                compoundNodes.put(otherId, vertexOrNode);
-            }
+        } finally {
+            CloseableUtils.closeQuietly(edgeIterator);
         }
 
         if (compoundNodes.size() > 0) {
