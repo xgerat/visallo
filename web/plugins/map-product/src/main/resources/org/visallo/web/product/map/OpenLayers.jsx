@@ -14,7 +14,7 @@ define([
     const noop = function() {};
 
     const ANIMATION_DURATION = 200,
-        MIN_FIT_ZOOM_RESOLUTION = 3000,
+        MIN_FIT_ZOOM_RESOLUTION = 30,
         MAX_FIT_ZOOM_RESOLUTION = 20000,
         PREVIEW_WIDTH = 300,
         PREVIEW_HEIGHT = 300,
@@ -374,10 +374,10 @@ define([
             } else {
                 extent = ol.extent.createEmpty();
                 map.getLayers().forEach(layer => {
-                    const source = layer.getSource();
+                    const source = layersWithSources.cluster.layer === layer ? layersWithSources.cluster.source : layer.getSource();
 
                     if (layer.getVisible() && _.isFunction(source.getExtent)) {
-                        ol.extent.extend(extent, source.getExtent())
+                        ol.extent.extend(extent, source.getExtent());
                     }
                 })
             }
@@ -414,14 +414,14 @@ define([
                     }
                 }
 
-                const newResolution = view.constrainResolution(
+                const newResolution = changeZoom ? view.constrainResolution(
                     Math.min(MAX_FIT_ZOOM_RESOLUTION, Math.max(idealResolution, MIN_FIT_ZOOM_RESOLUTION)), -1
-                );
+                ) : view.getResolution();
                 const center = ol.extent.getCenter(extentWithPadding);
                 const offsetX = left - right;
                 const offsetY = top - bottom;
-                const lon = offsetX * view.getResolution() / 2;
-                const lat = offsetY * view.getResolution() / 2;
+                const lon = offsetX * newResolution / 2;
+                const lat = offsetY * newResolution / 2;
                 center[0] = center[0] - lon;
                 center[1] = center[1] - lat;
 
