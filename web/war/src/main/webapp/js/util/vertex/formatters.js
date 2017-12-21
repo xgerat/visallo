@@ -1108,6 +1108,39 @@ define([
                 return Boolean(result);
             },
 
+            titles: function(vertices, { maxBeforeOther = 3, maxTitleWords = 4 } = {}) {
+                if (!_.isArray(vertices)) throw new Error('Must pass an array of vertices: ' + typeof vertices)
+
+                const { length } = vertices;
+
+                if (length === 0) {
+                    return i18n('vertex.titles.none');
+                }
+                if (length === 1) {
+                    return V.title(vertices[0])
+                }
+
+                const titles = vertices.slice(0, Math.min(length, maxBeforeOther))
+                    .map((vertex, i) => {
+                        const title = maxTitleWords > 0 ?
+                            (F.string.truncate(V.title(vertex) || '', maxTitleWords)) : V.title(vertex);
+
+                        if (i === length - 1) {
+                            return i18n('vertex.titles.oxford', title)
+                        }
+                        return title;
+                    })
+                    .join(', ')
+
+                if (maxBeforeOther > 0 && length > maxBeforeOther) {
+                    const diff = length - maxBeforeOther;
+                    const others = i18n('vertex.titles.other' + (diff > 1 ? 's' : ''), diff);
+                    return `${titles}, ${others}`
+                }
+
+                return titles;
+            },
+
             /**
              * Get the `title` of the element, using order:
              *

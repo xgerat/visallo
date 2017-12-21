@@ -138,6 +138,13 @@ define([
                 f.string.palantirPrettyPrint('joHn wiLKes-booTh').should.equal('John Wilkes-Booth')
                 f.string.palantirPrettyPrint('monty-burns').should.equal('Monty-Burns')
             })
+
+            it('should truncate', function() {
+                f.string.truncate('one two, 3 and four. Another sentence', 4).should.equal('one two, 3 and…')
+                f.string.truncate('one two, 3 and four. Another sentence', 2).should.equal('one two…')
+                f.string.truncate('one two, 3 and four. Another sentence', 5).should.equal('one two, 3 and four…')
+                f.string.truncate('one two, 3 and four. Another sentence? Third', 7).should.equal('one two, 3 and four. Another sentence…')
+            })
         })
 
         describe('for geoLocations', function() {

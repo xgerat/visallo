@@ -31,6 +31,7 @@ define([
     const MaxPathsToFocus = 100;
     const MaxPreviewPopovers = 5;
     const MaxEdgesBetween = 5;
+    const MaxTitleWords = 15;
     const REQUEST_UPDATE_DEBOUNCE = 300;
     const FORCE_UPDATE_DEBOUNCE = 1000;
 
@@ -1613,10 +1614,14 @@ define([
 
         let title;
         if (vertices) {
-            if (byType.vertex && byType.vertex.length > 1) {
-                title = byType.vertex.map(({ id }) => (
-                    vertices[id] ? F.vertex.title(vertices[id]) : ''
-                )).join(', ');
+            const { vertex } = byType;
+            if (vertex && vertex.length > 1) {
+                title = F.vertex.titles(vertex.reduce(function(list, { id }) {
+                    if (vertices[id]) {
+                        list.push(vertices[id])
+                    }
+                    return list;
+                }, []), { maxBeforeOther: 3, maxTitleWords: 3 })
             } else {
                 title = i18n('org.visallo.web.product.graph.collapsedNode.entities.singular');
             }
@@ -1627,7 +1632,7 @@ define([
 
     const vertexToCyNode = (vertex, transformers) => {
         return memoizeFor('vertexToCyNode', vertex, function() {
-            const title = F.vertex.title(vertex);
+            const title = F.string.truncate(F.vertex.title(vertex), MaxTitleWords);
             const conceptType = F.vertex.prop(vertex, 'conceptType');
             const imageSrc = F.vertex.image(vertex, null, 150);
             const selectedImageSrc = F.vertex.selectedImage(vertex, null, 150);
