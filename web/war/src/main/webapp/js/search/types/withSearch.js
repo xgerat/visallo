@@ -67,6 +67,10 @@ define([
                     }
                     this.trigger($searchResults, 'paneResized');
                 }
+
+                this.on(document, 'switchWorkspace', () => {
+                    this.trigger('clearSearch', { clearMatch: false })
+                });
             });
             this.on('clearSearch', function(event, data) {
                 this.hideAndClearSearchResults();
