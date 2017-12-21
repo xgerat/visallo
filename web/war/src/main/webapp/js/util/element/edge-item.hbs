@@ -3,7 +3,7 @@
   <div class="vertex-in">{{ inVertex.title }}</div>
 </div>
 <div class="info">
-  <div class="edge-vertex-preview{{#if outVertex.custom}} custom{{/if}}" style="background-image: url({{ outVertex.image }});"/>
+  <div class="edge-vertex-preview{{#if outVertex.custom}} custom{{/if}}" style="background-image: url('{{ outVertex.image }}');"/>
   <span class="title">
     <span class="rel_title">{{ title }}</span>
     <div>
@@ -11,5 +11,5 @@
       <span class="source">{{#if subtitle }}{{ subtitle }}{{/if}}</span>
     </div>
   </span>
-  <div class="edge-vertex-preview{{#if inVertex.custom}} custom{{/if}}" style="background-image: url({{ inVertex.image }});"/>
+  <div class="edge-vertex-preview{{#if inVertex.custom}} custom{{/if}}" style="background-image: url('{{ inVertex.image }}');"/>
 </div>
