@@ -7,11 +7,13 @@ import com.v5analytics.webster.annotations.Handle;
 import com.v5analytics.webster.annotations.Optional;
 import com.v5analytics.webster.annotations.Required;
 import org.vertexium.*;
-import org.vertexium.mutation.ElementMutation;
 import org.visallo.core.ingest.ArtifactDetectedObject;
+import org.visallo.core.model.graph.GraphRepository;
+import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.properties.types.PropertyMetadata;
 import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -30,6 +32,7 @@ import org.visallo.web.util.VisibilityValidator;
 
 import java.util.Date;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Singleton
 public class ResolveDetectedObject implements ParameterizedHandler {
@@ -41,6 +44,7 @@ public class ResolveDetectedObject implements ParameterizedHandler {
     private final VisibilityTranslator visibilityTranslator;
     private final WorkspaceRepository workspaceRepository;
     private final TermMentionRepository termMentionRepository;
+    private final GraphRepository graphRepository;
 
     @Inject
     public ResolveDetectedObject(
@@ -49,7 +53,8 @@ public class ResolveDetectedObject implements ParameterizedHandler {
             final WorkQueueRepository workQueueRepository,
             final VisibilityTranslator visibilityTranslator,
             final WorkspaceRepository workspaceRepository,
-            final TermMentionRepository termMentionRepository
+            final TermMentionRepository termMentionRepository,
+            final GraphRepository graphRepository
     ) {
         this.graph = graph;
         this.ontologyRepository = ontologyRepository;
@@ -57,6 +62,7 @@ public class ResolveDetectedObject implements ParameterizedHandler {
         this.visibilityTranslator = visibilityTranslator;
         this.workspaceRepository = workspaceRepository;
         this.termMentionRepository = termMentionRepository;
+        this.graphRepository = graphRepository;
     }
 
     @Handle
@@ -79,6 +85,7 @@ public class ResolveDetectedObject implements ParameterizedHandler {
             Authorizations authorizations
     ) throws Exception {
         String artifactContainsImageOfEntityIri = ontologyRepository.getRequiredRelationshipIRIByIntent("artifactContainsImageOfEntity", workspaceId);
+        Concept concept = ontologyRepository.getConceptByIRI(conceptId, workspaceId);
 
         Workspace workspace = workspaceRepository.findById(workspaceId, user);
 
@@ -86,70 +93,57 @@ public class ResolveDetectedObject implements ParameterizedHandler {
 
         VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, visibilitySource, workspaceId);
         VisalloVisibility visalloVisibility = visibilityTranslator.toVisibility(visibilityJson);
-
-        Concept concept = ontologyRepository.getConceptByIRI(conceptId, workspaceId);
-        Vertex artifactVertex = graph.getVertex(artifactId, authorizations);
-        ElementMutation<Vertex> resolvedVertexMutation;
-
-        Metadata metadata = new Metadata();
-        Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
-        VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, defaultVisibility);
+        Visibility visibility = visalloVisibility.getVisibility();
 
         Date modifiedDate = new Date();
 
+        PropertyMetadata propertyMetadata = new PropertyMetadata(modifiedDate, user, visibilityJson, visibility);
+        String id = graphVertexId == null ? graph.getIdGenerator().nextId() : graphVertexId;
+
+        Vertex artifactVertex = graph.getVertex(artifactId, authorizations);
+
+        Edge edge;
         Vertex resolvedVertex;
-        if (graphVertexId == null || graphVertexId.equals("")) {
-            resolvedVertexMutation = graph.prepareVertex(visalloVisibility.getVisibility());
+        ArtifactDetectedObject artifactDetectedObject;
+        String propertyKey;
+        final AtomicBoolean isNewVertex = new AtomicBoolean(false);
+        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
+            ctx.setPushOnQueue(false);
+            edge = ctx.getOrCreateEdgeAndUpdate(null, artifactId, id, artifactContainsImageOfEntityIri, visibility, edgeCtx -> {
+                edgeCtx.updateBuiltInProperties(propertyMetadata);
+            }).get();
 
-            VisalloProperties.CONCEPT_TYPE.setProperty(resolvedVertexMutation, concept.getIRI(), defaultVisibility);
-            VisalloProperties.VISIBILITY_JSON.setProperty(resolvedVertexMutation, visibilityJson, defaultVisibility);
-            VisalloProperties.MODIFIED_DATE.setProperty(resolvedVertexMutation, modifiedDate, defaultVisibility);
-            VisalloProperties.MODIFIED_BY.setProperty(resolvedVertexMutation, user.getUserId(), defaultVisibility);
-            VisalloProperties.TITLE.addPropertyValue(resolvedVertexMutation, MULTI_VALUE_KEY, title, metadata, visalloVisibility.getVisibility());
+            artifactDetectedObject = new ArtifactDetectedObject(
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    concept.getIRI(),
+                    "user",
+                    edge.getId(),
+                    id,
+                    originalPropertyKey
+            );
 
-            resolvedVertex = resolvedVertexMutation.save(authorizations);
+            propertyKey = artifactDetectedObject.getMultivalueKey(MULTI_VALUE_KEY_PREFIX);
+            resolvedVertex = ctx.getOrCreateVertexAndUpdate(id, visibility, elemCtx -> {
+                if (elemCtx.isNewElement()) {
+                    isNewVertex.set(true);
+                    elemCtx.setConceptType(concept.getIRI());
+                    elemCtx.updateBuiltInProperties(propertyMetadata);
+                    VisalloProperties.TITLE.updateProperty(elemCtx, MULTI_VALUE_KEY, title, propertyMetadata);
+                }
 
-            graph.flush();
+                VisalloProperties.ROW_KEY.updateProperty(elemCtx, id, propertyKey, propertyMetadata);
+            }).get();
 
-            ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
-            termMentionRepository.addJustification(resolvedVertex, justificationText, sourceInfo, visalloVisibility, authorizations);
-
-            resolvedVertex = resolvedVertexMutation.save(authorizations);
-            graph.flush();
-
-            workspaceRepository.updateEntityOnWorkspace(workspace, resolvedVertex.getId(), user);
-        } else {
-            resolvedVertex = graph.getVertex(graphVertexId, authorizations);
-            resolvedVertexMutation = resolvedVertex.prepareMutation();
+            if (isNewVertex.get()) {
+                ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
+                termMentionRepository.addJustification(resolvedVertex, justificationText, sourceInfo, visalloVisibility, authorizations);
+                workspaceRepository.updateEntityOnWorkspace(workspace, resolvedVertex.getId(), user);
+            }
+            VisalloProperties.DETECTED_OBJECT.addPropertyValue(artifactVertex, propertyKey, artifactDetectedObject, visalloVisibility.getVisibility(), authorizations);
         }
-
-        ElementMutation<Edge> edgeMutation = graph.prepareEdge(artifactVertex, resolvedVertex, artifactContainsImageOfEntityIri, visalloVisibility.getVisibility());
-
-        VisalloProperties.VISIBILITY_JSON.setProperty(edgeMutation, visibilityJson, defaultVisibility);
-        VisalloProperties.MODIFIED_DATE.setProperty(edgeMutation, modifiedDate, defaultVisibility);
-        VisalloProperties.MODIFIED_BY.setProperty(edgeMutation, user.getUserId(), defaultVisibility);
-
-        Edge edge = edgeMutation.save(authorizations);
-        graph.flush();
-
-        ArtifactDetectedObject artifactDetectedObject = new ArtifactDetectedObject(
-                x1,
-                y1,
-                x2,
-                y2,
-                concept.getIRI(),
-                "user",
-                edge.getId(),
-                resolvedVertex.getId(),
-                originalPropertyKey
-        );
-        String propertyKey = artifactDetectedObject.getMultivalueKey(MULTI_VALUE_KEY_PREFIX);
-        VisalloProperties.DETECTED_OBJECT.addPropertyValue(artifactVertex, propertyKey, artifactDetectedObject, visalloVisibility.getVisibility(), authorizations);
-
-        resolvedVertexMutation.addPropertyValue(resolvedVertex.getId(), VisalloProperties.ROW_KEY.getPropertyName(), propertyKey, visalloVisibility.getVisibility());
-        resolvedVertexMutation.save(authorizations);
-
-        graph.flush();
 
         workQueueRepository.broadcastElement(edge, workspaceId);
         workQueueRepository.pushGraphPropertyQueue(artifactVertex, propertyKey, VisalloProperties.DETECTED_OBJECT.getPropertyName(), Priority.HIGH);
