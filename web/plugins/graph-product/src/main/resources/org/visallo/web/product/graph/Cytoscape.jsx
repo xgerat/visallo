@@ -391,44 +391,6 @@ define([
             this.props.onCollapseSelectedNodes(selectedNodes);
         },
 
-        onMenuSelect(select) {
-            const { cy } = this.state;
-
-            var nodes = cy.nodes();
-            var edges = cy.edges();
-            var selectedVertices = nodes.filter(':selected');
-            var unselectedVertices = nodes.filter(':unselected');
-            var selectedEdges = edges.filter(':selected');
-            var unselectedEdges = edges.filter(':unselected');
-
-            switch (select) {
-                case 'all':
-                    unselectedEdges.select();
-                    unselectedVertices.select();
-                    break;
-                case 'none':
-                    selectedVertices.unselect();
-                    selectedEdges.unselect();
-                    break;
-                case 'invert':
-                    selectedVertices.unselect();
-                    selectedEdges.unselect();
-                    unselectedVertices.select();
-                    unselectedEdges.select();
-                    break;
-                case 'vertices':
-                    selectedEdges.unselect();
-                    unselectedVertices.select();
-                    break;
-                case 'edges':
-                    selectedVertices.unselect();
-                    unselectedEdges.select();
-                    break;
-                default:
-                    this.props.onMenuSelect(select);
-            }
-        },
-
         onMenuLayout(layout, options) {
             const { cy } = this.state;
             const onlySelected = options && options.onlySelected;

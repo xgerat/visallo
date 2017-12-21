@@ -531,15 +531,46 @@ define([
             }
         },
 
-        onMenuSelect(identifier) {
-            const cy = this.cytoscape.state.cy;
-            const selector = _.findWhere(
-                this.props.registry['org.visallo.graph.selection'],
-                { identifier }
-            );
-            if (selector) {
-                selector(cy);
+        onMenuSelect(select) {
+            const { registry, productElementIds, selection: productSelection, onClearSelection, onSetSelection } = this.props;
+            const selection = {};
+
+            this.coalesceSelection('clear');
+
+            switch (select) {
+                case 'all':
+                    selection.vertices = Object.keys(productElementIds.vertices);
+                    selection.edges = Object.keys(productElementIds.edges);
+                    break;
+                case 'invert':
+                    const selectedVertexIds = Object.keys(productSelection.vertices);
+                    const selectedEdgeIds = Object.keys(productSelection.edges);
+                    const unselectedVertexIds = _.difference(Object.keys(productElementIds.vertices), selectedVertexIds);
+                    const unselectedEdgeIds = _.difference(Object.keys(productElementIds.edges), selectedEdgeIds);
+
+                    selection.vertices = unselectedVertexIds;
+                    selection.edges = unselectedEdgeIds;
+                    break;
+                case 'vertices':
+                    selection.vertices = Object.keys(productElementIds.vertices);
+                    selection.edges = [];
+                    break;
+                case 'edges':
+                    selection.vertices = [];
+                    selection.edges = Object.keys(productElementIds.edges);
+                    break;
+                case 'none':
+                    onClearSelection();
+                    return;
+                default:
+                    const selector = registry['org.visallo.graph.selection'].find(e => e.identifier === select);
+                    if (selector) {
+                        selector(this.cytoscape.state.cy);
+                    }
+                    return;
             }
+
+            onSetSelection(selection);
         },
 
         onMenuExport(componentPath) {
@@ -1265,9 +1296,18 @@ define([
 
             if (cyElementOrId && _.isFunction(cyElementOrId.data)) {
                 if (type === 'compoundNode') {
-                    cyElementOrId.data('vertexIds').forEach(vertexId => {
+                    const vertexIds = cyElementOrId.data('vertexIds');
+                    const edgeIds = _.values(this.props.product.extendedData.edges)
+                        .filter(edge => vertexIds.includes(edge.inVertexId) && vertexIds.includes(edge.outVertexId))
+                        .map(edge => edge.edgeId);
+
+                    edgeIds.forEach(edgeId => {
+                        this.coalesceSelection(action, 'edges', edgeId);
+                    })
+                    vertexIds.forEach(vertexId => {
                         this.coalesceSelection(action, 'vertices', vertexId);
                     });
+
                     return;
                 } else if (type === 'edges') {
                     cyElementOrId.data('edgeInfos').forEach(edgeInfo => {
