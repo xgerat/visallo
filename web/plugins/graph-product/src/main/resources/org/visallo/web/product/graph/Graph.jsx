@@ -179,12 +179,12 @@ define([
                     selected.unselect();
                 },
                 startVertexConnection: (event, { vertexId, connectionType }) => {
+                    $(document).trigger('defocusPaths');
                     this.setState({
                         draw: {
                             vertexId,
                             connectionType
-                        },
-                        paths: null
+                        }
                     });
                 },
                 editCollapsedNode: (event, { collapsedNodeId }) => { this.onEditCollapsedNode(collapsedNodeId)},
@@ -792,11 +792,11 @@ define([
             if (cy !== target && event.originalEvent.ctrlKey) {
                 cy.autoungrabify(true);
                 if (target.hasClass('v')) {
+                    $(document).trigger('defocusPaths');
                     this.setState({
                         draw: {
                             vertexId: target.id()
-                        },
-                        paths: null
+                        }
                     });
                 }
             }
