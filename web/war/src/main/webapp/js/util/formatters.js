@@ -579,13 +579,14 @@ define([
                     string = $.trim(str),
                     wordsArray = string.split(/\s+/),
                     truncated = wordsArray.slice(0, words).join(' '),
-                    ellipsis = '…';
+                    ellipsis = '…',
+                    replacePunctuation = str => str.replace(/[,;:?.!]+$/, '');
 
                 if (truncated.length > maxChars) {
                     // Use standard truncation (set amount of characters)
-                    truncated = string.substring(0, maxChars) + ellipsis;
+                    truncated = replacePunctuation(string.substring(0, maxChars)) + ellipsis;
                 } else if (truncated !== string.replace(/\s+/g, ' ')) {
-                    truncated = truncated + ellipsis;
+                    truncated = replacePunctuation(truncated) + ellipsis;
                 }
 
                 return truncated
