@@ -17,6 +17,7 @@ public class VisalloProperties {
     public static final StringMetadataVisalloProperty SOURCE_FILE_NAME_METADATA = new StringMetadataVisalloProperty("http://visallo.org#sourceFileName");
     public static final StringMetadataVisalloProperty LINK_TITLE_METADATA = new StringMetadataVisalloProperty("http://visallo.org#linkTitle");
     public static final LongMetadataVisalloProperty SOURCE_FILE_OFFSET_METADATA = new LongMetadataVisalloProperty("http://visallo.org#sourceFileOffset");
+    public static final DerivedFromMetadataVisalloProperty DERIVED_FROM_METADATA = new DerivedFromMetadataVisalloProperty("http://visallo.org#derivedFrom");
 
     public static final DateSingleValueVisalloProperty MODIFIED_DATE = new DateSingleValueVisalloProperty("http://visallo.org#modifiedDate");
     public static final DateMetadataVisalloProperty MODIFIED_DATE_METADATA = new DateMetadataVisalloProperty("http://visallo.org#modifiedDate");

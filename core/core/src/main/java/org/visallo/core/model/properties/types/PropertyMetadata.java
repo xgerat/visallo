@@ -21,12 +21,13 @@ public class PropertyMetadata {
     private final Double confidence;
     private final VisibilityJson visibilityJson;
     private final Visibility propertyVisibility;
+    private final DerivedFrom derivedFromProperty;
     private final List<AdditionalMetadataItem> additionalMetadataItems = new ArrayList<>();
 
     /**
-     * @param modifiedBy The user to set as the modifiedBy metadata
-     * @param visibilityJson The visibility json to use in the metadata
-     * @param propertyVisibility The visibility of the property
+     * @param modifiedBy                The user to set as the modifiedBy metadata
+     * @param visibilityJson            The visibility json to use in the metadata
+     * @param propertyVisibility        The visibility of the property
      */
     public PropertyMetadata(User modifiedBy, VisibilityJson visibilityJson, Visibility propertyVisibility) {
         this(new Date(), modifiedBy, visibilityJson, propertyVisibility);
@@ -37,26 +38,57 @@ public class PropertyMetadata {
     }
 
     /**
-     * @param modifiedDate The date to use as modifiedDate
-     * @param modifiedBy The user to set as the modifiedBy metadata
-     * @param visibilityJson The visibility json to use in the metadata
-     * @param propertyVisibility The visibility of the property
+     * @param modifiedDate              The date to use as modifiedDate
+     * @param modifiedBy                The user to set as the modifiedBy metadata
+     * @param visibilityJson            The visibility json to use in the metadata
+     * @param propertyVisibility        The visibility of the property
      */
     public PropertyMetadata(Date modifiedDate, User modifiedBy, VisibilityJson visibilityJson, Visibility propertyVisibility) {
-        this(modifiedDate, modifiedBy, null, visibilityJson, propertyVisibility);
+        this(modifiedDate, modifiedBy, null, null, visibilityJson, propertyVisibility);
     }
 
     /**
-     * @param modifiedDate The date to use as modifiedDate
-     * @param modifiedBy The user to set as the modifiedBy metadata
-     * @param confidence The confidence metadata value
-     * @param visibilityJson The visibility json to use in the metadata
-     * @param propertyVisibility The visibility of the property
+     * @param modifiedBy                The user to set as the modifiedBy metadata
+     * @param derivedFrom               The property key and name the property was derived from
+     * @param visibilityJson            The visibility json to use in the metadata
+     * @param propertyVisibility        The visibility of the property
+     */
+    public PropertyMetadata(User modifiedBy,
+                            DerivedFrom derivedFrom,
+                            VisibilityJson visibilityJson,
+                            Visibility propertyVisibility) {
+        this(new Date(), modifiedBy, null, derivedFrom, visibilityJson, propertyVisibility);
+    }
+
+    /**
+     * @param modifiedDate              The date to use as modifiedDate
+     * @param modifiedBy                The user to set as the modifiedBy metadata
+     * @param confidence                The confidence metadata value
+     * @param visibilityJson            The visibility json to use in the metadata
+     * @param propertyVisibility        The visibility of the property
      */
     public PropertyMetadata(
             Date modifiedDate,
             User modifiedBy,
             Double confidence,
+            VisibilityJson visibilityJson,
+            Visibility propertyVisibility
+    ){
+        this(new Date(), modifiedBy, confidence, null, visibilityJson, propertyVisibility);
+    }
+    /**
+     * @param modifiedDate              The date to use as modifiedDate
+     * @param modifiedBy                The user to set as the modifiedBy metadata
+     * @param confidence                The confidence metadata value
+     * @param derivedFromProperty      The property name & key the property was derived from
+     * @param visibilityJson            The visibility json to use in the metadata
+     * @param propertyVisibility        The visibility of the property
+     */
+    public PropertyMetadata(
+            Date modifiedDate,
+            User modifiedBy,
+            Double confidence,
+            DerivedFrom derivedFromProperty,
             VisibilityJson visibilityJson,
             Visibility propertyVisibility
     ) {
@@ -67,6 +99,7 @@ public class PropertyMetadata {
         this.modifiedDate = modifiedDate;
         this.modifiedBy = modifiedBy;
         this.confidence = confidence;
+        this.derivedFromProperty = derivedFromProperty;
         this.visibilityJson = visibilityJson;
         this.propertyVisibility = propertyVisibility;
     }
@@ -76,6 +109,7 @@ public class PropertyMetadata {
                 metadata.getModifiedDate(),
                 metadata.getModifiedBy(),
                 metadata.getConfidence(),
+                metadata.getDerivedFromProperty(),
                 metadata.getVisibilityJson(),
                 metadata.getPropertyVisibility()
         );
@@ -91,6 +125,9 @@ public class PropertyMetadata {
         VisalloProperties.VISIBILITY_JSON_METADATA.setMetadata(metadata, visibilityJson, DEFAULT_VISIBILITY);
         if (confidence != null) {
             VisalloProperties.CONFIDENCE_METADATA.setMetadata(metadata, confidence, DEFAULT_VISIBILITY);
+        }
+        if (derivedFromProperty != null) {
+            VisalloProperties.DERIVED_FROM_METADATA.setMetadata(metadata, derivedFromProperty, DEFAULT_VISIBILITY);
         }
         for (AdditionalMetadataItem additionalMetadataItem : additionalMetadataItems) {
             metadata.add(
@@ -112,6 +149,10 @@ public class PropertyMetadata {
 
     public Double getConfidence() {
         return confidence;
+    }
+
+    public DerivedFrom getDerivedFromProperty() {
+        return derivedFromProperty;
     }
 
     public VisibilityJson getVisibilityJson() {
