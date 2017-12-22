@@ -30,7 +30,7 @@ define([
                     preview = this.preview = this.$node.find('.preview'),
                     activePreview = this.activePreview = this.$node.find('.active-preview'),
                     vertex = this.vertex,
-                    image = vertex && F.vertex.image(vertex, null, 80, 80),
+                    image = vertex && F.vertex.image(vertex, null, 80),
                     videoPreview = vertex && F.vertex.imageFrames(vertex),
                     nonConceptClsName = 'non_concept_preview';
 
@@ -52,8 +52,7 @@ define([
                 } else {
                     preview.find('div').remove();
                     var concept = F.vertex.concept(vertex),
-                        conceptImage = concept.glyphIconHref,
-                        activeConceptImage = concept.glyphIconSelectedHref || conceptImage;
+                        activeImage = F.vertex.selectedImage(vertex, null, 80) || image;
 
                     if ((preview.css('background-image') || '').indexOf(image) >= 0) {
                         return;
@@ -61,14 +60,14 @@ define([
 
                     this.$node.removeClass(nonConceptClsName).addClass('loading');
 
-                    deferredImage(conceptImage)
+                    deferredImage(image)
                     .always(function() {
-                        preview.css('background-image', 'url(' + conceptImage + ')')
-                        activePreview.css('background-image', 'url(' + activeConceptImage + ')')
+                        preview.css('background-image', `url('${image}')`)
+                        activePreview.css('background-image', `url('${activeImage}')`)
                     })
                     .done(function() {
                         let imageIsFromConcept = !vertex || F.vertex.imageIsFromConcept(vertex);
-                        if (!image || conceptImage === image) {
+                        if (!image || concept.glyphIconHref === image) {
                             self.$node.toggleClass(nonConceptClsName, !imageIsFromConcept)
                             .removeClass('loading');
                         } else {
