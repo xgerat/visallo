@@ -63,7 +63,7 @@ define([
             }
             return {
                 title: F.vertex.title(vertex),
-                image: F.vertex.image(vertex, null, 80, 80),
+                image: F.vertex.image(vertex, null, 80),
                 custom: !F.vertex.imageIsFromConcept(vertex)
             };
         };
