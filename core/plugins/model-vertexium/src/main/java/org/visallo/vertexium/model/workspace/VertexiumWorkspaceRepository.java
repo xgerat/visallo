@@ -1315,13 +1315,22 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 workspaceId
         );
 
+        List<String> productIds = new ArrayList<>();
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.NORMAL, user, authorizations)) {
             Graph graph = ctx.getGraph();
             Vertex annotation = getGraph().getVertex(vertexId, authorizations);
             annotation.getEdgeInfos(Direction.BOTH, authorizations).forEach(edgeInfo -> {
+                if (WorkspaceProperties.PRODUCT_TO_ENTITY_RELATIONSHIP_IRI.equals(edgeInfo.getLabel())) {
+                    productIds.add(edgeInfo.getVertexId());
+                }
                 graph.deleteEdge(edgeInfo.getEdgeId(), authorizations);
             });
             graph.deleteVertex(annotation, authorizations);
+        }
+        for (String productId : productIds) {
+            getWorkQueueRepository().broadcastWorkProductAncillaryChange(
+                    productId, workspaceId, vertexId, user, sourceGuid
+            );
         }
     }
 
