@@ -227,10 +227,27 @@ define([
             if (nextProps.registry !== this.props.registry) {
                 memoizeClear();
             }
-            if (nextProps.concepts !== this.props.concepts ||
-                nextProps.relationships !== this.props.relationships) {
-                memoizeClear('vertexToCyNode');
+
+            const clearForOntologyUpdates = [];
+            if (nextProps.concepts !== this.props.concepts || nextProps.properties !== this.props.properties) {
+                clearForOntologyUpdates.push(
+                    'vertexToCyNode',
+                    'org.visallo.graph.node.class',
+                    'org.visallo.graph.node.transformer',
+                    'org.visallo.graph.node.decoration#applyTo',
+                    'org.visallo.graph.node.decoration#data'
+                )
             }
+            if (nextProps.relationships !== this.props.relationships) {
+                clearForOntologyUpdates.push(
+                    'vertexToCyNode',
+                    'org.visallo.graph.edge.transformer',
+                    'org.visallo.graph.edge.class')
+            }
+            if (clearForOntologyUpdates.length) {
+                memoizeClear(...clearForOntologyUpdates);
+            }
+
             const newExtendedData = nextProps.product.extendedData;
             const oldExtendedData = this.props.product.extendedData;
             if (newExtendedData) {
