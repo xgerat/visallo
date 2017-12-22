@@ -316,7 +316,7 @@ public abstract class ACLProvider {
     protected final boolean isArtifactPropertyUpdateable(OntologyProperty ontologyProperty) {
         if (ontologyProperty != null) {
             String displayType = ontologyProperty.getDisplayType();
-            return displayType != null && !displayType.equals("longText");
+            return displayType == null || !displayType.equals("longText");
         }
         return false;
     }
