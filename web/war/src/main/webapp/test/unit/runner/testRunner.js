@@ -15,8 +15,14 @@ requirejs.config({
     //console.log(map.name)
 //}
 
-global.visalloEnvironment = { dev: false, prod: true };
+Object.defineProperty(global, 'i18n', {
+    value: function i18nMocked(key, ...args) {
+        return args.length ? `${key}(${args.join(',')})` : key;
+    },
+    writable: false
+});
 
+global.visalloEnvironment = { dev: false, prod: true };
 
 requirejs(['/base/jsc/require.config.js'], function(cfg) {
 
@@ -139,10 +145,6 @@ requirejs(['/base/jsc/require.config.js'], function(cfg) {
                 // Globals for assertions
                 assert = chai.assert;
                 expect = chai.expect;
-
-                i18n = function(key) {
-                    return key;
-                };
 
                 // Use the twitter flight interface to mocha
                 mocha.ui('mocha-flight');

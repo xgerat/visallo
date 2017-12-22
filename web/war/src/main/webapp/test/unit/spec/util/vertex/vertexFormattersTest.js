@@ -513,6 +513,53 @@ define([
             })
         })
 
+        describe('titles', function() {
+            it('should throw when not an array', function() {
+                expect(() => V.titles()).to.throw('array')
+                expect(() => V.titles('')).to.throw('array')
+                expect(() => V.titles({})).to.throw('array')
+            })
+
+            it('should return none', function() {
+                V.titles([]).should.be.equal('vertex.titles.none')
+            })
+
+            it('should return first', function() {
+                var vertex = vertexFactory([
+                        propertyFactory(PROPERTY_NAME_FIRST, 'k1', 'jason'),
+                        propertyFactory(PROPERTY_NAME_LAST, 'k1', 'harwig'),
+                        propertyFactory(PROPERTY_NAME_CONCEPT, 'http://visallo.org/dev#person')
+                    ]);
+                V.titles([vertex]).should.be.equal('harwig, jason')
+            })
+
+            it('should return up to option', function() {
+                var v1 = vertexFactory([
+                        propertyFactory(PROPERTY_NAME_FIRST, 'k1', 'jason'),
+                        propertyFactory(PROPERTY_NAME_LAST, 'k1', 'harwig'),
+                        propertyFactory(PROPERTY_NAME_CONCEPT, 'http://visallo.org/dev#person')
+                    ]);
+                var v2 = vertexFactory([
+                        propertyFactory(PROPERTY_NAME_FIRST, 'k1', 'jeff'),
+                        propertyFactory(PROPERTY_NAME_LAST, 'k1', 'kunkle'),
+                        propertyFactory(PROPERTY_NAME_CONCEPT, 'http://visallo.org/dev#person')
+                    ]);
+                var v3 = vertexFactory([
+                        propertyFactory(PROPERTY_NAME_FIRST, 'k1', 'joan'),
+                        propertyFactory(PROPERTY_NAME_LAST, 'k1', 'smith'),
+                        propertyFactory(PROPERTY_NAME_CONCEPT, 'http://visallo.org/dev#person')
+                    ]);
+                V.titles([v1, v2, v3], { maxBeforeOther: 1, maxTitleWords: 1 })
+                    .should.be.equal('harwig…, vertex.titles.others(2)')
+
+                V.titles([v1, v2, v3], { maxBeforeOther: 2, maxTitleWords: 2 })
+                    .should.be.equal('harwig, jason, kunkle, jeff, vertex.titles.other(1)')
+
+                V.titles([v1, v2, v3], { maxBeforeOther: 3, maxTitleWords: 1 })
+                    .should.be.equal('harwig…, kunkle…, vertex.titles.oxford(smith…)')
+            })
+        })
+
         describe('title', function() {
             it('should get a title even if it refers to compound property', function() {
                 var vertex = vertexFactory([

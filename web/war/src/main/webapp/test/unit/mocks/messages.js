@@ -2,7 +2,5 @@
 define([], function() {
     'use strict';
 
-    return function(key) {
-        return key;
-    }
+    return i18n;
 });
