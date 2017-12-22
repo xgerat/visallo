@@ -37,6 +37,7 @@ define([
     const LAYOUT_OPTIONS = {
         // Customize layout options
         concentric: {},
+        circle: {},
         bettergrid: {},
         dagre: {
             spacingFactor: 1.3
@@ -397,6 +398,13 @@ define([
             const elements = cy.collection(
                 cy.$(onlySelected ? '.v:selected,.c:selected,.e' : '.v,.c,.e')
             );
+            if (layout === 'concentric') {
+                // Concentric uses degree so default to regular
+                // circle if no edges on these nodes
+                if (elements.maxDegree() === 0) {
+                    layout = 'circle'
+                }
+            }
             const defaultOptions = {...LAYOUT_OPTIONS[layout] };
 
             var opts = {
