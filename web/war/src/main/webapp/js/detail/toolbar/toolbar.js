@@ -99,16 +99,26 @@ define([
 
     function Toolbar() {
         this.defaultAttrs({
-            toolbarItemSelector: 'li',
-            ignoreUpdateModelNotImplemented: true
+            toolbarItemSelector: 'li'
         });
 
         this.after('initialize', function() {
-            var model = this.attr.model;
+            this.on('updateModel', this.onUpdateModel)
+
+            this.render();
+        });
+
+        this.render = function() {
+            const model = this.attr.model;
 
             Promise.resolve(this.calculateConfigForModel(model))
                 .then(items => this.initializeToolbar(items));
-        });
+        };
+
+        this.onUpdateModel = function(event, data) {
+            this.attr.model = data.model;
+            this.render();
+        };
 
         this.initializeToolbar = function(config) {
             var toolbarItems = config.items,
