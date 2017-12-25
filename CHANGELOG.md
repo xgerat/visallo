@@ -1,6 +1,113 @@
 v4.0.0
 ==================
 
+## Added
+
+* Ability to save properties with geocoordinate shapes other than points.
+* Added additional filter option `domainType` to `PropertyList` component. You can specify `edge` or `vertex`.
+* Allow compound properties to be added without all dependent properties being filled in
+* Configuration to adjust the max length hint for extracted text. `web.ui.detail.text.maxTextLength`. Previously very large documents could crash the browser. Defaults to length of 1.5 million.
+* Constants to allow some LockRepository implementations to have a configurable timeout.
+* Hover mini-map popup on clusters that show the pins inside
+* Imported files with geo data (.geojson, .kml) show a preview in the inspector.
+* Map products now will highlight element pins when hovering with mouse over elements in histograms, element lists, publish panel badge, etc.
+* Map work products will now display Geojson and KML files. These files will appear as separate layers on the map.
+* Missing required intents into minimal owl file for GPWs
+* PropertyMetadata to include derived from metadata (property key + property name) if provided
+* ProxyGraph which is a wrapper around another graph.
+* Reindex LRP and CLI
+* Search in map will zoom to the area of the current map product zoom/pan (if map is currently opened)
+* Searching by any property with a type of geolocation.
+* Vertex and Edge objects in redux have a new property named `propertiesByName`, which is a map of propertyName to property values.
+* VisalloInMemoryGPWTestBase
+* Work product toolbar item to configure the display and order of layers on map products.
+* You can pass a boolean `hideCompound` attribute to `components/propertySelect` to hide compound/parent properties from the list of options. (Defaults to false)
+* audit service to audit login, logout, and access denied messages
+* display user last login time on the user access page
+* props function to return a list of all matching property values to use in formula evaluator
+* `unsubscribeFromBroadcastMessages` to the `WorkQueueRepository` so that listeners can be unsubscribed when they are complete.
+
+## Changed
+
+* Added dynamic ontology privileges to default privileges
+* Apache Poi version from 3.15-beta1 to 3.15
+* Changed `http://visallo.org/minimal#rawMetadata` to not user visible in minimal.owl
+* Default sort direction to be descending
+* GPW jar files no longer contain all dependencies
+* Graph circle layout has been replaced with concentric circles layout with nodes having most edges in the center
+* Graph selection style now uses overlays instead of changing background color.
+* Improved the display of relationships in search results and other lists
+* Relationships between collapsed entities on the graph are now selected when clicking on the collapsed group and when choosing to select all relationships from the context menu.
+* Rename concept to Entity Type
+* Search in map circle now renders in the maps projection
+* Selected items in a graph product will override extension defined styles.
+* Term aggregations are no longer supported for properties that are indexed as FULL_TEXT only.
+* Updated Accumulo to version 1.7.3 and Tomcat to version 8.5.23
+* Updated minimal.owl to have a displayType for file size
+* Upgraded Elasticsearch from version 1.7 to version 5.5
+* Upgraded log4j to log4j2
+* Upgraded to React 16, plugins that register jsx components need to follow the upgrade path from 15.x to 16.
+* Webpack plugin builds now set `mangle: true` when `NODE_ENV != development` when building
+* When specifying a geolocation search filter with a map popover, the filter is now added immediately after the first click, rather than after the first resize.
+* You can pass additional filters as object data for the `filter` event on a `PropertyList` component.
+* backend to use the &#34;web.ui.video.preview.frames.count&#34; configuration
+* metrics library version and fix JMX naming convention
+
+## Fixed
+
+* A bug in the center calculation when pressing the &#34;Fit&#34; button on the map
+* Activity pane retaining dismissed find path processes
+* After click on a piece of a search report, opening in search will show all the correct filters including the range for the slice you selected.
+* Better performance with graphs that have node decorations
+* Deleting cases not cleaning up workspace to entity edges and sandboxed vertices
+* Edge not opening in full screen when user is authorized to view the data
+* Element metadata not displaying in &#34;i&#34; popover
+* Entities with 2 or more relationships between them would disappear when arranged in certain positions on the graph.
+* Fix graph becoming blank when starting another found path or connecting two entities when already displaying a found paths result.
+* Fixed handling of possible values in the histogram when there are many possible value types
+* Found paths were not displayed when the source/target entity were inside of a collapsed node.
+* Graph decorations with data functions that return promises
+* Graph focusing on elements with opacity set
+* Graph layouts when nodes have decorations would perform erratically
+* Hitting enter when saving a property could sometimes result in duplicate properties saved.
+* In IE, if dragging a document into the browser was the first thing you did dragging elements within the page would not work afterwards and vice versa.
+* Modified By, Visibility, Modified Date not displaying in property popover for Video Transcripts
+* Opening a relationship type search from a report such as a bar/pie chart will correctly flip to a relationship search.
+* Prevent invalid geocoordinates from being added to OpenLayers that can impact pan/zoom performance. Will log a console warning.
+* Removing entities that were part of a collapsed node from a graph and then re-adding them to that product would not place them back inside the collapsed node.
+* Resolving parts of an image didn&#39;t have all of the default metadata
+* Search filter typeahead menus disappearing on click because of scrollbar.
+* Sorting search results when performing a &#34;Search Related&#34; query.
+* The vertex titles will now only be calculated when the vertex state changes and when a vertex is being hovered instead of on every render.
+* Users without publish privileges being able to edit the element visibility
+* When changing the label of a relationship via the admin panel with a graph open, the relationships will now update immediately.
+* When clicking on a search report with aggregations such as a bar/pie chart will now apply all the correct filters including the range for the slice you selected.
+* When dragging connected entities from another entity&#39;s inspector onto the graph, their icons would not load until they were selected.
+* error with Tika when number of pages is returned as an empty string
+* graph entities &#34;jumping&#34; to previous position and then updating to latest position when moving quickly or on slower connections.
+* topObjectProperty vertex will no longer be updated each time it is loaded
+
+## Documentation
+
+* Correct path to cli directory and point browser to port 8443
+* Rename `Element Inspector` and `Multi Selection Histogram` with `Inspector`
+* Update IntelliJ screenshot to be more clear and use `$PROJECT_DIR$`
+* Update supported FF version to 52
+
+## Deprecated
+
+* VisalloInMemoryTestBase
+
+## Removed
+
+* Rdf Import plugin
+* Reindex GPW
+
+## Security
+
+* Upgrade front-end EJS to fix [XSS](https://nvd.nist.gov/vuln/detail/CVE-2017-1000188)
+* Upgraded momentjs dependency with [DOS vulnerability](http://www.securityfocus.com/bid/95849/discuss)
+
 v3.1.3
 ==================
 
