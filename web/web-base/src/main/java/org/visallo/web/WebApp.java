@@ -1,10 +1,10 @@
 package org.visallo.web;
 
 import com.google.inject.Injector;
-import com.v5analytics.webster.App;
-import com.v5analytics.webster.Handler;
-import com.v5analytics.webster.handlers.StaticResourceHandler;
-import com.v5analytics.webster.resultWriters.ResultWriterFactory;
+import org.visallo.webster.App;
+import org.visallo.webster.Handler;
+import org.visallo.webster.handlers.StaticResourceHandler;
+import org.visallo.webster.resultWriters.ResultWriterFactory;
 import org.json.JSONObject;
 import org.vertexium.ElementType;
 import org.visallo.core.bootstrap.InjectHelper;

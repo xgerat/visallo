@@ -1,6 +1,6 @@
 package org.visallo.web;
 
-import com.v5analytics.webster.Handler;
+import org.visallo.webster.Handler;
 
 import javax.servlet.ServletContext;
 

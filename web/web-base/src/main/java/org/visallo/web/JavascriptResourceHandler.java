@@ -1,8 +1,8 @@
 package org.visallo.web;
 
 
-import com.v5analytics.webster.HandlerChain;
-import com.v5analytics.webster.RequestResponseHandler;
+import org.visallo.webster.HandlerChain;
+import org.visallo.webster.RequestResponseHandler;
 import org.apache.commons.io.IOUtils;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;

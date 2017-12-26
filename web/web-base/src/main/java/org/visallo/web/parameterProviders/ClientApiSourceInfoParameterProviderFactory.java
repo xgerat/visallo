@@ -2,9 +2,9 @@ package org.visallo.web.parameterProviders;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.v5analytics.webster.HandlerChain;
-import com.v5analytics.webster.parameterProviders.ParameterProvider;
-import com.v5analytics.webster.parameterProviders.ParameterProviderFactory;
+import org.visallo.webster.HandlerChain;
+import org.visallo.webster.parameterProviders.ParameterProvider;
+import org.visallo.webster.parameterProviders.ParameterProviderFactory;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;

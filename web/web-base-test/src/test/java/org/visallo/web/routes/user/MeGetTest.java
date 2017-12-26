@@ -52,9 +52,9 @@ public class MeGetTest extends RouteTestBase {
         Workspace workspace = new TestWorkspace("junit-id", "junit-display-title");
         when(workspaceRepository.add(user)).thenReturn(workspace);
 
-        ClientApiUser response = meGet.handle(request, user);
-        assertEquals(workspace.getWorkspaceId(), response.getCurrentWorkspaceId());
-        assertEquals(workspace.getDisplayTitle(), response.getCurrentWorkspaceName());
+        ClientApiUser userResponse = meGet.handle(request, response, user);
+        assertEquals(workspace.getWorkspaceId(), userResponse.getCurrentWorkspaceId());
+        assertEquals(workspace.getDisplayTitle(), userResponse.getCurrentWorkspaceName());
     }
 
     @Test
@@ -64,8 +64,8 @@ public class MeGetTest extends RouteTestBase {
         when(userRepository.toClientApiPrivate(eq(user))).thenReturn(clientApiUser);
         when(workspaceRepository.hasReadPermissions(eq("WORKSPACE_123"), eq(user))).thenReturn(true);
 
-        ClientApiUser response = meGet.handle(request, user);
-        assertEquals("WORKSPACE_123", response.getCurrentWorkspaceId());
+        ClientApiUser userResponse = meGet.handle(request, response, user);
+        assertEquals("WORKSPACE_123", userResponse.getCurrentWorkspaceId());
     }
 
     @Test
@@ -78,9 +78,9 @@ public class MeGetTest extends RouteTestBase {
         Workspace workspace = new TestWorkspace("junit-id", "junit-display-title");
         when(workspaceRepository.add(user)).thenReturn(workspace);
 
-        ClientApiUser response = meGet.handle(request, user);
-        assertEquals(workspace.getWorkspaceId(), response.getCurrentWorkspaceId());
-        assertEquals(workspace.getDisplayTitle(), response.getCurrentWorkspaceName());
+        ClientApiUser userResponse = meGet.handle(request, response, user);
+        assertEquals(workspace.getWorkspaceId(), userResponse.getCurrentWorkspaceId());
+        assertEquals(workspace.getDisplayTitle(), userResponse.getCurrentWorkspaceName());
     }
 
     @Test
@@ -92,9 +92,9 @@ public class MeGetTest extends RouteTestBase {
 
         when(workspaceRepository.findAllForUser(user)).thenReturn(Arrays.asList(workspaceShared1, workspaceCreator1, workspaceCreator2));
 
-        ClientApiUser response = meGet.handle(request, user);
-        assertEquals(workspaceCreator2.getWorkspaceId(), response.getCurrentWorkspaceId());
-        assertEquals(workspaceCreator2.getDisplayTitle(), response.getCurrentWorkspaceName());
+        ClientApiUser userResponse = meGet.handle(request, response, user);
+        assertEquals(workspaceCreator2.getWorkspaceId(), userResponse.getCurrentWorkspaceId());
+        assertEquals(workspaceCreator2.getDisplayTitle(), userResponse.getCurrentWorkspaceName());
     }
 
     @Test
@@ -106,9 +106,9 @@ public class MeGetTest extends RouteTestBase {
 
         when(workspaceRepository.findAllForUser(user)).thenReturn(Arrays.asList(workspaceShared1, workspaceShared2));
 
-        ClientApiUser response = meGet.handle(request, user);
-        assertEquals(workspaceShared2.getWorkspaceId(), response.getCurrentWorkspaceId());
-        assertEquals(workspaceShared2.getDisplayTitle(), response.getCurrentWorkspaceName());
+        ClientApiUser userResponse = meGet.handle(request, response, user);
+        assertEquals(workspaceShared2.getWorkspaceId(), userResponse.getCurrentWorkspaceId());
+        assertEquals(workspaceShared2.getDisplayTitle(), userResponse.getCurrentWorkspaceName());
     }
 
     @Test
@@ -121,9 +121,9 @@ public class MeGetTest extends RouteTestBase {
         Workspace workspace = new TestWorkspace("junit-id", "junit-display-title");
         when(workspaceRepository.add(user)).thenReturn(workspace);
 
-        ClientApiUser response = meGet.handle(request, user);
-        assertEquals(workspace.getWorkspaceId(), response.getCurrentWorkspaceId());
-        assertEquals(workspace.getDisplayTitle(), response.getCurrentWorkspaceName());
+        ClientApiUser userResponse = meGet.handle(request, response, user);
+        assertEquals(workspace.getWorkspaceId(), userResponse.getCurrentWorkspaceId());
+        assertEquals(workspace.getDisplayTitle(), userResponse.getCurrentWorkspaceName());
     }
 
     @Test
@@ -135,9 +135,9 @@ public class MeGetTest extends RouteTestBase {
 
         when(workspaceRepository.findAllForUser(user)).thenReturn(Arrays.asList(workspaceCreator1, workspaceShared1, workspaceCreator2));
 
-        ClientApiUser response = meGet.handle(request, user);
-        assertEquals(workspaceCreator2.getWorkspaceId(), response.getCurrentWorkspaceId());
-        assertEquals(workspaceCreator2.getDisplayTitle(), response.getCurrentWorkspaceName());
+        ClientApiUser userResponse = meGet.handle(request, response, user);
+        assertEquals(workspaceCreator2.getWorkspaceId(), userResponse.getCurrentWorkspaceId());
+        assertEquals(workspaceCreator2.getDisplayTitle(), userResponse.getCurrentWorkspaceName());
     }
 
     @Test
@@ -149,9 +149,9 @@ public class MeGetTest extends RouteTestBase {
 
         when(workspaceRepository.findAllForUser(user)).thenReturn(Arrays.asList(workspaceShared1, workspaceShared2));
 
-        ClientApiUser response = meGet.handle(request, user);
-        assertEquals(workspaceShared2.getWorkspaceId(), response.getCurrentWorkspaceId());
-        assertEquals(workspaceShared2.getDisplayTitle(), response.getCurrentWorkspaceName());
+        ClientApiUser userResponse = meGet.handle(request, response, user);
+        assertEquals(workspaceShared2.getWorkspaceId(), userResponse.getCurrentWorkspaceId());
+        assertEquals(workspaceShared2.getDisplayTitle(), userResponse.getCurrentWorkspaceName());
     }
 
     private class TestWorkspace implements Workspace {

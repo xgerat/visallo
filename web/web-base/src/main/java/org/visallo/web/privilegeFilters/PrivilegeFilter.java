@@ -1,7 +1,7 @@
 package org.visallo.web.privilegeFilters;
 
-import com.v5analytics.webster.HandlerChain;
-import com.v5analytics.webster.RequestResponseHandler;
+import org.visallo.webster.HandlerChain;
+import org.visallo.webster.RequestResponseHandler;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;

@@ -2,9 +2,9 @@ package org.visallo.web.changeEmail;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.v5analytics.webster.ParameterizedHandler;
-import com.v5analytics.webster.annotations.Handle;
-import com.v5analytics.webster.annotations.Required;
+import org.visallo.webster.ParameterizedHandler;
+import org.visallo.webster.annotations.Handle;
+import org.visallo.webster.annotations.Required;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;

@@ -1,8 +1,8 @@
 package org.visallo.web.parameterProviders;
 
-import com.v5analytics.webster.HandlerChain;
-import com.v5analytics.webster.parameterProviders.ParameterProvider;
-import com.v5analytics.webster.parameterProviders.ParameterProviderFactory;
+import org.visallo.webster.HandlerChain;
+import org.visallo.webster.parameterProviders.ParameterProvider;
+import org.visallo.webster.parameterProviders.ParameterProviderFactory;
 import org.visallo.web.VisalloResponse;
 
 import javax.servlet.http.HttpServletRequest;

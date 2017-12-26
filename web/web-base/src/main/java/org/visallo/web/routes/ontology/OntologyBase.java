@@ -1,6 +1,6 @@
 package org.visallo.web.routes.ontology;
 
-import com.v5analytics.webster.ParameterizedHandler;
+import org.visallo.webster.ParameterizedHandler;
 import org.vertexium.util.IterableUtils;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.Concept;

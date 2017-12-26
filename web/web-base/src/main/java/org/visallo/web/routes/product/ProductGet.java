@@ -2,10 +2,10 @@ package org.visallo.web.routes.product;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.v5analytics.webster.ParameterizedHandler;
-import com.v5analytics.webster.annotations.Handle;
-import com.v5analytics.webster.annotations.Optional;
-import com.v5analytics.webster.annotations.Required;
+import org.visallo.webster.ParameterizedHandler;
+import org.visallo.webster.annotations.Handle;
+import org.visallo.webster.annotations.Optional;
+import org.visallo.webster.annotations.Required;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.product.GetExtendedDataParams;
 import org.visallo.core.model.workspace.product.Product;

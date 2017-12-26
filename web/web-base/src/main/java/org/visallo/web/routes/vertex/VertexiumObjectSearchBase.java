@@ -1,6 +1,6 @@
 package org.visallo.web.routes.vertex;
 
-import com.v5analytics.webster.annotations.Handle;
+import org.visallo.webster.annotations.Handle;
 import org.vertexium.*;
 import org.vertexium.query.*;
 import org.visallo.core.exception.VisalloException;

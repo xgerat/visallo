@@ -1,6 +1,6 @@
 package org.visallo.web.parameterValueConverters;
 
-import com.v5analytics.webster.DefaultParameterValueConverter;
+import org.visallo.webster.DefaultParameterValueConverter;
 import org.vertexium.ElementType;
 
 public class ElementTypeParameterValueConverter implements DefaultParameterValueConverter.Converter<ElementType> {

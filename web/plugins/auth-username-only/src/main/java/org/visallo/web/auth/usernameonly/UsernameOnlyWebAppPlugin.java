@@ -1,7 +1,7 @@
 package org.visallo.web.auth.usernameonly;
 
-import com.v5analytics.webster.Handler;
-import com.v5analytics.webster.handlers.StaticResourceHandler;
+import org.visallo.webster.Handler;
+import org.visallo.webster.handlers.StaticResourceHandler;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;

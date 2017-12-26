@@ -1,6 +1,6 @@
 package org.visallo.web.routes.notification;
 
-import com.v5analytics.webster.DefaultParameterValueConverter;
+import org.visallo.webster.DefaultParameterValueConverter;
 import org.visallo.core.model.notification.SystemNotificationSeverity;
 
 public class SystemNotificationSeverityValueConverter extends DefaultParameterValueConverter.SingleValueConverter<SystemNotificationSeverity> {

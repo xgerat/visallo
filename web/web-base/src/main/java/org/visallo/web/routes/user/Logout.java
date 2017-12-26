@@ -2,8 +2,8 @@ package org.visallo.web.routes.user;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.v5analytics.webster.ParameterizedHandler;
-import com.v5analytics.webster.annotations.Handle;
+import org.visallo.webster.ParameterizedHandler;
+import org.visallo.webster.annotations.Handle;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.user.UserSessionCounterRepository;

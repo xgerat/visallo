@@ -2,8 +2,8 @@ package org.visallo.web.routes.ontology;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.v5analytics.webster.ParameterizedHandler;
-import com.v5analytics.webster.annotations.Handle;
+import org.visallo.webster.ParameterizedHandler;
+import org.visallo.webster.annotations.Handle;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiOntology;

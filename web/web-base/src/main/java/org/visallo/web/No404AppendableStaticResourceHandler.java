@@ -1,6 +1,6 @@
 package org.visallo.web;
 
-import com.v5analytics.webster.handlers.AppendableStaticResourceHandler;
+import org.visallo.webster.handlers.AppendableStaticResourceHandler;
 
 public class No404AppendableStaticResourceHandler extends AppendableStaticResourceHandler {
     public No404AppendableStaticResourceHandler(String contentType) {

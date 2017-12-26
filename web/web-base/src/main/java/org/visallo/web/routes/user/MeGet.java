@@ -2,9 +2,6 @@ package org.visallo.web.routes.user;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.v5analytics.webster.ParameterizedHandler;
-import com.v5analytics.webster.annotations.Handle;
-import com.v5analytics.webster.handlers.CSRFHandler;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
@@ -12,8 +9,12 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiUser;
+import org.visallo.webster.ParameterizedHandler;
+import org.visallo.webster.annotations.Handle;
+import org.visallo.webster.handlers.CSRFHandler;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -38,10 +39,11 @@ public class MeGet implements ParameterizedHandler {
     @Handle
     public ClientApiUser handle(
             HttpServletRequest request,
+            HttpServletResponse response,
             User user
     ) throws Exception {
         ClientApiUser userMe = userRepository.toClientApiPrivate(user);
-        userMe.setCsrfToken(CSRFHandler.getSavedToken(request, true));
+        userMe.setCsrfToken(CSRFHandler.getSavedToken(request, response, true));
 
         try {
             if (userMe.getCurrentWorkspaceId() != null && userMe.getCurrentWorkspaceId().length() > 0) {

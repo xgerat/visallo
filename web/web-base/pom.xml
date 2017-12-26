@@ -30,7 +30,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.v5analytics.webster</groupId>
+            <groupId>org.visallo</groupId>
             <artifactId>webster</artifactId>
         </dependency>
         <dependency>

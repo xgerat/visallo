@@ -12,7 +12,7 @@ Lets do the scaffolding of creating a new web app plugin so that we can delve in
 package com.visalloexample.helloworld.web;
 
 import com.google.inject.Singleton;
-import com.v5analytics.webster.Handler;
+import org.visallo.webster.Handler;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
 import org.visallo.web.WebApp;
@@ -88,7 +88,7 @@ Now your web plugin class should like the following:
 ```java
 package com.visalloexample.helloworld.web;
 
-import com.v5analytics.webster.Handler;
+import org.visallo.webster.Handler;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
 import org.visallo.web.WebApp;
@@ -120,9 +120,9 @@ To do that, we need to register an endpoint to let the front end hit it, so lets
 
 package com.visalloexample.helloworld.web;
 
-import com.v5analytics.webster.ParameterizedHandler;
-import com.v5analytics.webster.annotations.Handle;
-import com.v5analytics.webster.annotations.Required;
+import org.visallo.webster.ParameterizedHandler;
+import org.visallo.webster.annotations.Handle;
+import org.visallo.webster.annotations.Required;
 import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.model.ClientApiSuccess;
 
@@ -203,9 +203,9 @@ Typically, you are going to want to do something on the back end, and then send 
 ```java
 package com.visalloexample.helloworld.web;
 
-import com.v5analytics.webster.ParameterizedHandler;
-import com.v5analytics.webster.annotations.Handle;
-import com.v5analytics.webster.annotations.Required;
+import org.visallo.webster.ParameterizedHandler;
+import org.visallo.webster.annotations.Handle;
+import org.visallo.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;

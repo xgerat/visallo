@@ -1,10 +1,10 @@
 package org.visallo.web;
 
-import com.v5analytics.webster.Handler;
-import com.v5analytics.webster.HandlerChain;
+import org.visallo.webster.Handler;
+import org.visallo.webster.HandlerChain;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.v5analytics.webster.RequestResponseHandler;
+import org.visallo.webster.RequestResponseHandler;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import net.sf.uadetector.ReadableUserAgent;

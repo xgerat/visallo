@@ -1,6 +1,6 @@
 package org.visallo.web.parameterProviders;
 
-import com.v5analytics.webster.DefaultParameterValueConverter;
+import org.visallo.webster.DefaultParameterValueConverter;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;

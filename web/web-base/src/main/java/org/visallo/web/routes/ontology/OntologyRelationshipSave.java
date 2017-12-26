@@ -2,9 +2,9 @@ package org.visallo.web.routes.ontology;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.v5analytics.webster.annotations.Handle;
-import com.v5analytics.webster.annotations.Optional;
-import com.v5analytics.webster.annotations.Required;
+import org.visallo.webster.annotations.Handle;
+import org.visallo.webster.annotations.Optional;
+import org.visallo.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.ontology.Concept;

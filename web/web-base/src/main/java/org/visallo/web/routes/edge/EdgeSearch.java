@@ -2,7 +2,7 @@ package org.visallo.web.routes.edge;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.v5analytics.webster.ParameterizedHandler;
+import org.visallo.webster.ParameterizedHandler;
 import org.vertexium.Graph;
 import org.visallo.core.model.search.EdgeSearchRunner;
 import org.visallo.core.model.search.VertexiumObjectSearchRunnerBase;

@@ -5,7 +5,7 @@ package ${package}.auth;
 
 import com.google.inject.Singleton;
 import com.google.inject.Inject;
-import com.v5analytics.webster.Handler;
+import org.visallo.webster.Handler;
 import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
 import org.visallo.web.AuthenticationHandler;

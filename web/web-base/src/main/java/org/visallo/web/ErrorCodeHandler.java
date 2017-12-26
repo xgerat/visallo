@@ -1,8 +1,8 @@
 package org.visallo.web;
 
-import com.v5analytics.webster.Handler;
-import com.v5analytics.webster.HandlerChain;
-import com.v5analytics.webster.RequestResponseHandler;
+import org.visallo.webster.Handler;
+import org.visallo.webster.HandlerChain;
+import org.visallo.webster.RequestResponseHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

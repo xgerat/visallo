@@ -1,6 +1,6 @@
 package org.visallo.web;
 
-import com.v5analytics.webster.handlers.CSRFHandler;
+import org.visallo.webster.handlers.CSRFHandler;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 

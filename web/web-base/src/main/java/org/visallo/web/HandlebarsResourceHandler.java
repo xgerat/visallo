@@ -6,8 +6,8 @@ import com.github.jknack.handlebars.io.AbstractTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
 import com.github.jknack.handlebars.io.URLTemplateSource;
-import com.v5analytics.webster.HandlerChain;
-import com.v5analytics.webster.RequestResponseHandler;
+import org.visallo.webster.HandlerChain;
+import org.visallo.webster.RequestResponseHandler;
 import org.visallo.core.exception.VisalloException;
 
 import javax.servlet.ServletOutputStream;

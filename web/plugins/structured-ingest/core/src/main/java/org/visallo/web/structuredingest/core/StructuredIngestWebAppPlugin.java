@@ -1,7 +1,7 @@
 package org.visallo.web.structuredingest.core;
 
 import com.google.inject.Singleton;
-import com.v5analytics.webster.Handler;
+import org.visallo.webster.Handler;
 import org.apache.commons.io.IOUtils;
 import org.semanticweb.owlapi.model.IRI;
 import org.vertexium.Authorizations;

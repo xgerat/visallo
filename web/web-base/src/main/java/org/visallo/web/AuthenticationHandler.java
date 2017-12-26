@@ -1,7 +1,7 @@
 package org.visallo.web;
 
-import com.v5analytics.webster.HandlerChain;
-import com.v5analytics.webster.RequestResponseHandler;
+import org.visallo.webster.HandlerChain;
+import org.visallo.webster.RequestResponseHandler;
 import org.visallo.web.util.RemoteAddressUtil;
 
 import javax.servlet.http.HttpServletRequest;
