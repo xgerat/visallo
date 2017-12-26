@@ -2,7 +2,10 @@ package org.visallo.web;
 
 import com.google.inject.Injector;
 import org.atmosphere.cache.UUIDBroadcasterCache;
-import org.atmosphere.cpr.*;
+import org.atmosphere.cpr.ApplicationConfig;
+import org.atmosphere.cpr.AtmosphereHandler;
+import org.atmosphere.cpr.AtmosphereInterceptor;
+import org.atmosphere.cpr.AtmosphereServlet;
 import org.atmosphere.interceptor.HeartbeatInterceptor;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.bootstrap.VisalloBootstrap;
@@ -25,9 +28,9 @@ import org.visallo.core.util.ServiceLoaderUtil;
 import org.visallo.core.util.ShutdownService;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.auth.AuthTokenFilter;
 import org.visallo.web.auth.AuthTokenWebSocketInterceptor;
 import org.visallo.web.initializers.ApplicationBootstrapInitializer;
-import org.visallo.web.auth.AuthTokenFilter;
 
 import javax.servlet.*;
 import javax.servlet.annotation.ServletSecurity;
@@ -44,6 +47,7 @@ public class ApplicationBootstrap implements ServletContextListener {
     public static final String VISALLO_SERVLET_NAME = "visallo";
     public static final String ATMOSPHERE_SERVLET_NAME = "atmosphere";
     public static final String AUTH_TOKEN_FILTER_NAME = "auth.token";
+    public static final String SESSION_PROHIBITION_FILTER_NAME = "session.prohibition";
     public static final String DEBUG_FILTER_NAME = "debug";
     public static final String CACHE_FILTER_NAME = "cache";
     private volatile boolean isStopped = false;
@@ -154,6 +158,7 @@ public class ApplicationBootstrap implements ServletContextListener {
         addMultiPartConfig(config, servlet);
         addSecurityConstraint(servlet, config);
         addAtmosphereServlet(context, config);
+        addSessionProhibitionFilter(context, config);
         addAuthTokenFilter(context, config);
         addDebugFilter(context);
         addCacheFilter(context);
@@ -193,6 +198,12 @@ public class ApplicationBootstrap implements ServletContextListener {
         servlet.setInitParameter(Configuration.AUTH_TOKEN_SALT, config.get(Configuration.AUTH_TOKEN_SALT, null));
 
         addSecurityConstraint(servlet, config);
+    }
+
+    private void addSessionProhibitionFilter(ServletContext context, Configuration config) {
+        FilterRegistration.Dynamic filter = context.addFilter(SESSION_PROHIBITION_FILTER_NAME, SessionProhibitionFilter.class);
+        filter.setAsyncSupported(true);
+        filter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
     }
 
     private void addAuthTokenFilter(ServletContext context, Configuration config) {
