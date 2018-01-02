@@ -30,7 +30,8 @@ define([
                 error: null
             });
             this.dataRequest('user', 'search', {
-                status: 'ACTIVE'
+                status: 'ACTIVE',
+                includeSessionCount: true
             })
                 .then(users => {
                     this.setState({
@@ -67,25 +68,33 @@ define([
                 <div>
                     <ul className="nav-list nav">
                         {this.state.users.map(user => {
-                            console.log(user);
-                            return (<li className="highlight-on-hover" key={user.id}>
-                                <span className="nav-list-title">{user.userName}</span>
+                            const {
+                                id, userName, displayName,
+                                sessionCount, currentLoginDate,
+                                currentWorkspaceName, currentWorkspaceId
+                            } = user;
+
+                            return (<li className="highlight-on-hover" key={id}>
+                                <span
+                                    title={i18n('admin.user.activeList.sessionCount')}
+                                    class="badge pull-right">{isNaN(sessionCount) ? '?' : sessionCount}</span>
+                                <span className="nav-list-title">{userName}</span>
                                 <ul className="inner-list">
                                     <label className="nav-header">
                                         {i18n('admin.user.activeList.userId')}
-                                        <span>{user.id}</span>
+                                        <span>{id}</span>
                                     </label>
                                     <label className="nav-header">
                                         {i18n('admin.user.activeList.displayName')}
-                                        <span>{user.displayName}</span>
+                                        <span>{displayName}</span>
                                     </label>
                                     <label className="nav-header">
                                         {i18n('admin.user.activeList.loginDate')}
-                                        <span>{F.date.dateTimeString(user.currentLoginDate)}</span>
+                                        <span>{F.date.dateTimeString(currentLoginDate)}</span>
                                     </label>
                                     <label className="nav-header">
                                         {i18n('admin.user.activeList.currentWorkspace')}
-                                        <span>{user.currentWorkspaceName} ({user.currentWorkspaceId})</span>
+                                        <span>{currentWorkspaceName} ({currentWorkspaceId})</span>
                                     </label>
                                 </ul>
                             </li>);

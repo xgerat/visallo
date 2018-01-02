@@ -17,6 +17,7 @@ public class ClientApiUser implements ClientApiObject {
     private String csrfToken;
     private Date currentLoginDate;
     private Date previousLoginDate;
+    private Integer sessionCount;
     private Set<String> privileges = new HashSet<String>();
     private JsonNode uiPreferences;
     private List<String> authorizations = new ArrayList<String>();
@@ -62,6 +63,14 @@ public class ClientApiUser implements ClientApiObject {
 
     public void setCurrentWorkspaceId(String currentWorkspaceId) {
         this.currentWorkspaceId = currentWorkspaceId;
+    }
+
+    public Integer getSessionCount() {
+        return sessionCount;
+    }
+
+    public void setSessionCount(Integer sessionCount) {
+        this.sessionCount = sessionCount;
     }
 
     public UserStatus getStatus() {

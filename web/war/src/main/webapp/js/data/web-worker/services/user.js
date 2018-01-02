@@ -97,6 +97,9 @@ define(['../util/ajax', '../store', '../store/user/actions-impl'], function(ajax
             if (options.status) {
                 data.status = options.status;
             }
+            if (options.includeSessionCount) {
+                data.includeSessionCount = true
+            }
             if (options.userIds) {
                 if (!_.isArray(options.userIds)) {
                     returnSingular = true;
