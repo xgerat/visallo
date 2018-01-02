@@ -8,9 +8,12 @@ import org.visallo.webster.HandlerChain;
 import org.visallo.webster.RequestResponseHandler;
 
 import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 
 @RunWith(JUnit4.class)
@@ -42,47 +45,47 @@ public class SessionProhibitionFilterTest {
         filter.doFilter(request, response, chain(nextHandler));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testGetRequestSessionIdIsProhibited() throws Exception {
         RequestResponseHandler nextHandler = (request, response, chain) -> {
-            request.getRequestedSessionId();
+            assertNull(request.getRequestedSessionId());
         };
         filter.doFilter(request, response, chain(nextHandler));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testIsRequestedSessionIdValidIsProhibited() throws Exception {
         RequestResponseHandler nextHandler = (request, response, chain) -> {
-            request.isRequestedSessionIdValid();
+            assertFalse(request.isRequestedSessionIdValid());
         };
         filter.doFilter(request, response, chain(nextHandler));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testIsRequestedSessionIdFromCookieIsProhibited() throws Exception {
         RequestResponseHandler nextHandler = (request, response, chain) -> {
-            request.isRequestedSessionIdFromCookie();
+            assertFalse(request.isRequestedSessionIdFromCookie());
         };
         filter.doFilter(request, response, chain(nextHandler));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testIsRequestedSessionIdFromUrlIsProhibited() throws Exception {
         RequestResponseHandler nextHandler = (request, response, chain) -> {
-            request.isRequestedSessionIdFromUrl();
+            assertFalse(request.isRequestedSessionIdFromUrl());
         };
         filter.doFilter(request, response, chain(nextHandler));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testIsRequestedSessionIdFromURLIsProhibited() throws Exception {
         RequestResponseHandler nextHandler = (request, response, chain) -> {
-            request.isRequestedSessionIdFromURL();
+            assertFalse(request.isRequestedSessionIdFromURL());
         };
         filter.doFilter(request, response, chain(nextHandler));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test(expected = IllegalStateException.class)
     public void testChangeSessionIdIsProhibited() throws Exception {
         RequestResponseHandler nextHandler = (request, response, chain) -> {
             request.changeSessionId();
@@ -94,11 +97,11 @@ public class SessionProhibitionFilterTest {
         HandlerChain handlerChain = new HandlerChain(new RequestResponseHandler[] { handler });
         return (request, response) -> {
             try {
-                handler.handle((HttpServletRequest)request, (HttpServletResponse)response, handlerChain);
-            } catch (UnsupportedOperationException e) {
+                handler.handle((HttpServletRequest) request, (HttpServletResponse) response, handlerChain);
+            } catch (RuntimeException e) {
                 throw e;
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new ServletException(e);
             }
         };
     }

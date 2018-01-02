@@ -31,6 +31,9 @@ public class SessionProhibitionFilter implements Filter {
 
         @Override
         public HttpSession getSession(boolean create) {
+            if (!create) {
+                return null;
+            }
             throw new UnsupportedOperationException(ERROR_MSG);
         }
 
@@ -41,32 +44,32 @@ public class SessionProhibitionFilter implements Filter {
 
         @Override
         public String getRequestedSessionId() {
-            throw new UnsupportedOperationException(ERROR_MSG);
+            return null;
         }
 
         @Override
         public boolean isRequestedSessionIdValid() {
-            throw new UnsupportedOperationException(ERROR_MSG);
+            return false;
         }
 
         @Override
         public boolean isRequestedSessionIdFromCookie() {
-            throw new UnsupportedOperationException(ERROR_MSG);
+            return false;
         }
 
         @Override
         public boolean isRequestedSessionIdFromURL() {
-            throw new UnsupportedOperationException(ERROR_MSG);
+            return false;
         }
 
         @Override
         public boolean isRequestedSessionIdFromUrl() {
-            throw new UnsupportedOperationException(ERROR_MSG);
+            return false;
         }
 
         @Override
         public String changeSessionId() {
-            throw new UnsupportedOperationException(ERROR_MSG);
+            throw new IllegalStateException(ERROR_MSG);
         }
     }
 }
