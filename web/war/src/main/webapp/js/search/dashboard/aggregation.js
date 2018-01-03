@@ -12,18 +12,24 @@ define([
     template) {
     'use strict';
 
-    var AGGREGATIONS = [
-            { value: 'term', name: 'Counts' },
-            { value: 'histogram', name: 'Histogram', filter: function(properties) {
-                return _.filter(properties, function(p) {
-                    return p.dataType.toLowerCase() !== 'string';
-                });
-            }},
-            { value: 'geohash', name: 'Geo-coordinate Cluster', filter: function(properties) {
-                return _.filter(properties, function(p) {
-                    return p.dataType.toLowerCase() === 'geolocation';
-                });
-            }}
+    const DATA_TYPE_NUMBERS = ['integer', 'decimal', 'double', 'number', 'currency']
+
+    const AGGREGATIONS = [
+            {
+                value: 'term',
+                name: 'Counts',
+                dataTypes: ['date', 'boolean', 'string', ...DATA_TYPE_NUMBERS]
+            },
+            {
+                value: 'histogram',
+                name: 'Histogram',
+                dataTypes: ['date', ...DATA_TYPE_NUMBERS]
+            },
+            {
+                value: 'geohash',
+                name: 'Geo-coordinate Cluster',
+                dataTypes: ['geoLocation']
+            }
         ],
         AGGREGATIONS_NO_GEOHASH = _.reject(AGGREGATIONS, function(a) {
             return a.value === 'geohash';
@@ -45,8 +51,8 @@ define([
             { value: 7, label: ' 150 x 150 meters' },
             { value: 8, label: '  25 x 25 meters (small)' }
         ],
-        defaultInterval = 20,
-        idIncrement = 1;
+        defaultInterval = 20;
+    var idIncrement = 1;
 
     return defineComponent(Aggregation, withDataRequest);
 
@@ -204,6 +210,10 @@ define([
         this.onPropertySelected = function(event, data) {
             var self = this;
 
+            if (!data.property) {
+                this.$node.find('.property-select').trigger('selectProperty');
+                return;
+            }
             this.currentAggregation.field = data.property.title;
             this.currentAggregation.name = 'field';
             if (this.currentAggregation.type === 'histogram') {
@@ -434,14 +444,13 @@ define([
                 options = {};
             }
             return Promise.require('util/ontology/propertySelect').then(function(FieldSelection) {
-                var propertiesToFilter = self.filteredProperties || ontology.properties.list;
-
                 node.teardownComponent(FieldSelection);
 
+                const onlyDataTypes = self.validDataTypes();
                 FieldSelection.attachTo(node, {
-                    selectedProperty: options.selected && ontology.properties.byTitle[options.selected] || null,
-                    properties: self.filterProperties(propertiesToFilter),
-                    showAdminProperties: true,
+                    selectedProperty: options.selected,
+                    onlyDataTypes,
+                    onlySortable: onlyDataTypes.includes('geoLocation') ? null : true,
                     placeholder: options.placeholder || '',
                     rollupCompound: false,
                     hideCompound: true
@@ -449,22 +458,9 @@ define([
             });
         };
 
-        this.filterProperties = function(properties) {
-            var self = this;
-            var aggregation = _.find(AGGREGATIONS, function(a) {
-                return a.value === self.currentAggregation.type;
-            });
-            var filteredProperties = _.reject(properties, function(p) {
-                var isUserVisible = p.title === 'http://visallo.org#conceptType' || p.userVisible,
-                    isPropString = p.dataType === 'string';
-                if (isPropString) {
-                    var isSearchable = p.textIndexHints !== undefined ? p.textIndexHints.length > 0 : false;
-                    return !isSearchable || !isUserVisible;
-                }
-                return !isUserVisible;
-            });
-
-            return _.isFunction(aggregation.filter) ? aggregation.filter(filteredProperties) : filteredProperties;
+        this.validDataTypes = function() {
+            var aggregation = _.find(AGGREGATIONS, a => a.value === this.currentAggregation.type);
+            return aggregation.dataTypes;
         };
 
         this.mapzenSupported = _.memoize(function() {
