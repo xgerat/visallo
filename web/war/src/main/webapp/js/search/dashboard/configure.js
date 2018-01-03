@@ -145,12 +145,9 @@ define([
         this.updateAggregationVisibility = function(preventTrigger) {
             var self = this,
                 searchId = this.attr.item.configuration.searchId,
-                conceptType = searchId ? this.searchesById[searchId].parameters.conceptType : null;
+                conceptId = searchId ? this.searchesById[searchId].parameters.conceptType : null;
 
-            return Promise.all([
-                Promise.require('search/dashboard/aggregation'),
-                conceptType && this.dataRequest('ontology', 'propertiesByConceptId', conceptType)
-            ]).then(function([Aggregation, propertiesByConceptId]) {
+            return Promise.require('search/dashboard/aggregation').then(function(Aggregation) {
                 const node = self.select('aggregationSectionSelector');
                 let aggregations;
                 if (self.aggregations) {
@@ -161,12 +158,8 @@ define([
                 Aggregation.attachTo(node.teardownComponent(Aggregation), {
                     aggregations
                 })
-                if (propertiesByConceptId) {
-                    node.trigger('filterProperties', {
-                        properties: propertiesByConceptId.list.filter(function(property) {
-                            return !property.dependentPropertyIris
-                        })
-                    });
+                if (conceptId) {
+                    node.trigger('filterProperties', { conceptId });
                 }
                 var aggregation = _.first(self.aggregations);
                 return self.updateAggregationDependents(aggregation && aggregation.type, preventTrigger);
@@ -240,7 +233,7 @@ define([
             var self = this,
                 item = this.attr.item,
                 searchId = this.attr.item.configuration.searchId,
-                conceptType = searchId ? this.searchesById[searchId].parameters.conceptType : null;
+                conceptId = searchId ? this.searchesById[searchId].parameters.conceptType : null;
 
             if (type) {
                 if (item.configuration.searchParameters) {
@@ -257,9 +250,8 @@ define([
 
                 Promise.all([
                     this.dataRequest('ontology', 'properties'),
-                    Promise.require('search/sort'),
-                    conceptType && this.dataRequest('ontology', 'propertiesByConceptId', conceptType)
-                ]).spread(function(properties, Sort, propertiesByConceptId) {
+                    Promise.require('search/sort')
+                ]).spread(function(properties, Sort) {
                     var node = self.$node.find('.sort').show(),
                         sortFieldsNode = node.find('.sort-fields');
 
@@ -267,12 +259,8 @@ define([
                         sorts: self.sortFields
                     });
 
-                    if (propertiesByConceptId) {
-                        sortFieldsNode.trigger('filterProperties', {
-                            properties: propertiesByConceptId.list.filter(function(property) {
-                                return !property.dependentPropertyIris
-                            })
-                        });
+                    if (conceptId) {
+                        sortFieldsNode.trigger('filterProperties', { conceptId });
                     }
                 });
                 this.aggregationField = null;

@@ -427,15 +427,7 @@ define([
         this.onFilterProperties = function(event, data) {
             if ($(event.target).is('.property-select')) return;
 
-            if (!data || _.isEmpty(data.properties)) {
-                this.filteredProperties = null;
-            } else {
-                this.filteredProperties = data.properties;
-            }
-
-            this.$node.find('.property-select').trigger(event.type, {
-                properties: this.filteredProperties
-            });
+            this.$node.find('.property-select').trigger(event.type, data)
         };
 
         this.attachPropertySelection = function(node, options) {
