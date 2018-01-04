@@ -12,6 +12,7 @@ if [ "${BUILD_DOCS}" ]; then
              --volume $(pwd):/root/visallo \
              -w /root/visallo \
              -e "VERSION_CURRENT=${TRAVIS_BRANCH}" \
+             -e "VERSION_LIST=${VERSION_LIST}" \
              -e "GITBOOK_EMBED_GITHUB_API_TOKEN=${GITBOOK_EMBED_GITHUB_API_TOKEN}" \
              --rm -it ${DOCKER_IMAGE} \
              /bin/sh -c "make -C docs link-check-external"
