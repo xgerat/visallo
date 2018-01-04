@@ -243,10 +243,12 @@ define([
                         <div className="img" style={conceptImageStyle}></div>
                         <div className="selected-img" style={selectedConceptImageStyle}></div>
                         <h1 title={title.loading ? '' : title.str}>{title.loading ? (<span className="loading">{title.str}</span>) : title.str}</h1>
-                        {action.type !== 'update' ? (
-                            <span className="label action-type">{ action.display }</span>
-                        ) : null}
-                        {this.renderRequiresOntologyPublish(diff)}
+                        <div className="diff-action">
+                            {action.type !== 'update' ? (
+                                <span className="label action-type">{ action.display }</span>
+                            ) : null}
+                            {this.renderRequiresOntologyPublish(diff)}
+                        </div>
                     </div>
                     {action.type !== 'update' ? this.renderDiffActions(vertexId, diff) : null }
                 </div>
@@ -296,11 +298,12 @@ define([
                             <span className="edge-label">{edgeLabel + ' '}</span>
                             <span className={classNames({'loading': targetTitle.loading, 'edge-v': !targetTitle.loading})}>{targetTitle.str}</span>
                         </h1>
-
-                        {action.type !== 'update' ? (
-                            <span className="label action-type">{ action.display }</span>
-                        ) : null}
-                        {this.renderRequiresOntologyPublish(diff)}
+                        <div className="diff-action">
+                            {action.type !== 'update' ? (
+                                <span className="label action-type">{ action.display }</span>
+                            ) : null}
+                            {this.renderRequiresOntologyPublish(diff)}
+                        </div>
                     </div>
                     {action.type !== 'update' ?
                         this.renderDiffActions(edgeId, diff) : (
@@ -344,9 +347,9 @@ define([
                             <VisibilityViewer key={key + 'v'} value={nextVisibility && nextVisibility.source} />
                         ]
                     ) : null}
-                    {this.renderRequiresOntologyPublish(property)}
                 </div>
-                {this.renderDiffActions(id, property)}
+                    {this.renderRequiresOntologyPublish(property)}
+                    {this.renderDiffActions(id, property)}
               </div>
             );
         },

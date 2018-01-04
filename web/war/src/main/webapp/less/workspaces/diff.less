@@ -241,11 +241,23 @@
             text-overflow: ellipsis;
         }
         .property-value {
-            flex: 1 1 auto;
+            flex: 3 1 auto;
             white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
             align-self: flex-start;
+        }
+        .action-subtype {
+          flex: 1 3 40%;
+          min-width: 60px;
+          margin: 0 7px 0 0;
+          color: #999;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          text-align: right;
+          font-size: 12px;
+          font-style: italic;
         }
         .actions {
             flex: 0 0 auto;
@@ -294,17 +306,20 @@
           text-overflow: ellipsis;
         }
       }
-      .action-type {
+      .diff-action {
+        display: flex;
+
+        .action-type {
+          flex: 0 0 auto;
           font-size: 70%;
           padding: 0em 0.5em;
           margin: 0 0 0 30px;
-      }
-      .action-subtype {
-        margin: 0 0 0 30px;
-        font-weight: normal;
-        font-style: italic;
-        font-size: 85%;
-        color: #999;        
+          height: 1.7em;
+        }
+        .action-subtype {
+          flex: 1 1 auto;
+          margin: 0 0 0 0.5em;
+        }
       }
       .property-label, .edge-label {
         text-align: right;
@@ -344,11 +359,6 @@
       }
       .property-value, .edge-value {
         word-break: break-word;
-        .action-subtype {
-          margin: 0;
-          font-size: 95%;
-        }
-
         &.deleted {
           text-decoration: line-through;
         }
