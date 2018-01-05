@@ -103,13 +103,16 @@ define([
                                 this.olEvents.concat(initializer.addEvents(map, layerWithSource, handlers));
                             }
 
-                            const config = nextProps.layerConfig && nextProps.layerConfig[layerWithSource.layer.get('id')];
-                            if (config) {
-                                layerHelpers.setLayerConfig(config, layerWithSource.layer);
-                            }
+                            const layers = layerWithSource.layers || [layerWithSource.layer];
+                            layers.forEach(layer => {
+                                const config = nextProps.layerConfig && nextProps.layerConfig[layer.get('id')];
+                                if (config) {
+                                    layerHelpers.setLayerConfig(config, layer);
+                                }
 
-                            newLayersWithSources[layerId] = layerWithSource;
-                            nextLayers.push(layerWithSource.layer);
+                                newLayersWithSources[layerId] = layerWithSource;
+                                nextLayers.push(layer);
+                            })
                         } else {
                             console.warn('Sources present for layer: ' + layerId + ', but no layer type defined for: ' + type);
                         }
@@ -374,7 +377,8 @@ define([
             } else {
                 extent = ol.extent.createEmpty();
                 map.getLayers().forEach(layer => {
-                    const source = layersWithSources.cluster.layer === layer ? layersWithSources.cluster.source : layer.getSource();
+                    const source = layersWithSources.cluster.layers.includes(layer) ?
+                        layersWithSources.cluster.source : layer.getSource();
 
                     if (layer.getVisible() && _.isFunction(source.getExtent)) {
                         ol.extent.extend(extent, source.getExtent());
@@ -473,12 +477,14 @@ define([
                 }
 
                 layersWithSources[layerId] = layerWithSource;
-                map.addLayer(layerWithSource.layer);
-
-                const config = layerConfig && layerConfig[layerWithSource.layer.get('id')];
-                if (config) {
-                    layerHelpers.setLayerConfig(config, layerWithSource.layer);
-                }
+                const layers = layerWithSource.layers || [layerWithSource.layer];
+                layers.forEach(layer => {
+                    map.addLayer(layer);
+                    const config = layerConfig && layerConfig[layer.get('id')];
+                    if (config) {
+                        layerHelpers.setLayerConfig(config, layer);
+                    }
+                })
             };
 
             _.mapObject(layerExtensions, (e, layerId) => {

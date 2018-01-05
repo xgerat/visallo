@@ -82,10 +82,19 @@ define([
                     source: clusterSource,
                     ...options
                 });
+                const heatmap = new ol.layer.Heatmap({
+                    ...DEFAULT_LAYER_CONFIG,
+                    ...options,
+                    visible: false,
+                    id: 'heatmap_cluster',
+                    label: 'Heatmap',
+                    type: 'cluster_heatmap',
+                    source
+                })
 
                 cache.clear();
 
-                return { source, clusterSource, layer }
+                return { source, clusterSource, layers: [heatmap, layer] }
             },
 
             style(cluster, { source, selected = false } = {}) {
@@ -100,10 +109,27 @@ define([
                 }
             },
 
-            addEvents(map, { source, clusterSource, layer }, handlers) {
+            addEvents(map, { source, clusterSource, layers }, handlers) {
+                const [heatmapLayer, vectorLayer] = layers;
+                const addToElements = list => feature => {
+                    const el = feature.get('element');
+                    const key = el.type === 'vertex' ? 'vertices' : 'edges';
+                    list[key].push(el.id);
+                }
+
+                // For heatmap selections
+                const onHeatmapClick = map.on('click', ({ pixel }) => {
+                    const elements = { vertices: [], edges: [] };
+                    map.forEachFeatureAtPixel(pixel, addToElements(elements), {
+                        layerFilter: layer => layer === heatmapLayer
+                    });
+                    handlers.onSelectElements(elements);
+                })
+
+                // For cluster pins selections
                 const selectInteraction = new ol.interaction.Select({
                     condition: ol.events.condition.click,
-                    layers: [layer],
+                    layers: [vectorLayer],
                     style: cluster => this.style(cluster, { source, selected: true })
                 });
 
@@ -111,15 +137,10 @@ define([
 
                 const onSelectCluster = selectInteraction.on('select', function(e) {
                     const clusters = e.target.getFeatures().getArray(),
-                        elements = { vertices: [], edges: [] };
+                        elements = { vertices: [], edges: [] },
+                        clusterIterator = addToElements(elements);
 
-                    clusters.forEach(cluster => {
-                        cluster.get('features').forEach(feature => {
-                            const el = feature.get('element');
-                            const key = el.type === 'vertex' ? 'vertices' : 'edges';
-                            elements[key].push(el.id);
-                        })
-                    })
+                    clusters.forEach(cluster => cluster.get('features').forEach(clusterIterator))
                     handlers.onSelectElements(elements);
                 });
 
@@ -157,7 +178,8 @@ define([
 
                 return [
                     onSelectCluster,
-                    onClusterSourceChange
+                    onClusterSourceChange,
+                    onHeatmapClick
                 ]
             },
 
