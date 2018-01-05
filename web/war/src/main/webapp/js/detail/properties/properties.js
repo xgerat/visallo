@@ -788,7 +788,8 @@ define([
                             !property.hideInfo && (
                                 isEditable ||
                                 ontologyProperty.searchable ||
-                                hasVisibleMetadata)
+                                hasVisibleMetadata ||
+                                visibility)
                         ));
 
                         if (displayType && F.vertex.properties[displayType]) {
