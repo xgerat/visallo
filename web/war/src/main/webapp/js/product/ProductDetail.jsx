@@ -1,8 +1,9 @@
 define([
     'create-react-class',
     'prop-types',
-    './ProductDetailLoading'
-], function(createReactClass, PropTypes, ProductDetailEmpty) {
+    './ProductDetailLoading',
+    'components/ErrorBoundary'
+], function(createReactClass, PropTypes, ProductDetailEmpty, ErrorBoundary) {
     'use strict';
 
     const ProductDetail = createReactClass({
@@ -26,18 +27,23 @@ define([
         },
 
         render() {
-            var { Component } = this.state;
-            var { product, editable, hasPreview } = this.props;
-            var { extendedData, title } = product;
+            const { Component } = this.state;
+            const { product, editable, hasPreview } = this.props;
+            const { extendedData, title } = product;
 
             return (
-                Component && extendedData ?
-                    (<Component product={this.props.product} hasPreview={hasPreview}></Component>) :
-                    (<ProductDetailEmpty
+                Component && extendedData ? (
+                    <ErrorBoundary>
+                        <Component product={this.props.product} hasPreview={hasPreview}></Component>
+                    </ErrorBoundary>
+                ) : (
+                    <ProductDetailEmpty
                         editable={editable}
                         type={i18n(this.props.extension.identifier + '.name')}
                         title={title}
-                        padding={this.props.padding} />)
+                        padding={this.props.padding}
+                    />
+                )
             )
         },
 

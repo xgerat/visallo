@@ -4,11 +4,13 @@ define([
     'react-dom',
     'react',
     'react-redux',
+    'components/ErrorBoundary',
     'util/promise'
 ], function(
     ReactDOM,
     React,
     { Provider },
+    ErrorBoundary,
     Promise) {
 
     var API_VERSIONS = ['v1'],
@@ -103,11 +105,14 @@ define([
                     removeLegacyListenersOnTeardown(self, eventNode || self._node, Component, addedEvents)
                     self._flightComponent = Component;
                 } else {
-                    var reactElement = React.createElement(Component, _.extend(params, wrapBehavior(self)));
+                    const boundaryProps = { onError: params.onError, FallbackComponent: params.FallbackComponent };
+                    const reactElement = React.createElement(Component, _.extend(params, wrapBehavior(self)));
+                    const errorBoundaryWrapper = React.createElement(ErrorBoundary, boundaryProps, reactElement);
+
                     if (self._options.preferDirectReactChildren) {
-                        self._reactElement = reactElement;
+                        self._reactElement = errorBoundaryWrapper;
                     } else {
-                        var provider = React.createElement(Provider, { store }, reactElement);
+                        const provider = React.createElement(Provider, { store }, errorBoundaryWrapper);
                         ReactDOM.render(provider, self._node);
                         self._reactElement = provider;
                     }
