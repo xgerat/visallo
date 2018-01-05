@@ -31,9 +31,6 @@ define([
                 dataTypes: ['geoLocation']
             }
         ],
-        AGGREGATIONS_NO_GEOHASH = _.reject(AGGREGATIONS, function(a) {
-            return a.value === 'geohash';
-        }),
         INTERVAL_UNITS = [
             { value: 1000 * 60, label: 'minutes' },
             { value: 1000 * 60 * 60, label: 'hours' },
@@ -75,7 +72,6 @@ define([
         })
 
         this.after('initialize', function() {
-            var self = this;
 
             this.on('change', {
                 aggregationSelector: this.onChangeAggregation,
@@ -95,24 +91,21 @@ define([
             this.on('propertyselected', this.onPropertySelected);
             this.on('filterProperties', this.onFilterProperties);
 
-            this.mapzenSupported()
-                .then(function(mapzen) {
-                    self.aggregations = (self.attr.aggregations || []).map(function addId(a) {
-                        if (!a.id) a.id = idIncrement++;
-                        if (_.isArray(a.nested)) {
-                            a.nested = a.nested.map(addId);
-                        }
-                        return a;
-                    });
-                    self.currentAggregation = null;
-                    self.updateAggregations(null, true);
-
-                    self.$node.html(template({
-                        aggregations: mapzen ? AGGREGATIONS : AGGREGATIONS_NO_GEOHASH,
-                        precisions: PRECISIONS,
-                        intervalUnits: INTERVAL_UNITS
-                    }));
+            this.aggregations = (this.attr.aggregations || []).map(function addId(a) {
+                if (!a.id) a.id = idIncrement++;
+                if (_.isArray(a.nested)) {
+                    a.nested = a.nested.map(addId);
+                }
+                return a;
             });
+            this.currentAggregation = null;
+            this.updateAggregations(null, true);
+
+            this.$node.html(template({
+                aggregations: AGGREGATIONS,
+                precisions: PRECISIONS,
+                intervalUnits: INTERVAL_UNITS
+            }));
         });
 
         this.onChangeInputs = function(event, data) {
@@ -455,19 +448,5 @@ define([
             return aggregation.dataTypes;
         };
 
-        this.mapzenSupported = _.memoize(function() {
-            var self = this;
-            return new Promise(function(f) {
-                self.dataRequest('config', 'properties').then(function(config) {
-                    if (config['mapzen.enabled'] === 'false') {
-                        f(false);
-                    } else {
-                        d3.json('mapzen/osm/all/0/0/0.json', function(error, json) {
-                            f(!error);
-                        });
-                    }
-                });
-            });
-        });
     }
 });

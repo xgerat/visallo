@@ -3,53 +3,64 @@ define([
     'util/formatters',
     './withRenderer',
     './withMapTiles',
+    'openlayers',
     'd3'
 ], function(
     defineComponent,
     F,
     withRenderer,
     withMapTiles,
+    ol,
     d3) {
     'use strict';
 
     return defineComponent(Geohash, withRenderer, withMapTiles);
 
     function Geohash() {
-        this.defaultAttrs({ svgCls: 'geohash' });
 
         this.processData = function(data) {
             var results = data.root[0].buckets;
             if (results && results.length) {
                 var min = Infinity,
                     max = -Infinity,
+                    extent = ol.extent.createEmpty(),
                     features = _.map(results, function(bucket) {
-                        var northWest = bucket.value.cell.northWest,
-                            southEast = bucket.value.cell.southEast,
-                            amount = bucket.value.count || 0;
+                        const { field, name } = bucket;
+                        const northWest = bucket.value.cell.northWest;
+                        const southEast = bucket.value.cell.southEast;
+                        const amount = bucket.value.count || 0;
 
                         max = Math.max(amount, max);
                         min = Math.min(amount, min);
 
+                        ol.extent.createOrUpdateFromCoordinates([
+                            [northWest.longitude, northWest.latitude],
+                            [southEast.longitude, northWest.latitude],
+                            [southEast.longitude, southEast.latitude],
+                            [northWest.longitude, southEast.latitude],
+                            [northWest.longitude, northWest.latitude]
+                        ], extent);
+
                         return {
                               type: 'Feature',
                               geometry: {
-                                  type: 'Polygon',
-                                  coordinates: [[
-                                    [northWest.longitude, northWest.latitude],
-                                    [southEast.longitude, northWest.latitude],
-                                    [southEast.longitude, southEast.latitude],
-                                    [northWest.longitude, southEast.latitude],
-                                    [northWest.longitude, northWest.latitude]
-                                  ]]
+                                  type: 'Point',
+                                  coordinates: ol.extent.getCenter(extent)
                               },
-                              properties: { amount: amount }
-                              // FIXME search doesn't support geohash values
-                                  //_.extend({}, bucket, { amount: amount })
+                            properties: { amount, name, field }
                           };
-                    }),
-                    featureCollection = { type: 'FeatureCollection', features: features, max: max, min: min };
+                    });
 
-                return _.extend(featureCollection, { bbox: _.flatten(d3.geo.bounds(featureCollection)) });
+                return {
+                    geoJson: {
+                        type: 'FeatureCollection',
+                        features
+                    },
+                    min,
+                    max,
+                    predicate: 'within',
+                    display: 'heatmap'
+                };
             }
             return null;
         };

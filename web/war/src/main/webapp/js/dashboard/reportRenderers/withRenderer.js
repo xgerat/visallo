@@ -244,11 +244,11 @@ define([
             return buckets;
         };
 
-        this.handleClick = function(object) {
+        this.handleClick = function(object, eventTarget) {
             const self = this;
             const report = this.attr.report;
             const endpointId = report.endpointParameters && report.endpointParameters.id;
-            const d3Target = d3.event && d3.event.target;
+            const d3Target = eventTarget || d3.event && d3.event.target;
             let filters = object.filters;
             let filtersPromise;
             let searchUrl;

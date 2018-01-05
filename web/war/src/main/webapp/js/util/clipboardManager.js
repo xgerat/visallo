@@ -4,7 +4,7 @@ define([
 ], function(defineComponent) {
     'use strict';
 
-    const IGNORE_SELECTORS = 'input,select,option,textarea,.Select,.Select *,.visallo-allow-focus,.visallo-allow-focus *';
+    const IGNORE_SELECTORS = 'input,select,option,textarea,.Select,.Select *,.visallo-allow-focus,.visallo-allow-focus *,*[data-allow-focus=true],*[data-allow-focus=true] *';
     const WAIT_FOR_DBLCLICK_SELECTORS = '.visallo-allow-dblclick-selection, .visallo-allow-dblclick-selection *';
 
     return defineComponent(ClipboardManager);

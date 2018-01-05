@@ -15,7 +15,6 @@ define([
     return defineComponent(Choropleth, withRenderer, withMapTiles);
 
     function Choropleth() {
-        this.defaultAttrs({ svgCls: 'choropleth' });
 
         this.processData = function(data) {
             var self = this,
@@ -25,35 +24,43 @@ define([
                 };
 
             if (results && results.length) {
+                const bucketsByName = _.indexBy(results, 'name');
+                const flipCoordinates = c => [c[1], c[0]];
                 return zipCodeBoundary({ zipCode: _.pluck(results, 'name') })
                            .then(function(zipCodes) {
                                var min = Infinity,
                                    max = -Infinity,
-                                   features = zipCodes.features.map(function(feature) {
-                                           var bucket = _.findWhere(results, { name: feature.zipCode }),
-                                               amount = bucket ? bucket.value.count : 0;
+                                   features = zipCodes.features.map(function({ coordinates: rings, zipCode }) {
+                                       const bucket = bucketsByName[zipCode];
+                                       const amount = bucket ? bucket.value.count : 0;
 
-                                           min = Math.min(min, amount);
-                                           max = Math.max(max, amount);
+                                       min = Math.min(min, amount);
+                                       max = Math.max(max, amount);
 
-                                           return {
-                                               type: 'Feature',
-                                               geometry: {
-                                                   type: 'Polygon',
-                                                   coordinates: feature.coordinates.map(function(c) {
-                                                           return _.invoke(c, 'reverse');
-                                                       })
-
-                                               },
-                                               properties: _.extend({}, bucket, {
-                                                   label: feature.zipCode,
-                                                   amount: amount
-                                               })
+                                       return {
+                                           type: 'Feature',
+                                           geometry: {
+                                               type: 'Polygon',
+                                               coordinates: rings.map(r => r.map(flipCoordinates))
+                                           },
+                                           properties: {
+                                               ...bucket,
+                                               label: zipCode,
+                                               amount
                                            }
-                                       }),
-                                   featureCollection = { type: 'FeatureCollection', features: features, max: max, min: min };
+                                       }
+                                   });
 
-                               return _.extend(featureCollection, { bbox: _.flatten(d3.geo.bounds(featureCollection)) });
+                               return {
+                                   geoJson: {
+                                       type: 'FeatureCollection',
+                                       features
+                                   },
+                                   min,
+                                   max,
+                                   predicate: 'equal',
+                                   display: 'normal'
+                               };
                            });
             }
             return null;

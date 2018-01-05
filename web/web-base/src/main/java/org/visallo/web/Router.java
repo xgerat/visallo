@@ -29,7 +29,6 @@ import org.visallo.web.routes.longRunningProcess.LongRunningProcessById;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessCancel;
 import org.visallo.web.routes.longRunningProcess.LongRunningProcessDelete;
 import org.visallo.web.routes.map.GetGeocoder;
-import org.visallo.web.routes.map.MapzenTileProxy;
 import org.visallo.web.routes.notification.Notifications;
 import org.visallo.web.routes.notification.SystemNotificationDelete;
 import org.visallo.web.routes.notification.SystemNotificationSave;
@@ -103,13 +102,6 @@ public class Router extends HttpServlet {
             if (!(geocoderRepository instanceof DefaultGeocoderRepository)) {
                 configuration.set(Configuration.WEB_GEOCODER_ENABLED, true);
                 app.get("/map/geocode", authenticator, GetGeocoder.class);
-            }
-
-            if (configuration.getBoolean(Configuration.MAPZEN_ENABLED, true)) {
-                if (configuration.get(Configuration.MAPZEN_TILE_API_KEY, null) == null) {
-                    LOGGER.warn("MapZen api key not found: %s", Configuration.MAPZEN_TILE_API_KEY);
-                }
-                app.get("/mapzen/{mapzenUri*}", authenticator, MapzenTileProxy.class);
             }
 
             app.post("/search/save", authenticator, csrfProtector, SearchSave.class);
