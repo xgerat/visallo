@@ -18,10 +18,10 @@ define([
         undoActions: {
             PRODUCT_MAP_ADD_ELEMENTS: {
                 undo: (undo) => actions.removeElements(undo),
-                redo: (redo) => actions.dropElements(redo)
+                redo: (redo) => actions.redoDropElements(redo)
             },
             PRODUCT_MAP_REMOVE_ELEMENTS: {
-                undo: (undo) => actions.dropElements(undo),
+                undo: (undo) => actions.redoDropElements(undo),
                 redo: (redo) => actions.removeElements(redo)
             }
         }

@@ -2,10 +2,19 @@ define([
     'data/web-worker/store/actions',
     'data/web-worker/store/product/actions-impl',
     'data/web-worker/store/product/selectors',
+    'data/web-worker/store/element/selectors',
     'data/web-worker/store/element/actions-impl',
     'data/web-worker/store/selection/actions-impl',
     'data/web-worker/util/ajax'
-], function(actions, productActions, productSelectors, elementActions, selectionActions, ajax) {
+], function(
+        actions,
+        productActions,
+        productSelectors,
+        elementSelectors,
+        elementActions,
+        selectionActions,
+        ajax) {
+
     actions.protectFromMain();
 
     const api = {
@@ -74,6 +83,27 @@ define([
                 })
                 dispatch(productActions.select({ productId }));
             })
+        },
+
+        redoDropElements: ({ productId, elements: productElements }) => (dispatch, getState) => {
+            const state = getState();
+            const elements = elementSelectors.getElements(state);
+            let validElements;
+            const authorizedElements = _.mapObject(productElements, (eles, type) => (
+                _.pick(eles[type], (productEle, id) => {
+                    if (elements[type][id]) {
+                        validElements = true;
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })
+            ));
+
+            if (validElements) {
+                return api.dropElements({ productId, authorizedElements })
+            }
+
         },
 
         setElementData: ({ productId, elements, undoable }) => (dispatch, getState) => {

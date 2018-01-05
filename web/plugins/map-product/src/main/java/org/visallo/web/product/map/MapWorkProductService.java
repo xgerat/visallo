@@ -2,10 +2,7 @@ package org.visallo.web.product.map;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.vertexium.Authorizations;
-import org.vertexium.Edge;
-import org.vertexium.Vertex;
-import org.vertexium.Visibility;
+import org.vertexium.*;
 import org.visallo.core.model.graph.ElementUpdateContext;
 import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.user.AuthorizationRepository;
@@ -74,7 +71,15 @@ public class MapWorkProductService extends WorkProductServiceHasElementsBase<Wor
     ) {
         if (removeVertices != null) {
             for (String id : removeVertices) {
-                ctx.getGraph().softDeleteEdge(getEdgeId(productVertex.getId(), id), authorizations);
+                Edge productVertexEdge = ctx.getGraph().getEdge(
+                        getEdgeId(productVertex.getId(), id),
+                        FetchHint.NONE,
+                        authorizations
+                );
+
+                if (productVertexEdge != null) {
+                    ctx.getGraph().softDeleteEdge(productVertexEdge, authorizations);
+                }
             }
         }
     }

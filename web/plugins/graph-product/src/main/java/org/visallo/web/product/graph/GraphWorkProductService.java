@@ -288,38 +288,41 @@ public class GraphWorkProductService extends WorkProductServiceHasElementsBase<G
         for (String id : removeVertices) {
             String edgeId = getEdgeId(productVertex.getId(), id);
             Edge productVertexEdge = ctx.getGraph().getEdge(edgeId, authorizations);
-            String parentId = GraphProductOntology.PARENT_NODE.getPropertyValue(productVertexEdge, ROOT_NODE_ID);
-            List<String> children = GraphProductOntology.NODE_CHILDREN.getPropertyValue(productVertexEdge);
 
-            if (children != null && children.size() > 0) {
-                if (removeChildren) {
-                    Queue<String> childIdQueue = Queues.newArrayDeque();
-                    childIdQueue.addAll(children);
+            if (productVertexEdge != null) {
+                String parentId = GraphProductOntology.PARENT_NODE.getPropertyValue(productVertexEdge, ROOT_NODE_ID);
+                List<String> children = GraphProductOntology.NODE_CHILDREN.getPropertyValue(productVertexEdge);
 
-                    while (!childIdQueue.isEmpty()) {
-                        String childId = childIdQueue.poll();
-                        String childEdgeId = getEdgeId(productVertex.getId(), childId);
+                if (children != null && children.size() > 0) {
+                    if (removeChildren) {
+                        Queue<String> childIdQueue = Queues.newArrayDeque();
+                        childIdQueue.addAll(children);
 
-                        Edge childEdge = ctx.getGraph().getEdge(childEdgeId, authorizations);
-                        List<String> nextChildren = GraphProductOntology.NODE_CHILDREN.getPropertyValue(childEdge);
+                        while (!childIdQueue.isEmpty()) {
+                            String childId = childIdQueue.poll();
+                            String childEdgeId = getEdgeId(productVertex.getId(), childId);
 
-                        if (nextChildren != null) {
-                            childIdQueue.addAll(nextChildren);
-                            ctx.getGraph().softDeleteVertex(childId, authorizations);
-                        } else {
-                            ctx.getGraph().softDeleteEdge(childEdgeId, authorizations);
+                            Edge childEdge = ctx.getGraph().getEdge(childEdgeId, authorizations);
+                            List<String> nextChildren = GraphProductOntology.NODE_CHILDREN.getPropertyValue(childEdge);
+
+                            if (nextChildren != null) {
+                                childIdQueue.addAll(nextChildren);
+                                ctx.getGraph().softDeleteVertex(childId, authorizations);
+                            } else {
+                                ctx.getGraph().softDeleteEdge(childEdgeId, authorizations);
+                            }
                         }
+                    } else {
+                        children.forEach(childId -> updateParent(ctx, productVertex, childId, parentId, visibility, authorizations));
+                        ctx.getGraph().softDeleteVertex(id, authorizations);
                     }
                 } else {
-                    children.forEach(childId -> updateParent(ctx, productVertex, childId, parentId, visibility, authorizations));
-                    ctx.getGraph().softDeleteVertex(id, authorizations);
+                    ctx.getGraph().softDeleteEdge(edgeId, authorizations);
                 }
-            } else {
-                ctx.getGraph().softDeleteEdge(edgeId, authorizations);
-            }
 
-            if (!ROOT_NODE_ID.equals(parentId)) {
-                removeChild(ctx, productVertex, id, parentId, visibility, authorizations);
+                if (!ROOT_NODE_ID.equals(parentId)) {
+                    removeChild(ctx, productVertex, id, parentId, visibility, authorizations);
+                }
             }
         }
     }

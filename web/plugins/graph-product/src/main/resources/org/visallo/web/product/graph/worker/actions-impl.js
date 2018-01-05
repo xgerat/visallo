@@ -4,8 +4,9 @@ define([
     'data/web-worker/util/ajax',
     'data/web-worker/store/product/actions-impl',
     'data/web-worker/store/product/selectors',
-    'data/web-worker/store/user/actions-impl',
+    'data/web-worker/store/element/selectors',
     'data/web-worker/store/element/actions-impl',
+    'data/web-worker/store/user/actions-impl',
     'data/web-worker/store/selection/actions-impl',
     'data/web-worker/store/workspace/actions-impl',
     './snap'
@@ -15,8 +16,9 @@ define([
     ajax,
     productActions,
     productSelectors,
-    userActions,
+    elementSelectors,
     elementActions,
+    userActions,
     selectionActions,
     workspaceActions,
     snapPosition) {
@@ -153,15 +155,22 @@ define([
 
         undoSetPositions: ({ productId, updateVertices, removeElements }) => (dispatch, getState) => {
             if (updateVertices) {
-                dispatch(api.updatePositions({ productId, updateVertices }));
+                dispatch(api.redoSetPositions({ productId, updateVertices }));
             }
             if (removeElements) {
                 dispatch(api.removeElements({ productId, elements: removeElements }));
             }
         },
 
-        redoSetPositions: ({ productId, updateVertices }) =>
-            api.updatePositions({ productId, updateVertices }),
+        redoSetPositions: ({ productId, updateVertices }) => (dispatch, getState) => {
+            const state = getState();
+            const vertices = elementSelectors.getVertices(state);
+            const authorizedVertices = _.pick(updateVertices, (productVertex, vertexId) => vertices[vertexId]);
+
+            if (Object.keys(authorizedVertices).length) {
+                return api.updatePositions({ productId, authorizedVertices })
+            }
+        },
 
         updatePositions: ({ productId, updateVertices, existingVertices, undoable }) => (dispatch, getState) => {
             const state = getState();
@@ -270,12 +279,15 @@ define([
                 const removeVertices = removeElements.vertexIds || [];
                 const childUpdates = removeVertices.reduce((updatedParents, id) => {
                     const productVertex = productVertices[id];
-                    const parent = productVertex.parent !== 'root' ? productCompoundNodes[productVertex.parent] : null;
 
-                    if (parent && !removeCollapsedNodes.includes(parent.id)) {
-                        updatedParents[parent.id] = {
-                            ...parent,
-                            children: parent.children.filter(childId => childId !== id)
+                    if (productVertex) {
+                        const parent = productVertex.parent !== 'root' ? productCompoundNodes[productVertex.parent] : null;
+
+                        if (parent && !removeCollapsedNodes.includes(parent.id)) {
+                            updatedParents[parent.id] = {
+                                ...parent,
+                                children: parent.children.filter(childId => childId !== id)
+                            }
                         }
                     }
 

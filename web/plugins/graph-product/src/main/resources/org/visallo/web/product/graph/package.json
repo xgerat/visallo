@@ -55,6 +55,7 @@
       "popovers/index": "<rootDir>/__mocks__/popovers.js",
       "data/web-worker/store/actions": "<rootDir>/__mocks__/data/web-worker/store/actions.js",
       "data/web-worker/store/element/actions-impl": "<rootDir>/__mocks__/data/web-worker/store/element/actions-impl.js",
+      "data/web-worker/store/element/selectors": "<rootDir>/__mocks__/data/web-worker/store/element/selectors.js",
       "data/web-worker/store/product/actions-impl": "<rootDir>/__mocks__/data/web-worker/store/product/actions-impl.js",
       "data/web-worker/store/product/selectors": "<rootDir>/__mocks__/data/web-worker/store/product/selectors.js",
       "data/web-worker/store/selection/actions-impl": "<rootDir>/__mocks__/data/web-worker/store/selection/actions-impl.js",
