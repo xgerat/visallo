@@ -101,7 +101,7 @@ define([
                 rollupCompound: false,
                 hideCompound: true,
                 placeholder: i18n('search.sort.placeholder'),
-                filter: this.filter
+                filter: { ...this.filter, userVisible: true }
             });
         };
 
