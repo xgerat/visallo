@@ -56,6 +56,7 @@ define([
 
             this.on(document, 'verticesDeleted', this.onVerticesDeleted);
             this.on(document, 'edgesDeleted', this.onEdgesDeleted);
+            this.on(document, 'logout', this.onLogout);
 
             this.objects = [];
             this.fullscreenIdentifier = Math.floor((1 + Math.random()) * 0xFFFFFF).toString(16).substring(1);
@@ -116,6 +117,18 @@ define([
 
                 self.attr.edgeIds = _.difference(self.attr.edgeIds, _.pluck(edgesToRemove, 'id'));
             }
+        };
+
+        this.onLogout = function(event, data) {
+            const errorMessage = data && data.message;
+            this.trigger('willLogout');
+            this.dataRequest('user', 'logout')
+                .then(() => {
+                    require(['login'], Login => {
+                        Login.setErrorMessage(errorMessage);
+                        window.location.reload();
+                    })
+                })
         };
 
         this.onEdgesDeleted = function(event, data) {

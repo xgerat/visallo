@@ -6,6 +6,7 @@ define([], function() {
     const SecondsToMillis = 1000;
     const MinutesToMillis = SecondsToMillis * 60;
     const UserInitiatedLogoutHint = -1;
+    const MinumumWarning = 5 * SecondsToMillis;
     const warnAboutWriting = _.once(error => {
         console.warn(`Unable to write to localStorage,
 inactivity timeout and logout might happen if multiple windows
@@ -102,23 +103,31 @@ are open and inactive.`)
                 clearTimeout(this.inactiveLogoutTimer)
             }
 
-            const dateMillis = this.sessionTimeoutGetExpiration();
-            if (dateMillis) {
-                if (dateMillis === UserInitiatedLogoutHint) {
+            const expirationMillis = this.sessionTimeoutGetExpiration();
+            if (expirationMillis) {
+                if (expirationMillis === UserInitiatedLogoutHint) {
                     this.sessionTimeoutLogout({ userInitiatedLogout: true })
                 } else {
-                    const expiration = dateMillis - Date.now();
-                    const warn = expiration - (SecondsBeforeTimeout * SecondsToMillis);
+                    const expiration = expirationMillis - Date.now();
+                    const defaultWarningDurationMillis = SecondsBeforeTimeout * SecondsToMillis;
+                    const warn = expiration - defaultWarningDurationMillis;
 
-                    if (expiration < SecondsToMillis) {
+                    if (expiration < MinumumWarning) {
                         this.sessionTimeoutLogout();
                     } else {
                         this.inactiveLogoutTimer = setTimeout(() => {
                             this.warningUser = true;
-                            this.Overlay.attachTo(document)
-                            this.inactiveLogoutTimer = setTimeout(() => {
+                            clearTimeout(this.inactiveLogoutTimer)
+
+                            const warningDuration = Math.min(expirationMillis - Date.now(), defaultWarningDurationMillis);
+                            if (warningDuration < MinumumWarning) {
                                 this.sessionTimeoutLogout();
-                            }, SecondsBeforeTimeout * SecondsToMillis)
+                            } else {
+                                this.Overlay.attachTo(document)
+                                this.inactiveLogoutTimer = setTimeout(() => {
+                                    this.sessionTimeoutLogout();
+                                }, warningDuration)
+                            }
                         }, Math.max(0, warn));
                     }
                 }
