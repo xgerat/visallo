@@ -13,7 +13,8 @@ define([
     './withObjectSelection',
     './withObjectsUpdated',
     './withClipboard',
-    './withWorkspaces'
+    './withWorkspaces',
+    './withSessionTimeout'
 ], function(
     defineComponent,
     ...mixins

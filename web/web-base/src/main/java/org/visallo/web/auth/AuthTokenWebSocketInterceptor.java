@@ -1,6 +1,8 @@
 package org.visallo.web.auth;
 
+import org.apache.commons.lang.StringUtils;
 import org.atmosphere.cpr.*;
+import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -17,6 +19,7 @@ public class AuthTokenWebSocketInterceptor implements AtmosphereInterceptor {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(AuthTokenWebSocketInterceptor.class);
 
     private SecretKey tokenSigningKey;
+    private int tokenExpirationToleranceInSeconds;
 
     @Override
     public void configure(AtmosphereConfig config) {
@@ -24,6 +27,7 @@ public class AuthTokenWebSocketInterceptor implements AtmosphereInterceptor {
         checkNotNull(keyPassword, "AtmosphereConfig init parameter '" + AUTH_TOKEN_PASSWORD + "' was not set.");
         String keySalt = config.getInitParameter(AUTH_TOKEN_SALT);
         checkNotNull(keySalt, "AtmosphereConfig init parameter '" + AUTH_TOKEN_SALT + "' was not set.");
+        tokenExpirationToleranceInSeconds = config.getInitParameter(Configuration.AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS, 0);
 
         try {
             tokenSigningKey = AuthToken.generateKey(keyPassword, keySalt);
@@ -38,7 +42,7 @@ public class AuthTokenWebSocketInterceptor implements AtmosphereInterceptor {
             AtmosphereRequest request = resource.getRequest();
             AuthToken token = getAuthToken(request);
 
-            if (token != null && !token.isExpired()) {
+            if (token != null && !token.isExpired(tokenExpirationToleranceInSeconds)) {
                 setCurrentUser(request, token);
             }
         } catch (AuthTokenException e) {
@@ -71,7 +75,9 @@ public class AuthTokenWebSocketInterceptor implements AtmosphereInterceptor {
                     cookieSeparatorIndex = cookieString.length();
                 }
                 String tokenString = cookieString.substring(equalsSeperatorIndex + 1, cookieSeparatorIndex).trim();
-                return AuthToken.parse(tokenString, tokenSigningKey);
+                if (!StringUtils.isEmpty(tokenString)) {
+                    return AuthToken.parse(tokenString, tokenSigningKey);
+                }
             }
         }
 

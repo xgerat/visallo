@@ -13,6 +13,7 @@ var BASE_URL = '../../..',
     self = this,
     needsInitialSetup = true,
     publicData = {},
+    ajaxFilters = { pre: [], post: [] },
     pluginsLoaded = (function() {
         var _resolve, _isFinished = false;
         return {
@@ -253,6 +254,10 @@ function drainMessageQueue() {
     }
 }
 
+function ajaxPostfilter(xmlHttpRequest, json, options) {
+    ajaxFilters.post.forEach(f => f.apply(null, arguments))
+}
+
 function ajaxPrefilter(xmlHttpRequest, method, url, parameters) {
     if (publicData) {
         var filters = [
@@ -296,6 +301,8 @@ function ajaxPrefilter(xmlHttpRequest, method, url, parameters) {
             xmlHttpRequest.setRequestHeader('graphTraceEnable', 'true');
         }
     }
+
+    ajaxFilters.pre.forEach(f => f.apply(null, arguments))
 }
 
 function asyncRequireJSLoader(context, moduleName, url) {

@@ -16,12 +16,14 @@ import java.util.Date;
 
 public class AuthTokenHttpResponse extends HttpServletResponseWrapper {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(AuthTokenHttpResponse.class);
+    private static final String EXPIRATION_HEADER_NAME = "Visallo-Auth-Token-Expiration";
 
     private final SecretKey macKey;
     private final HttpServletRequest request;
     private final long tokenValidityDurationInMinutes;
     private final AuthToken token;
     private boolean tokenCookieWritten = false;
+    private boolean tokenHeaderWritten = false;
 
     public AuthTokenHttpResponse(AuthToken token, HttpServletRequest request, HttpServletResponse response, SecretKey macKey, long tokenValidityDurationInMinutes) {
         super(response);
@@ -34,12 +36,14 @@ public class AuthTokenHttpResponse extends HttpServletResponseWrapper {
     @Override
     public ServletOutputStream getOutputStream() throws IOException {
         updateAuthToken();
+        updateExpirationHeader();
         return super.getOutputStream();
     }
 
     @Override
     public PrintWriter getWriter() throws IOException {
         updateAuthToken();
+        updateExpirationHeader();
         return super.getWriter();
     }
 
@@ -47,20 +51,25 @@ public class AuthTokenHttpResponse extends HttpServletResponseWrapper {
         if (isCommitted()) {
             throw new IllegalStateException("Unable to clear auth token. The response is already committed.");
         }
-        Cookie tokenCookie = new Cookie(AuthTokenFilter.TOKEN_COOKIE_NAME, null);
-        tokenCookie.setMaxAge(0);
-        tokenCookie.setSecure(true);
-        tokenCookie.setHttpOnly(true);
-        addCookie(tokenCookie);
-        tokenCookieWritten = true;
+        writeAuthTokenCookie(null, 0);
+    }
+
+    private void updateExpirationHeader() {
+        updateExpirationHeader(token);
+    }
+
+    private void updateExpirationHeader(AuthToken token) {
+        if (!tokenHeaderWritten && token != null) {
+            // Avoid client/server time differences by just sending seconds to expiration
+            Long expiration = token.getExpiration().getTime() - System.currentTimeMillis();
+            setHeader(EXPIRATION_HEADER_NAME, expiration.toString());
+            tokenHeaderWritten = true;
+        }
     }
 
     private void updateAuthToken() throws IOException {
-        if (tokenCookieWritten) {
-            return;
-        }
-
-        if (token != null && !isTokenNearingExpiration(token)) {
+        if (tokenCookieWritten ||
+                (token != null && !isTokenNearingExpiration(token))) {
             return;
         }
 
@@ -72,8 +81,7 @@ public class AuthTokenHttpResponse extends HttpServletResponseWrapper {
             AuthToken token = new AuthToken(userId, username, macKey, tokenExpiration);
 
             try {
-                writeAuthTokenCookie(token);
-                tokenCookieWritten = true;
+                writeAuthTokenCookie(token.serialize(), tokenValidityDurationInMinutes);
             } catch (AuthTokenException e) {
                 LOGGER.error("Auth token serialization failed.", e);
                 sendError(SC_INTERNAL_SERVER_ERROR);
@@ -81,15 +89,18 @@ public class AuthTokenHttpResponse extends HttpServletResponseWrapper {
         }
     }
 
-    private void writeAuthTokenCookie(AuthToken token) throws AuthTokenException {
+    private void writeAuthTokenCookie(String cookieValue, long cookieValidityInMinutes) {
         if (isCommitted()) {
             throw new IllegalStateException("Response committed before auth token cookie written.");
         }
-        Cookie tokenCookie = new Cookie(AuthTokenFilter.TOKEN_COOKIE_NAME, token.serialize());
-        tokenCookie.setMaxAge((int) tokenValidityDurationInMinutes * 60 - 60); // subtract a minute so that browsers never send an expired token
+
+        Cookie tokenCookie = new Cookie(AuthTokenFilter.TOKEN_COOKIE_NAME, cookieValue);
+        tokenCookie.setMaxAge((int) cookieValidityInMinutes * 60);
         tokenCookie.setSecure(true);
         tokenCookie.setHttpOnly(true);
+        tokenCookie.setPath("/");
         addCookie(tokenCookie);
+        tokenCookieWritten = true;
     }
 
     private Date calculateTokenExpiration() {

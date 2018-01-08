@@ -17,6 +17,11 @@ define([
         });
 
         this.after('initialize', function() {
+            require(['util/sessionExpirationOverlay'], SessionOverlay => {
+                // Offline overrides session timeout overlay
+                $(document).teardownComponent(SessionOverlay);
+            });
+
             var self = this;
             $(function() {
                 self.overlay = $(template())

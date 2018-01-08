@@ -1,5 +1,6 @@
 package org.visallo.web;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +39,7 @@ public class SessionProhibitionFilterTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testGetSessionWithArgIsProhibited() throws Exception {
+    public void testGetSessionWithTrueArgIsProhibited() throws Exception {
         RequestResponseHandler nextHandler = (request, response, chain) -> {
             request.getSession(true);
         };
@@ -46,7 +47,15 @@ public class SessionProhibitionFilterTest {
     }
 
     @Test
-    public void testGetRequestSessionIdIsProhibited() throws Exception {
+    public void testGetSessionWithFalseArgIsNotProhibited() throws Exception {
+        RequestResponseHandler nextHandler = (request, response, chain) -> {
+            assertNull("Session should return null", request.getSession(false));
+        };
+        filter.doFilter(request, response, chain(nextHandler));
+    }
+
+    @Test
+    public void testGetRequestSessionId() throws Exception {
         RequestResponseHandler nextHandler = (request, response, chain) -> {
             assertNull(request.getRequestedSessionId());
         };
@@ -54,7 +63,7 @@ public class SessionProhibitionFilterTest {
     }
 
     @Test
-    public void testIsRequestedSessionIdValidIsProhibited() throws Exception {
+    public void testIsRequestedSessionIdValid() throws Exception {
         RequestResponseHandler nextHandler = (request, response, chain) -> {
             assertFalse(request.isRequestedSessionIdValid());
         };
@@ -62,7 +71,7 @@ public class SessionProhibitionFilterTest {
     }
 
     @Test
-    public void testIsRequestedSessionIdFromCookieIsProhibited() throws Exception {
+    public void testIsRequestedSessionIdFromCookie() throws Exception {
         RequestResponseHandler nextHandler = (request, response, chain) -> {
             assertFalse(request.isRequestedSessionIdFromCookie());
         };
@@ -70,7 +79,7 @@ public class SessionProhibitionFilterTest {
     }
 
     @Test
-    public void testIsRequestedSessionIdFromUrlIsProhibited() throws Exception {
+    public void testIsRequestedSessionIdFromUrl() throws Exception {
         RequestResponseHandler nextHandler = (request, response, chain) -> {
             assertFalse(request.isRequestedSessionIdFromUrl());
         };
@@ -78,7 +87,7 @@ public class SessionProhibitionFilterTest {
     }
 
     @Test
-    public void testIsRequestedSessionIdFromURLIsProhibited() throws Exception {
+    public void testIsRequestedSessionIdFromURL() throws Exception {
         RequestResponseHandler nextHandler = (request, response, chain) -> {
             assertFalse(request.isRequestedSessionIdFromURL());
         };

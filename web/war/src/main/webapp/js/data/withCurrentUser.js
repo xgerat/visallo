@@ -6,12 +6,6 @@ define(['data/web-worker/store/user/actions'], function(userActions) {
     function withCurrentUser() {
 
         this.after('initialize', function() {
-            this.on('willLogout', function() {
-                this.worker.postMessage({
-                    type: 'atmosphereConfiguration',
-                    close: true
-                })
-            })
             this.on('didLogout', function() {
                 this.setPublicApi('currentUser', undefined);
                 this.setPublicApi('socketSourceGuid', undefined);

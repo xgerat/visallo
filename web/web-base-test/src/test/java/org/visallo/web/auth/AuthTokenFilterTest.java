@@ -23,16 +23,17 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
-import static org.visallo.core.config.Configuration.AUTH_TOKEN_PASSWORD;
-import static org.visallo.core.config.Configuration.AUTH_TOKEN_SALT;
+import static org.visallo.core.config.Configuration.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AuthTokenFilterTest {
 
-    public static final String PASSWORD = "password";
-    public static final String SALT = "salt";
-    public static final String USERID = "userid";
-    public static final String USERNAME = "username";
+    private static final String EXPIRATION = "60";
+    private static final String EXPIRATION_TOLERANCE = "5";
+    private static final String PASSWORD = "password";
+    private static final String SALT = "salt";
+    private static final String USERID = "userid";
+    private static final String USERNAME = "username";
 
     @Mock
     private FilterConfig filterConfig;
@@ -53,6 +54,8 @@ public class AuthTokenFilterTest {
     public void before() throws ServletException {
         when(filterConfig.getInitParameter(AUTH_TOKEN_PASSWORD)).thenReturn(PASSWORD);
         when(filterConfig.getInitParameter(AUTH_TOKEN_SALT)).thenReturn(SALT);
+        when(filterConfig.getInitParameter(AUTH_TOKEN_EXPIRATION_IN_MINS)).thenReturn(EXPIRATION);
+        when(filterConfig.getInitParameter(AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS)).thenReturn(EXPIRATION_TOLERANCE);
         filter = new AuthTokenFilter();
         filter.init(filterConfig);
     }
@@ -88,6 +91,17 @@ public class AuthTokenFilterTest {
     }
 
     @Test
+    public void testExpiredTokenWithinToleranceDoesSetCurrentUser() throws Exception {
+        AuthToken token = getToken(USERID, USERNAME, new Date(System.currentTimeMillis() - 2000));
+        Cookie cookie = getTokenCookie(token);
+        when(request.getCookies()).thenReturn(new Cookie[] { cookie });
+        filter.doFilter(request, response, chain);
+        verify(request).setAttribute(CurrentUser.STRING_USERID_ATTRIBUTE_NAME, token.getUserId());
+        verify(request).setAttribute(CurrentUser.STRING_USERNAME_ATTRIBUTE_NAME, token.getUsername());
+        verify(chain).doFilter(eq(request), any(HttpServletResponse.class));
+    }
+
+    @Test
     public void testExpiredTokenRemovesTokenCookie() throws Exception {
         AuthToken token = getToken(USERID, USERNAME, new Date(System.currentTimeMillis() - 10000));
         Cookie cookie = getTokenCookie(token);
@@ -98,7 +112,9 @@ public class AuthTokenFilterTest {
             @Override
             public boolean matches(Object c) {
                 Cookie right = (Cookie) c;
-                return right.getName().equals(cookie.getName()) && right.getMaxAge() == 0;
+                return right.getName().equals(cookie.getName())
+                        && right.getMaxAge() == 0
+                        && right.getValue() == null;
             }
         }));
         verify(chain).doFilter(eq(request), any(HttpServletResponse.class));

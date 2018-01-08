@@ -63,6 +63,7 @@ public class ApplicationBootstrap implements ServletContextListener {
             VisalloLoggerFactory.setProcessType("web");
 
             Map<String, String> initParameters = new HashMap<>(getInitParametersAsMap(context));
+            initParameters.putAll(Configuration.DEFAULTS);
             initParameters.putAll(WebConfiguration.DEFAULTS);
             Configuration config = ConfigurationLoader.load(context.getInitParameter(APP_CONFIG_LOADER), initParameters);
             LOGGER = VisalloLoggerFactory.getLogger(ApplicationBootstrap.class);
@@ -196,6 +197,7 @@ public class ApplicationBootstrap implements ServletContextListener {
         servlet.setInitParameter(ApplicationConfig.WEBSOCKET_MAXBINARYSIZE, "1048576");
         servlet.setInitParameter(Configuration.AUTH_TOKEN_PASSWORD, config.get(Configuration.AUTH_TOKEN_PASSWORD, null));
         servlet.setInitParameter(Configuration.AUTH_TOKEN_SALT, config.get(Configuration.AUTH_TOKEN_SALT, null));
+        servlet.setInitParameter(Configuration.AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS, config.get(Configuration.AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS, null));
 
         addSecurityConstraint(servlet, config);
     }
@@ -211,6 +213,7 @@ public class ApplicationBootstrap implements ServletContextListener {
         filter.setInitParameter(Configuration.AUTH_TOKEN_PASSWORD, config.get(Configuration.AUTH_TOKEN_PASSWORD, null));
         filter.setInitParameter(Configuration.AUTH_TOKEN_SALT, config.get(Configuration.AUTH_TOKEN_SALT, null));
         filter.setInitParameter(Configuration.AUTH_TOKEN_EXPIRATION_IN_MINS, config.get(Configuration.AUTH_TOKEN_EXPIRATION_IN_MINS, null));
+        filter.setInitParameter(Configuration.AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS, config.get(Configuration.AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS, null));
         filter.setAsyncSupported(true);
         filter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
     }

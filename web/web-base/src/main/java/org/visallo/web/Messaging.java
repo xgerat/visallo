@@ -230,14 +230,17 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
         broadcaster = resource.getBroadcaster();
         try {
             String authUserId = CurrentUser.getUserId(resource.getRequest());
-            checkNotNull(authUserId, "Could not find current user");
-            User authUser = userRepository.findById(authUserId);
-            checkNotNull(authUser, "Could not find user with id: " + authUserId);
+            if (authUserId != null) {
+                User authUser = userRepository.findById(authUserId);
+                checkNotNull(authUser, "Could not find user with id: " + authUserId);
 
-            if (authUser.getUserStatus() != status) {
-                LOGGER.debug("Setting user %s status to %s", authUserId, status.toString());
-                userRepository.setStatus(authUserId, status);
-                workQueueRepository.pushUserStatusChange(authUser, status);
+                if (authUser.getUserStatus() != status) {
+                    LOGGER.debug("Setting user %s status to %s", authUserId, status.toString());
+                    userRepository.setStatus(authUserId, status);
+                    workQueueRepository.pushUserStatusChange(authUser, status);
+                }
+            } else {
+                LOGGER.warn("User not found in atmosphere request");
             }
         } catch (Exception ex) {
             LOGGER.error("Could not update user status", ex);

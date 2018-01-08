@@ -15,7 +15,27 @@ define([
     configProperties) {
     'use strict';
 
-    return defineComponent(Login, withDataRequest);
+    const LoginMessageKey = 'loginErrorMessage';
+    const ExpireLoginErrorMessageMillis = 60 * 1000;
+
+    const LoginComponent = defineComponent(Login, withDataRequest);
+
+    LoginComponent.setErrorMessage = function(errorMessage) {
+        try {
+            if (errorMessage) {
+                sessionStorage.setItem(LoginMessageKey, JSON.stringify({
+                    errorMessage,
+                    date: Date.now()
+                }));
+            } else {
+                sessionStorage.removeItem(LoginMessageKey);
+            }
+        } catch(e) {
+            console.warn('Unable to write to sessionStorage, can\'t set error message', e);
+        }
+    }
+
+    return LoginComponent;
 
     function Login() {
 
@@ -72,6 +92,23 @@ define([
             } else if (componentPath) {
                 require([componentPath], function(AuthenticationPlugin) {
 
+                    let errorMessage = self.attr.errorMessage;
+                    const messageJson = sessionStorage.getItem(LoginMessageKey);
+
+                    if (!errorMessage) {
+                        const message = messageJson && JSON.parse(messageJson);
+                        // Ignore messages from too far back
+                        if (message &&
+                            _.isString(message.errorMessage) &&
+                            _.isNumber(message.date) &&
+                            (Date.now() - message.date) < ExpireLoginErrorMessageMillis) {
+                            errorMessage = message.errorMessage;
+                        }
+                    }
+                    if (messageJson) {
+                        LoginComponent.setErrorMessage(null);
+                    }
+
                     /**
                      * Custom authentication interface. Trigger `loginSucess`
                      * upon successful login.
@@ -84,7 +121,7 @@ define([
                      * @fires org.visallo.authentication#loginSuccess
                      */
                     AuthenticationPlugin.attachTo(authNode, {
-                        errorMessage: self.attr.errorMessage || ''
+                        errorMessage
                     });
 
                     /**

@@ -31,10 +31,11 @@ public class SessionProhibitionFilter implements Filter {
 
         @Override
         public HttpSession getSession(boolean create) {
-            if (!create) {
-                return null;
+            if (create) {
+                throw new UnsupportedOperationException(ERROR_MSG);
             }
-            throw new UnsupportedOperationException(ERROR_MSG);
+            // Atmosphere calls get session(false), otherwise websockets won't work
+            return null;
         }
 
         @Override

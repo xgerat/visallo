@@ -27,6 +27,13 @@ define(['util/websocket'], function(websocketUtils) {
                 }
             });
 
+            this.on('willLogout', function() {
+                this.worker.postMessage({
+                    type: 'atmosphereConfiguration',
+                    close: true
+                })
+            })
+
             this.on(window, 'offline', this.onWebsocketDisconnect);
             this.on('websocketNotSupportedInWorker', () => {
                 this.off(window, 'offline', this.onWebsocketDisconnect);
@@ -74,7 +81,9 @@ define(['util/websocket'], function(websocketUtils) {
         this.websocketStateOnClose = function(message) {
             if (message && message.error) {
                 console.error('Websocket closed', message.reasonPhrase, message.error);
-            } else console.error('Websocket closed', message.status)
+            } else {
+                console.error('Websocket closed', message.status)
+            }
         };
 
         this.onWebsocketDisconnect = function() {

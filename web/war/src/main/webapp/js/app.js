@@ -530,6 +530,7 @@ define([
         this.logout = function(event, data) {
             var self = this,
                 logoutExtensions = registry.extensionsForPoint('org.visallo.logout'),
+                errorMessage = data && data.message,
                 executeHandlers = function() {
                     if (!logoutExtensions.length) {
                         return true;
@@ -545,7 +546,7 @@ define([
 
                     return true;
                 },
-                showLoginComponent = function() {
+                showLoginComponent = function(errorMessage) {
                     self.trigger('didLogout');
 
                     $('.dialog-popover, .modal, .modal-backdrop, .popover').remove();
@@ -558,9 +559,7 @@ define([
                                 window.location.reload();
                             })
                         Login.teardownAll();
-                        Login.attachTo('#login', {
-                            errorMessage: data && data.message || i18n('visallo.server.not_found')
-                        });
+                        Login.attachTo('#login', { errorMessage });
                         _.defer(function() {
                             self.teardown();
                         });
@@ -569,15 +568,18 @@ define([
 
             if (data && data.byPassLogout) {
                 this.trigger('willLogout');
-                showLoginComponent();
+                showLoginComponent(errorMessage);
             } else if (executeHandlers()) {
                 this.trigger('willLogout');
                 this.dataRequest('user', 'logout')
-                    .then(function() {
-                        window.location.reload();
+                    .then(() => {
+                        require(['login'], Login => {
+                            Login.setErrorMessage(errorMessage);
+                            window.location.reload();
+                        })
                     })
                     .catch(function() {
-                        showLoginComponent();
+                        showLoginComponent(i18n('visallo.server.not_found'));
                     });
             }
         };

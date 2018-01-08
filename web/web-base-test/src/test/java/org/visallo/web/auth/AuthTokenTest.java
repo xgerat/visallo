@@ -44,11 +44,12 @@ public class AuthTokenTest {
     @Test
     public void testTokenReportsExpirationCorrectly() throws Exception {
         SecretKey key = AuthToken.generateKey("password", "salt");
-        Date expiration = new Date(System.currentTimeMillis() - 10000);
+        Date expiration = new Date(System.currentTimeMillis() - 10);
         AuthToken token = new AuthToken("userid", "username", key, expiration);
         String tokenText = token.serialize();
         AuthToken parsedToken = AuthToken.parse(tokenText, key);
-        assertTrue(parsedToken.isExpired());
+        assertFalse(parsedToken.isExpired(60));
+        assertTrue(parsedToken.isExpired(0));
     }
 
     @Test

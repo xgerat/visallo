@@ -97,7 +97,8 @@ public class Configuration {
     public static final int STATUS_REFRESH_INTERVAL_SECONDS_DEFAULT = 10;
     public static final String AUTH_TOKEN_PASSWORD = "auth.token.password";
     public static final String AUTH_TOKEN_SALT = "auth.token.salt";
-    public static final String AUTH_TOKEN_EXPIRATION_IN_MINS = "auth.token.expiration_minutes";
+    public static final String AUTH_TOKEN_EXPIRATION_IN_MINS = WEB_CONFIGURATION_PREFIX + "auth.token.expiration_minutes";
+    public static final String AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS = "auth.token.expiration_tolerance_seconds";
     public static final String SYSTEM_PROPERTY_PREFIX = "visallo.";
 
     private final ConfigurationLoader configurationLoader;
@@ -106,6 +107,13 @@ public class Configuration {
     private OntologyRepository ontologyRepository;
 
     private Map<String, String> config = new HashMap<>();
+
+    public static final Map<String, String> DEFAULTS = new HashMap<>();
+
+    static {
+        DEFAULTS.put(AUTH_TOKEN_EXPIRATION_IN_MINS, "60");
+        DEFAULTS.put(AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS, "60");
+    }
 
     public Configuration(final ConfigurationLoader configurationLoader, final Map<?, ?> config) {
         this.configurationLoader = configurationLoader;

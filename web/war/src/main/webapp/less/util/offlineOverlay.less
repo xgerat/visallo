@@ -8,6 +8,7 @@
   height: 100%;
   z-index: 1100;
   background: fadeout(black, 40%);  
+  text-align: center;
   .disable-text-selection;
   
   div {
@@ -20,16 +21,29 @@
     color: fadeout(white, 40%);
     text-align: center;      
   }
+
+  .session-continue {
+    border: 0;
+    text-transform: uppercase;
+    opacity: 0.6;
+    padding: 1em 2em;
+    font-weight: bold;
+    color: white;
+    background: black;
+    margin-top: 2em;
+  }
   
   h1 {
     font-size: 150%;
     padding: 0;
-    text-shadow: 0 1px 0 fadeout(black, 60%);
   }
   p {
-    color: fadeout(white, 60%);
+    color: #bbb;
     padding-top: 1em;
     font-size: 70%;
+  }
+  h1, p {
+    text-shadow: 0 0 20px fade(black, 25%);
   }
   .last-checked {
     padding-top: 0em;

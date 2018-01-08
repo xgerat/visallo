@@ -1,5 +1,8 @@
 package org.visallo.web.auth;
 
+import org.apache.commons.lang.StringUtils;
+import org.visallo.core.config.Configuration;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.CurrentUser;
@@ -16,17 +19,28 @@ import static org.visallo.core.config.Configuration.*;
 
 public class AuthTokenFilter implements Filter {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(AuthTokenFilter.class);
-
+    private static final int MIN_AUTH_TOKEN_EXPIRATION_MINS = 1;
     public static final String TOKEN_COOKIE_NAME = "JWT";
-    private static final String DEFAULT_TOKEN_EXPIRATION_IN_MINS = "60";
 
     private SecretKey tokenSigningKey;
     private long tokenValidityDurationInMinutes;
+    private int tokenExpirationToleranceInSeconds;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        tokenValidityDurationInMinutes = Long.parseLong(getOptionalInitParameter(filterConfig,
-                AUTH_TOKEN_EXPIRATION_IN_MINS, DEFAULT_TOKEN_EXPIRATION_IN_MINS));
+        tokenValidityDurationInMinutes = Long.parseLong(
+                getRequiredInitParameter(filterConfig, AUTH_TOKEN_EXPIRATION_IN_MINS)
+        );
+        if (tokenValidityDurationInMinutes < MIN_AUTH_TOKEN_EXPIRATION_MINS) {
+            throw new VisalloException("Configuration: " +
+                "'" +  AUTH_TOKEN_EXPIRATION_IN_MINS + "' " +
+                "must be at least " + MIN_AUTH_TOKEN_EXPIRATION_MINS + " minute(s)"
+            );
+        }
+
+        tokenExpirationToleranceInSeconds = Integer.parseInt(
+                getRequiredInitParameter(filterConfig, Configuration.AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS)
+        );
 
         String keyPassword = getRequiredInitParameter(filterConfig, AUTH_TOKEN_PASSWORD);
         String keySalt = getRequiredInitParameter(filterConfig, AUTH_TOKEN_SALT);
@@ -44,14 +58,12 @@ public class AuthTokenFilter implements Filter {
     }
 
     public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
-        //TODO: request = new NoSessionHttpRequestWrapper(request);
-
         try {
             AuthToken token = getAuthToken(request);
             AuthTokenHttpResponse authTokenResponse = new AuthTokenHttpResponse(token, request, response, tokenSigningKey, tokenValidityDurationInMinutes);
 
             if (token != null) {
-                if (token.isExpired()) {
+                if (token.isExpired(tokenExpirationToleranceInSeconds)) {
                     authTokenResponse.invalidateAuthentication();
                 } else {
                     setCurrentUser(request, token);
@@ -82,13 +94,19 @@ public class AuthTokenFilter implements Filter {
             return null;
         }
 
+        Cookie found = null;
+
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals(AuthTokenFilter.TOKEN_COOKIE_NAME)) {
-                return cookie;
+                if (StringUtils.isEmpty(cookie.getValue())) {
+                    return null;
+                } else {
+                    found = cookie;
+                }
             }
         }
 
-        return null;
+        return found;
     }
 
     private void setCurrentUser(HttpServletRequest request, AuthToken token) {
@@ -101,13 +119,5 @@ public class AuthTokenFilter implements Filter {
         String parameter = filterConfig.getInitParameter(parameterName);
         checkNotNull(parameter, "FilterConfig init parameter '" + parameterName + "' was not set.");
         return parameter;
-    }
-
-    private String getOptionalInitParameter(FilterConfig filterConfig, String parameterName, String defaultValue) {
-        String parameterValue = filterConfig.getInitParameter(parameterName);
-        if (parameterValue == null || parameterValue.trim().length() < 1) {
-            return defaultValue;
-        }
-        return parameterValue;
     }
 }

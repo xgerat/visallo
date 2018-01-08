@@ -1,6 +1,9 @@
 package org.visallo.web.auth;
 
-import com.nimbusds.jose.*;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -9,12 +12,13 @@ import com.nimbusds.jwt.SignedJWT;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
-import java.text.ParseException;
 import java.util.Base64;
+import java.util.Calendar;
 import java.util.Date;
 
 public class AuthToken {
@@ -28,11 +32,7 @@ public class AuthToken {
     private final String tokenId;
 
     public AuthToken(String userId, String username, SecretKey macKey, Date expiration) {
-        this.tokenId = generateTokenId();
-        this.userId = userId;
-        this.username = username;
-        this.jwtKey = macKey;
-        this.expiration = expiration;
+        this(AuthToken.generateTokenId(), userId, username, macKey, expiration);
     }
 
     private AuthToken(String tokenId, String userId, String username, SecretKey macKey, Date expiration) {
@@ -99,13 +99,21 @@ public class AuthToken {
         return expiration;
     }
 
-    public boolean isExpired() {
-        return expiration.before(new Date());
+    public boolean isExpired(int toleranceInSeconds) {
+        Calendar expirationWithTolerance = Calendar.getInstance();
+        expirationWithTolerance.setTime(expiration);
+        expirationWithTolerance.add(Calendar.SECOND, toleranceInSeconds);
+        return expirationWithTolerance.getTime().before(new Date());
     }
 
-    private String generateTokenId() {
-        byte[] n = new byte[128];
-        SECURE_RANDOM.nextBytes(n);
-        return Long.toString(System.currentTimeMillis(), 16) + ":" + Base64.getUrlEncoder().encodeToString(n);
+    private static String generateTokenId() {
+        byte[] randomBytes = new byte[128];
+        SECURE_RANDOM.nextBytes(randomBytes);
+
+        ByteBuffer currentTimeBuffer = ByteBuffer.allocate(Long.BYTES);
+        currentTimeBuffer.putLong(System.currentTimeMillis());
+
+        return Base64.getEncoder().encodeToString(randomBytes)
+                + "@" + Base64.getEncoder().encodeToString(currentTimeBuffer.array());
     }
 }
