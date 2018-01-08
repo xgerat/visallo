@@ -2,6 +2,7 @@ package org.visallo.web.routes.user;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.visallo.core.model.user.UserSessionCounterRepository;
 import org.visallo.webster.ParameterizedHandler;
 import org.visallo.webster.annotations.Handle;
 import org.visallo.webster.annotations.Optional;
@@ -30,14 +31,17 @@ public class UserList implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserList.class);
     private final UserRepository userRepository;
     private final WorkspaceRepository workspaceRepository;
+    private final UserSessionCounterRepository sessionCountRepository;
 
     @Inject
     public UserList(
             final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository
+            final WorkspaceRepository workspaceRepository,
+            UserSessionCounterRepository sessionCountRepository
     ) {
         this.userRepository = userRepository;
         this.workspaceRepository = workspaceRepository;
+        this.sessionCountRepository = sessionCountRepository;
     }
 
     @Handle
@@ -48,7 +52,8 @@ public class UserList implements ParameterizedHandler {
             @Optional(name = "userIds[]") String[] userIds,
             @Optional(name = "status") String status,
             @Optional(name = "skip", defaultValue = "0") int skip,
-            @Optional(name = "limit", defaultValue = "100") int limit
+            @Optional(name = "limit", defaultValue = "100") int limit,
+            @Optional(name = "includeSessionCount", defaultValue = "false") boolean includeSessionCount
     ) throws Exception {
         List<User> users;
         if (userIds != null) {
@@ -76,7 +81,22 @@ public class UserList implements ParameterizedHandler {
         Iterable<String> workspaceIds = getCurrentWorkspaceIds(users);
         Map<String, String> workspaceNames = getWorkspaceNames(workspaceIds, user);
 
-        return userRepository.toClientApi(users, workspaceNames);
+        Map<String, Integer> sessionCounts = null;
+        if (includeSessionCount) {
+            sessionCounts = getSessionCounts(users);
+        }
+
+        return userRepository.toClientApi(users, workspaceNames, sessionCounts);
+    }
+
+    private Map<String, Integer> getSessionCounts(Iterable<User> users) {
+        Map<String, Integer> counts = new HashMap<>();
+        for (User user : users) {
+            String userId = user.getUserId();
+            int count = sessionCountRepository.getSessionCount(userId);
+            counts.put(userId, count);
+        }
+        return counts;
     }
 
     private Map<String, String> getWorkspaceNames(Iterable<String> workspaceIds, User user) {

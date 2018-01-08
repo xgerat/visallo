@@ -164,15 +164,21 @@ public abstract class UserRepository {
     }
 
     public ClientApiUser toClientApi(User user) {
-        return toClientApi(user, null);
+        return toClientApi(user, null, null);
     }
 
-    private ClientApiUser toClientApi(User user, Map<String, String> workspaceNames) {
+    private ClientApiUser toClientApi(User user, Map<String, String> workspaceNames, Map<String, Integer> sessionCounts) {
         ClientApiUser u = new ClientApiUser();
         u.setId(user.getUserId());
         u.setUserName(user.getUsername());
         u.setDisplayName(user.getDisplayName());
         u.setStatus(user.getUserStatus());
+        if (sessionCounts != null) {
+            Integer count = sessionCounts.get(user.getUserId());
+            if (count != null) {
+                u.setSessionCount(count);
+            }
+        }
         u.setUserType(user.getUserType());
         u.setEmail(user.getEmailAddress());
         u.setCurrentLoginDate(user.getCurrentLoginDate());
@@ -186,14 +192,19 @@ public abstract class UserRepository {
         return u;
     }
 
+
     protected String formatUsername(String username) {
         return username.trim().toLowerCase();
     }
 
     public ClientApiUsers toClientApi(Iterable<User> users, Map<String, String> workspaceNames) {
+        return toClientApi(users, workspaceNames, null);
+    }
+
+    public ClientApiUsers toClientApi(Iterable<User> users, Map<String, String> workspaceNames, Map<String, Integer> sessionCounts) {
         ClientApiUsers clientApiUsers = new ClientApiUsers();
         for (User user : users) {
-            clientApiUsers.getUsers().add(toClientApi(user, workspaceNames));
+            clientApiUsers.getUsers().add(toClientApi(user, workspaceNames, sessionCounts));
         }
         return clientApiUsers;
     }
