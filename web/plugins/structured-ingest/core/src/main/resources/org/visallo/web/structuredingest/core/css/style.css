@@ -1,16 +1,16 @@
 
 .com-visallo-csv.modal.fade.in,
 .com-visallo-csv {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin: 0;
-    -moz-transform: translate(-50%, -50%);
-    -webkit-transform: translate(-50%, -50%);
-    -ms-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-    width: auto;
-    max-width: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  -moz-transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  width: auto;
+  max-width: 90vw;
 }
 
 .com-visallo-csv table {
@@ -93,6 +93,7 @@
   border-width: 1px 0 1px 1px;
   flex: 1 1 33%;
   white-space: nowrap;
+  padding: 0.2em 0.5em;
 }
 .com-visallo-csv .modal-header .segmented-control button:last-child {
   border-width: 1px;
