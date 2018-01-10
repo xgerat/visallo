@@ -56,7 +56,7 @@ define(['util/websocket'], function(websocketUtils) {
         };
 
         this.getAtmosphereConfiguration = function() {
-            // https://github.com/Atmosphere/atmosphere/wiki/jQuery.atmosphere.js-atmosphere.js-API
+            // https://github.com/Atmosphere/atmosphere/wiki/atmosphere.js-API#attributes
             return {
                 url: location.origin + location.pathname.replace(/jsc.*$/, '') + 'messaging',
                 transport: 'websocket',
