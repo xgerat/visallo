@@ -3,7 +3,6 @@ package org.visallo.core.ingest.graphProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -443,13 +442,14 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
                 in = new FileInputStream(tempFile);
             }
 
-            TeeInputStream teeInputStream = new TeeInputStream(in, workerNames);
-            for (int i = 0; i < interestedWorkerWrappers.size(); i++) {
-                interestedWorkerWrappers.get(i).enqueueWork(teeInputStream.getTees()[i], workData);
-            }
-            teeInputStream.loopUntilTeesAreClosed();
-            for (GraphPropertyThreadedWrapper interestedWorkerWrapper : interestedWorkerWrappers) {
-                interestedWorkerWrapper.dequeueResult(false);
+            try (TeeInputStream teeInputStream = new TeeInputStream(in, workerNames)) {
+                for (int i = 0; i < interestedWorkerWrappers.size(); i++) {
+                    interestedWorkerWrappers.get(i).enqueueWork(teeInputStream.getTees()[i], workData);
+                }
+                teeInputStream.loopUntilTeesAreClosed();
+                for (GraphPropertyThreadedWrapper interestedWorkerWrapper : interestedWorkerWrappers) {
+                    interestedWorkerWrapper.dequeueResult(false);
+                }
             }
         } finally {
             if (tempFile != null) {
@@ -457,6 +457,7 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
                     LOGGER.warn("Could not delete temp file %s", tempFile.getAbsolutePath());
                 }
             }
+            in.close();
         }
     }
 
