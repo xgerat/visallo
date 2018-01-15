@@ -21,24 +21,29 @@ define([
             onCreateNewElement: PropTypes.func,
             searchOptions: PropTypes.object
         },
+
         getDefaultProps() {
             return { searchOptions: {} };
         },
+
         getInitialState() {
             return { options: [], isLoading: false };
         },
+
         componentDidMount() {
             this.onInputChange = _.debounce(this.onInputChange, 250);
             const { value } = this.props;
             if (value) {
-                this.searchForElements(value)
+                this.searchForElements(value, true)
             }
         },
+
         componentWillUnmount() {
             if (this.request) {
                 this.request.cancel();
             }
         },
+
         render() {
             const { value: initialValue, creatable, ...rest } = this.props;
             const { value, options, isLoading } = this.state;
@@ -63,7 +68,8 @@ define([
                 />
             )
         },
-        searchForElements(input) {
+
+        searchForElements(input, autoSelect = false) {
             const { searchOptions, filterResultsToTitleField } = this.props;
             const query = `${input}*`;
 
@@ -109,16 +115,21 @@ define([
                         });
                     }
 
-                    const startIndex = creatable ? 1 : 0;
-                    let toSelect;
-                    if (options.length > startIndex) {
-                        toSelect = options[startIndex];
-                    } else if (creatable) {
-                        toSelect = options[0];
-                    }
                     this.setState({ options, isLoading: false });
-                    if (toSelect) {
-                        this.onChange(toSelect);
+
+                    if (autoSelect) {
+                        const startIndex = creatable ? 1 : 0;
+                        let toSelect;
+
+                        if (options.length > startIndex) {
+                            toSelect = options[startIndex];
+                        } else if (creatable) {
+                            toSelect = options[0];
+                        }
+
+                        if (toSelect) {
+                            this.onChange(toSelect);
+                        }
                     }
                 })
                 .catch(error => {
@@ -126,9 +137,11 @@ define([
                     this.setState({ isLoading: false })
                 })
         },
+
         onInputChange(input) {
             this.searchForElements(input)
         },
+
         onChange(option) {
             if (option) {
                 this.setState({ value: option.id })
@@ -149,6 +162,7 @@ define([
                 }
             }
         },
+
         elementValueRenderer(option) {
             const { creatable, input } = option;
             if (creatable) {

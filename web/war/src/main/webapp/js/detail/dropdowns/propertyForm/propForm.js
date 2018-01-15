@@ -8,8 +8,7 @@ define([
     'util/withTeardown',
     'util/vertex/vertexSelect',
     'util/vertex/formatters',
-    'util/withDataRequest',
-    'util/acl'
+    'util/withDataRequest'
 ], function(
     require,
     defineComponent,
@@ -20,8 +19,7 @@ define([
     withTeardown,
     VertexSelector,
     F,
-    withDataRequest,
-    acl
+    withDataRequest
 ) {
     'use strict';
 
@@ -122,6 +120,8 @@ define([
             }
 
             const propertyNode = this.select('propertyListSelector').show();
+            propertyNode.teardownAllComponents();
+
             propertyNode.one('rendered', () => {
                 this.on('opened', () => {
                     propertyNode.find('input').focus()
@@ -130,6 +130,7 @@ define([
                     this.manualOpen();
                 })
             });
+
             PropertySelector.attachTo(propertyNode, {
                 filter: {
                     conceptId: this.attr.data.conceptType,
