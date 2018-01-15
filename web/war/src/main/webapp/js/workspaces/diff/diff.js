@@ -110,12 +110,18 @@ define([
         }
 
         this.updateCounts = function() {
-            let totalCount = 0;
-            const { publishCount, undoCount } = this.flatDiffs.reduce(({ publishCount, undoCount }, { action, publish, undo }) => {
+            let totalCount = 0, ontologyRequiredCount = 0;
+            const { publishCount, undoCount } = this.flatDiffs.reduce(({ publishCount, undoCount }, diff) => {
+                const { action, publish, undo, requiresOntologyPublish, requiresOntologyPublishProperty } = diff;
                 let inc = 0;
+
                 if (!action || action.type !== 'update') {
                     inc = 1;
                     totalCount++;
+
+                    if (requiresOntologyPublish || requiresOntologyPublishProperty) {
+                        ontologyRequiredCount++;
+                    }
                 }
                 return {
                     publishCount: publish ? publishCount + inc : publishCount,
@@ -123,7 +129,7 @@ define([
                 }
             }, { publishCount: 0, undoCount: 0 });
 
-            this.renderCounts = { publishCount, undoCount, totalCount };
+            this.renderCounts = { publishCount, undoCount, totalCount, ontologyRequiredCount };
         }
 
         this.setup = function() {
@@ -437,32 +443,47 @@ define([
 
             this.resetWarning();
 
-            var self = this;
             this.diffs
-                .filter(function(diff) {
-                    return allowSelect(diff) && diff.action.type !== 'update'
-                })
-                .forEach(function(diff) {
-                    selectAction(diff, action);
-                    diff.properties.forEach(function(property) {
-                        selectAction(property, action);
-                    });
+                .forEach((diff) => {
+                    if (allowSelect(diff, action)) {
+                        selectAction(diff, action);
+                        diff.properties.forEach((property) => {
+                            selectAction(property, action)
+                        });
+                    } else if (action === 'publish') {
+                        diff.undo = false;
+                    }
                 });
-            Object.keys(this.diffsById).forEach(function(id) {
-                if (allowSelect(self.diffsById[id])) {
-                    selectAction(self.diffsById[id], action);
+
+            _.values(this.diffsById).forEach(diff => {
+                if (allowSelect(diff, action)) {
+                    selectAction(diff, action);
+                } else if (action === 'publish') {
+                    diff.undo = false;
                 }
             });
             this.updateCounts();
             this.render();
 
-            function allowSelect(diff) {
-                return !diff.requiresOntologyPublish || canPublishOntology;
+            function allowSelect(diff, action) {
+                return (
+                    (!diff.action || diff.action.type !== 'update')
+                    && (
+                        action === 'undo'
+                        || !(diff.requiresOntologyPublish || diff.requiresOntologyPublishProperty)
+                        || canPublishOntology
+                    )
+                );
             }
             function selectAction(diff, action) {
                 diff.publish = false;
                 diff.undo = false;
-                diff[action] = true;
+
+                if (action === 'undo'
+                    || !(diff.requiresOntologyPublish || diff.requiresOntologyPublishProperty)
+                    || canPublishOntology) {
+                    diff[action] = true;
+                }
             }
         };
 
@@ -519,10 +540,11 @@ define([
         };
 
         this.onApplyAll = function(type, publishOntology) {
-            var self = this,
-                publishing = type === 'publish';
+            const self = this;
+            const publishing = type === 'publish';
+            const canPublishOntology = Boolean(visalloData.currentUser.privilegesHelper.ONTOLOGY_PUBLISH);
 
-            if (publishing && !publishOntology) {
+            if (publishing && !publishOntology && canPublishOntology) {
                 var ontologyToPublish = this.buildOntologyToPublish();
                 if (_.some(ontologyToPublish, _.size)) {
                     if (this.skipSchemaWarning) {
@@ -639,31 +661,42 @@ define([
         };
 
         this.buildDiffsToSend = function(applyType) {
-            var self = this,
-                diffsToSend = [];
-            this.diffs.forEach(function(diff) {
-                var vertexId = diff.vertexId,
-                    edgeId = diff.edgeId,
-                    properties = diff.properties;
-                if (diff[applyType]) {
-                    if (diff.vertex) {
-                        diffsToSend.push(vertexDiffToSend(diff));
-                    } else if (diff.edge) {
-                        diffsToSend.push(edgeDiffToSend(diff));
-                    }
-                    diff.applying = self.diffsById[vertexId || edgeId].applying = true;
-                }
-                properties
-                    .filter(function(property) { return property[applyType]; })
-                    .forEach(function(property) {
-                        property.applying = self.diffsById[property.id].applying = true;
-                        if (property.diffs) {
-                            diffsToSend = diffsToSend.concat(property.diffs.map(propertyDiffToSend))
-                        } else {
-                            diffsToSend.push(propertyDiffToSend(property));
+            const self = this;
+            const publishing = applyType === 'publishing';
+            const canPublishOntology = Boolean(visalloData.currentUser.privilegesHelper.ONTOLOGY_PUBLISH);
+            let diffsToSend = [];
+
+            this.diffs
+                .filter(diff => {
+                    return !publishing
+                        || !(diff.requiresOntologyPublish || diff.requiresOntologyPublishProperty)
+                        || canPublishOntology;
+                }).forEach(function(diff) {
+                    const vertexId = diff.vertexId;
+                    const edgeId = diff.edgeId;
+                    const properties = diff.properties;
+
+                    if (diff[applyType]) {
+                        if (diff.vertex) {
+                            diffsToSend.push(vertexDiffToSend(diff));
+                        } else if (diff.edge) {
+                            diffsToSend.push(edgeDiffToSend(diff));
                         }
-                    });
-            });
+                        diff.applying = self.diffsById[vertexId || edgeId].applying = true;
+                    }
+
+                    properties
+                        .filter(function(property) { return property[applyType]; })
+                        .forEach(function(property) {
+                            property.applying = self.diffsById[property.id].applying = true;
+                            if (property.diffs) {
+                                diffsToSend = diffsToSend.concat(property.diffs.map(propertyDiffToSend))
+                            } else {
+                                diffsToSend.push(propertyDiffToSend(property));
+                            }
+                        });
+                });
+
             return diffsToSend;
 
             function vertexDiffToSend(diff) {
@@ -745,13 +778,8 @@ define([
             var self = this,
                 diff = this.diffsById[diffId],
                 deps = this.diffDependencies[diffId] || [],
-                canPublishOntology = Boolean(visalloData.currentUser.privilegesHelper.ONTOLOGY_PUBLISH),
                 vertexDiff;
             state = state === undefined ? !diff.undo : state;
-
-            if (diff.requiresOntologyPublish && !canPublishOntology) {
-                return;
-            }
 
             this.resetWarning();
 

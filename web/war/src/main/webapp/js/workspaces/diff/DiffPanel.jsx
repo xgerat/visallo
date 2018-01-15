@@ -89,13 +89,15 @@ define([
                 publishCount,
                 undoCount,
                 totalCount,
+                ontologyRequiredCount,
                 publishing,
                 undoing,
                 onApplyPublishClick,
                 onApplyUndoClick
             } = this.props;
-            const publishingAll = publishCount === totalCount;
-            const undoingAll = undoCount === totalCount;
+            const totalPublishCount = Privileges.missingONTOLOGY_PUBLISH ? (totalCount - ontologyRequiredCount) : totalCount;
+            const publishingAll = publishCount > 0 && publishCount === totalPublishCount;
+            const undoingAll = undoCount > 0 && undoCount === totalCount;
 
             return (
               <div className="diff-header">
@@ -171,7 +173,6 @@ define([
         renderDiffActions: function(id, { publish, undo, requiresOntologyPublish }) {
             const { publishing, undoing, onPublishClick, onUndoClick } = this.props;
             const applying = publishing || undoing;
-
             const disabledBecauseOntologyChange = requiresOntologyPublish && Privileges.missingONTOLOGY_PUBLISH;
 
             return (
@@ -190,7 +191,7 @@ define([
                                 {i18n('workspaces.diff.button.publish')}
                             </button>
                         ) : null}
-                        {Privileges.canEDIT && !disabledBecauseOntologyChange ? (
+                        {Privileges.canEDIT ? (
                             <button className={
                                 classNames('btn', 'btn-mini', 'undo', 'requires-EDIT', {
                                     'btn-danger': undo
