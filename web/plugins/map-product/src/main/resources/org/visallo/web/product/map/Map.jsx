@@ -137,7 +137,7 @@ define([
 
         render() {
             const { viewport, generatePreview } = this.state;
-            const { product, registry, panelPadding, focused, layerConfig, setLayerOrder, onSelectElements } = this.props;
+            const { product, registry, panelPadding, focused, layerConfig, setLayerOrder, onAddSelection, onSelectElements } = this.props;
             const { source: baseSource, sourceOptions: baseSourceOptions, ...config } = mapConfig();
             const layerExtensions = _.indexBy(registry['org.visallo.map.layer'], 'id');
 
@@ -161,6 +161,7 @@ define([
                         onPan={this.onViewport}
                         onZoom={this.onViewport}
                         onContextTap={this.onContextTap}
+                        onAddSelection={onAddSelection}
                         onSelectElements={onSelectElements}
                         onMouseOver={this.onMouseOver}
                         onMouseOut={this.onMouseOut}

@@ -110,12 +110,25 @@ define([
             },
 
             addEvents(map, { source, clusterSource, layers }, handlers) {
-                const [heatmapLayer, vectorLayer] = layers;
+                const [ heatmapLayer, vectorLayer ] = layers;
                 const addToElements = list => feature => {
                     const el = feature.get('element');
                     const key = el.type === 'vertex' ? 'vertices' : 'edges';
                     list[key].push(el.id);
-                }
+                };
+                const isPartiallySelected = (cluster) => {
+                    if (cluster.get('count') < 2) return false;
+
+                    const features = cluster.get('features');
+                    const selected = features.filter(f => f.get('selected'));
+                    return 0 < selected.length && selected.length < features.length;
+                };
+                const getClusterFromEvent = ({ pixel }) => {
+                    const pixelFeatures = map.getFeaturesAtPixel(pixel, {
+                        layerFilter: layer => layer === vectorLayer
+                    });
+                    return pixelFeatures && pixelFeatures[0];
+                };
 
                 // For heatmap selections
                 const onHeatmapClick = map.on('click', ({ pixel }) => {
@@ -123,24 +136,57 @@ define([
                     map.forEachFeatureAtPixel(pixel, addToElements(elements), {
                         layerFilter: layer => layer === heatmapLayer
                     });
-                    handlers.onSelectElements(elements);
-                })
 
-                // For cluster pins selections
+                    if (elements.vertices.length || elements.edges.length) {
+                        handlers.onSelectElements(elements);
+                    }
+                });
+
+                // For partial cluster selections
+                const onClusterClick = map.on('click', event => {
+                    const targetFeature = getClusterFromEvent(event);
+
+                    if (targetFeature && isPartiallySelected(targetFeature)) {
+                        const elements = { vertices: [], edges: [] };
+                        const clusterIterator = addToElements(elements);
+
+                        targetFeature.get('features').forEach(clusterIterator);
+                        handlers.onAddSelection(elements);
+                    }
+                });
+
+                //this does not support ol.interaction.Select.multi because of partial cluster selection
                 const selectInteraction = new ol.interaction.Select({
+                    addCondition: (event) => {
+                        if (event.originalEvent.shiftKey) {
+                            return true;
+                        } else {
+                            const targetFeature = getClusterFromEvent(event);
+                            return !!targetFeature && isPartiallySelected(targetFeature);
+                        }
+                    },
                     condition: ol.events.condition.click,
+                    toggleCondition: ol.events.condition.platformModifierKeyOnly,
                     layers: [vectorLayer],
                     style: cluster => this.style(cluster, { source, selected: true })
                 });
 
                 map.addInteraction(selectInteraction);
 
-                const onSelectCluster = selectInteraction.on('select', function(e) {
-                    const clusters = e.target.getFeatures().getArray(),
-                        elements = { vertices: [], edges: [] },
-                        clusterIterator = addToElements(elements);
+                const onSelectCluster = selectInteraction.on('select', function(event) {
+                    const { selected, target: interaction } = event;
+                    const clusters = interaction.getFeatures();
+                    const elements = { vertices: [], edges: [] };
+                    const clusterIterator = addToElements(elements);
 
-                    clusters.forEach(cluster => cluster.get('features').forEach(clusterIterator))
+                    clusters.forEach(cluster => {
+                        let features = cluster.get('features');
+                        if (isPartiallySelected(cluster) && !selected.includes(cluster)) {
+                            features = features.filter(f => f.get('selected'));
+                        }
+                        features.forEach(clusterIterator);
+                    });
+
                     handlers.onSelectElements(elements);
                 });
 
@@ -177,9 +223,10 @@ define([
                 }, 100));
 
                 return [
+                    onHeatmapClick,
+                    onClusterClick,
                     onSelectCluster,
-                    onClusterSourceChange,
-                    onHeatmapClick
+                    onClusterSourceChange
                 ]
             },
 
