@@ -453,29 +453,27 @@ define([
         }
 
         this.onVisibilityChange = function(event, data) {
-            var self = this;
+            const { value, title, metadata } = this.currentProperty;
+            const isVisibilityProp = title === 'http://visallo.org#visibilityJson';
+            const isExistingProp = isVisibilityProp || (metadata && 'http://visallo.org#visibilityJson' in metadata);
+            const isModified = (isExistingProp, isVisibilityProp) => {
+                let current = data.value;
+                let previous = isVisibilityProp ? value.source : metadata['http://visallo.org#visibilityJson'].source;
+
+                if (isVisibilityProp && !isExistingProp) {
+                    return !!current;
+                } else {
+                    return current ? current !== previous : !!previous;
+                }
+            };
+
+            this.visibilitySource = data;
+            this.modified.visibility = isExistingProp || isVisibilityProp
+                ? isModified(isExistingProp, isVisibilityProp)
+                : !!this.visibilitySource.value;
 
             this.select('visibilityInputSelector').toggleClass('invalid', !data.valid);
-            this.visibilitySource = data;
-            const metadata = this.currentProperty.metadata;
-            this.modified.visibility = metadata && 'http://visallo.org#visibilityJson' in metadata ? visibilityModified() : !!this.visibilitySource.value;
             this.checkValid();
-
-            function visibilityModified() {
-                var currentVisibility = self.visibilitySource.value,
-                    previousVisibility;
-                if (self.currentProperty.title === 'http://visallo.org#visibilityJson') {
-                    previousVisibility = self.currentProperty.value.source;
-                } else {
-                    previousVisibility = self.currentProperty.metadata['http://visallo.org#visibilityJson'].source;
-                }
-
-                if (!currentVisibility) {
-                    return !!previousVisibility;
-                } else {
-                    return currentVisibility !== previousVisibility;
-                }
-            }
         };
 
         this.onJustificationChange = function(event, data) {
