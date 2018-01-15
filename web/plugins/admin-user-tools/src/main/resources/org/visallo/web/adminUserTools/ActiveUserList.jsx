@@ -30,8 +30,7 @@ define([
                 error: null
             });
             this.dataRequest('user', 'search', {
-                status: 'ACTIVE',
-                includeSessionCount: true
+                status: 'ACTIVE'
             })
                 .then(users => {
                     this.setState({
@@ -75,9 +74,6 @@ define([
                             } = user;
 
                             return (<li className="highlight-on-hover" key={id}>
-                                <span
-                                    title={i18n('admin.user.activeList.sessionCount')}
-                                    class="badge pull-right">{isNaN(sessionCount) ? '?' : sessionCount}</span>
                                 <span className="nav-list-title">{userName}</span>
                                 <ul className="inner-list">
                                     <label className="nav-header">

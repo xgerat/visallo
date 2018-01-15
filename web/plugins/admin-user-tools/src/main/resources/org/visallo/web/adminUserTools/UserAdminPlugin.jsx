@@ -69,44 +69,52 @@ define([
         },
 
         render() {
+            const { user } = this.state;
+
             return (
                 <div className="user-admin">
                     <LoadUser
                         reload={this.state.reloadUser}
                         username={this.state.user ? this.state.user.userName : ''}
                         onUserLoaded={this.handleUserLoaded}/>
-                    { this.state.user ? (
+                    { user ? (
                         <div>
                             <div className="nav-header">{i18n('admin.user.editor.info.header')}</div>
                             <ul>
                                 <li>
                                     <label className="nav-header">{i18n('admin.user.editor.info.id')}</label>
-                                    <span>{this.state.user.id}</span>
+                                    <span>{user.id}</span>
                                 </li>
                                 <li>
                                     <label className="nav-header">{i18n('admin.user.editor.info.email')}</label>
-                                    <span>{this.state.user.email || i18n('admin.user.editor.notSet')}</span>
+                                    <span>{user.email || i18n('admin.user.editor.notSet')}</span>
                                 </li>
                                 <li>
                                     <label className="nav-header">{i18n('admin.user.editor.info.displayName')}</label>
-                                    <span>{this.state.user.displayName || i18n('admin.user.editor.notSet')}</span>
+                                    <span>{user.displayName || i18n('admin.user.editor.notSet')}</span>
                                 </li>
                                 <li>
                                     <label className="nav-header">{i18n('admin.user.editor.info.status')}</label>
-                                    <span>{this.state.user.status}</span>
+                                    <span>{user.status}</span>
                                 </li>
+                                { user.sessionCount ? (
+                                <li>
+                                    <label className="nav-header">{i18n('admin.user.editor.info.sessionCount')}</label>
+                                    <span>{ user.sessionCount }</span>
+                                </li>
+                                ) : null }
                             </ul>
 
                             <div>
-                                <this.PrivilegesPlugin user={this.state.user}/>
+                                <this.PrivilegesPlugin user={user}/>
                             </div>
 
                             <div>
-                                <this.AuthorizationsPlugin user={this.state.user}/>
+                                <this.AuthorizationsPlugin user={user}/>
                             </div>
 
                             <div>
-                                <WorkspaceList user={this.state.user}
+                                <WorkspaceList user={user}
                                                onWorkspaceChanged={this.handleWorkspaceChanged}
                                 />
                             </div>
