@@ -97,7 +97,7 @@ define([
                         const initializer = layerHelpers.byType[type] || registry['org.visallo.map.layer'].find(e => e.type === type);
 
                         if (initializer) {
-                            const layerWithSource = initializer.configure(layerId, options);
+                            const layerWithSource = initializer.configure(layerId, options, map);
 
                             if (_.isFunction(initializer.addEvents)) {
                                 this.olEvents.concat(initializer.addEvents(map, layerWithSource, handlers));
@@ -380,8 +380,10 @@ define([
                     const source = layersWithSources.cluster.layers.includes(layer) ?
                         layersWithSources.cluster.source : layer.getSource();
 
-                    if (layer.getVisible() && _.isFunction(source.getExtent)) {
-                        ol.extent.extend(extent, source.getExtent());
+                    if (layer.getVisible()) {
+                        if (_.isFunction(source.getExtent)) {
+                            ol.extent.extend(extent, source.getExtent());
+                        }
                     }
                 })
             }
@@ -463,14 +465,15 @@ define([
                 layers: [],
                 target: this.refs.map
             });
+
             const layersWithSources = {};
 
-            const base = layerHelpers.byType.tile.configure('base', { source: baseSource, sourceOptions: baseSourceOptions });
+            const base = layerHelpers.byType.tile.configure('base', { source: baseSource, sourceOptions: baseSourceOptions }, map);
             this.olEvents.concat(layerHelpers.byType.tile.addEvents(map, base, handlers));
             map.addLayer(base.layer);
 
             const initializeLayer = (layerHelper, layerId, options) => {
-                const layerWithSource = layerHelper.configure(layerId, options);
+                const layerWithSource = layerHelper.configure(layerId, options, map);
 
                 if (_.isFunction(layerHelper.addEvents)) {
                     this.olEvents.concat(layerHelper.addEvents(map, layerWithSource, handlers));

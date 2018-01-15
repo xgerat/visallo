@@ -187,11 +187,22 @@ define([
         },
 
         ancillary: {
-            configure(id, options = {}) {
+            configure(id, options = {}, map) {
                 const source = new ol.source.Vector({
                     features: [],
                     wrapX: false
                 });
+                if (options.getExtent) {
+                    const _superExtent = source.getExtent;
+                    source.getExtent = function() {
+                        const extent = _superExtent && _superExtent.apply(this, arguments);
+                        const customExtent = options.getExtent(map, source, extent);
+                        if (ol.extent.isEmpty(customExtent)) {
+                            return extent || ol.extent.createEmpty();
+                        }
+                        return customExtent || extent || ol.extent.createEmpty();
+                    };
+                }
                 const layer = new ol.layer.Vector({
                     ...DEFAULT_LAYER_CONFIG,
                     id,
