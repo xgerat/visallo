@@ -41,6 +41,8 @@ define([
             const product = productSelectors.getProduct(state);
             const { loading, loaded } = productSelectors.getStatus(state);
             const extensions = registry.extensionsForPoint('org.visallo.workproduct');
+            const workspace = state.workspace.currentId ?
+                state.workspace.byId[state.workspace.currentId] : null;
 
             if (product) {
                 const productExtensions = _.where(extensions, { identifier: product.kind });
@@ -55,11 +57,10 @@ define([
                     padding: state.panel.padding,
                     product,
                     hasPreview: Boolean(productSelectors.getPreviewHash(state)),
-                    extension: productExtensions[0]
+                    extension: productExtensions[0],
+                    workspace
                 }
             } else if (extensions.length && loaded) {
-                const workspace = state.workspace.currentId ?
-                    state.workspace.byId[state.workspace.currentId] : null;
                 const user = state.user.current;
                 return {
                     padding: state.panel.padding,
@@ -67,7 +68,8 @@ define([
                     extensions,
                     editable: workspace && user ?
                         workspace.editable && user.privileges.includes('EDIT') :
-                        false
+                        false,
+                    workspace
                 };
             }
             return {}

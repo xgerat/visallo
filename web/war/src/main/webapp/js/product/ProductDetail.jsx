@@ -13,7 +13,8 @@ define([
             }).isRequired,
             extension: PropTypes.shape({
                 componentPath: PropTypes.string.isRequired
-            }).isRequired
+            }).isRequired,
+            workspace: PropTypes.object
         },
 
         getInitialState: () => ({ Component: null }),
@@ -28,11 +29,11 @@ define([
 
         render() {
             const { Component } = this.state;
-            const { product, editable, hasPreview } = this.props;
+            const { product, editable, hasPreview, workspace } = this.props;
             const { extendedData, title } = product;
 
             return (
-                Component && extendedData ? (
+                Component && extendedData && workspace ? (
                     <ErrorBoundary>
                         <Component product={this.props.product} hasPreview={hasPreview}></Component>
                     </ErrorBoundary>
