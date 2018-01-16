@@ -29,5 +29,27 @@ else
   fi
 
   CREATED_BY="${TRAVIS_REPO_SLUG} commit "`git rev-parse --short HEAD`""
-  if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then ./travis/travis-request.sh --repo ${TRAVIS_DOWNSTREAM_REPO} --token ${TRAVIS_ACCESS_TOKEN_PRO} --by "${CREATED_BY}" --branch ${TRAVIS_BRANCH}; fi
+  REPOS_BRANCH=${TRAVIS_BRANCH}
+
+  if [ ${TRAVIS_BRANCH} = "master" ] || echo ${TRAVIS_BRANCH} | grep -Eq '^release-.*$'; then
+    if [ ! -z ${TRAVIS_PULL_REQUEST_BRANCH} ]; then
+      REPOS_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH}
+    fi
+  fi
+
+  # Checking to see if repo branch exists in visallo-lts
+  set +e
+  LTS_BRANCH_TO_BUILD=${REPOS_BRANCH}
+  wget --no-cache --spider -d --header="Authorization: token ${GIT_API_ACCESS_TOKEN}" https://api.github.com/repos/visallo/visallo-lts/branches/${REPOS_BRANCH}
+  if [ $? != 0 ]; then
+    LTS_BRANCH_TO_BUILD=${TRAVIS_BRANCH}
+  fi
+  set -e
+
+  ./travis/travis-request.sh \
+    --repo ${TRAVIS_DOWNSTREAM_REPO} \
+    --token ${TRAVIS_ACCESS_TOKEN_PRO} \
+    --by "${CREATED_BY}" \
+    --branch ${LTS_BRANCH_TO_BUILD} \
+    --env "\"REPOS_BRANCH=${REPOS_BRANCH}\",\"DOCKER_IMAGE=${DOCKER_IMAGE}\""
 fi

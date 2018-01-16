@@ -22,6 +22,7 @@ if [ "${BUILD_DOCS}" ]; then
   fi
 
 else
+  echo "Building Visallo"
   docker run --volume ${HOME}/.m2/repository:/root/.m2/repository \
              --volume ${HOME}/.npm:/root/.npm \
              --volume $(pwd):/root/visallo \
