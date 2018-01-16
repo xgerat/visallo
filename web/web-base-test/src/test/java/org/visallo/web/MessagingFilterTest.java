@@ -1,6 +1,5 @@
 package org.visallo.web;
 
-import org.atmosphere.cpr.AtmosphereResource;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,6 +7,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.user.User;
+import org.visallo.vertexium.model.user.InMemoryUser;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -18,18 +19,18 @@ public class MessagingFilterTest {
     private MessagingFilter messagingFilter;
 
     @Mock
-    private AtmosphereResource atmosphereResource;
-
-    @Mock
     private UserRepository userRepository;
 
     @Mock
     private org.atmosphere.cpr.AtmosphereRequest request;
 
+    private User user = new InMemoryUser("user123");
+
     @Before
     public void before() {
         messagingFilter = new MessagingFilter();
         messagingFilter.setUserRepository(userRepository);
+        when(request.getAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME)).thenReturn(user);
     }
 
     @Test
@@ -53,14 +54,12 @@ public class MessagingFilterTest {
 
     @Test
     public void testShouldSendMessageBasedOnUserPermissions() {
-        when(CurrentUser.getUserId(request)).thenReturn("user123");
         JSONObject message = new JSONObject("{ permissions: { users: ['user123'] } }");
         assertTrue(messagingFilter.shouldSendMessage(message, request));
     }
 
     @Test
     public void testShouldNotSendMessageBasedOnUserPermissions() {
-        when(CurrentUser.getUserId(request)).thenReturn("user123");
         JSONObject message = new JSONObject("{ permissions: { users: ['user456'] } }");
         assertFalse(messagingFilter.shouldSendMessage(message, request));
     }
@@ -68,7 +67,6 @@ public class MessagingFilterTest {
     @Test
     public void testShouldSendMessageBasedOnWorkspacesPermissions() {
         when(userRepository.getCurrentWorkspaceId("user123")).thenReturn("workspace123");
-        when(CurrentUser.getUserId(request)).thenReturn("user123");
         JSONObject message = new JSONObject("{ permissions: { workspaces: ['workspace123'] } }");
         assertTrue(messagingFilter.shouldSendMessage(message, request));
     }

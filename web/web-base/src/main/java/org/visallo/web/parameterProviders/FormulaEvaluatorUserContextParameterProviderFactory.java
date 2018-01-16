@@ -2,13 +2,12 @@ package org.visallo.web.parameterProviders;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.visallo.core.config.Configuration;
+import org.visallo.core.formula.FormulaEvaluator;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.webster.HandlerChain;
 import org.visallo.webster.parameterProviders.ParameterProvider;
 import org.visallo.webster.parameterProviders.ParameterProviderFactory;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.formula.FormulaEvaluator;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,17 +22,16 @@ public class FormulaEvaluatorUserContextParameterProviderFactory extends Paramet
 
     @Inject
     public FormulaEvaluatorUserContextParameterProviderFactory(
-            UserRepository userRepository,
             Configuration configuration,
             WorkspaceRepository workspaceRepository
     ) {
-        parameterProvider = new VisalloBaseParameterProvider<FormulaEvaluator.UserContext>(userRepository, configuration) {
+        parameterProvider = new VisalloBaseParameterProvider<FormulaEvaluator.UserContext>(configuration) {
             @Override
             public FormulaEvaluator.UserContext getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
                 Locale locale = getLocale(request);
                 String timeZone = getTimeZone(request);
                 ResourceBundle resourceBundle = getBundle(request);
-                String workspaceId = getActiveWorkspaceIdOrDefault(request, workspaceRepository, userRepository);
+                String workspaceId = getActiveWorkspaceIdOrDefault(request, workspaceRepository);
                 return new FormulaEvaluator.UserContext(locale, resourceBundle, timeZone, workspaceId);
             }
         };

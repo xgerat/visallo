@@ -3,19 +3,17 @@ package org.visallo.web.parameterProviders;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import org.visallo.webster.App;
-import org.visallo.webster.parameterProviders.ParameterProvider;
 import org.vertexium.FetchHint;
 import org.vertexium.SecurityVertexiumException;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.User;
 import org.visallo.web.CurrentUser;
 import org.visallo.web.WebApp;
+import org.visallo.webster.App;
+import org.visallo.webster.parameterProviders.ParameterProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -30,20 +28,16 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
     private static final String VISALLO_TIME_ZONE_HEADER_NAME = "Visallo-TimeZone";
     private static final String TIME_ZONE_ATTRIBUTE_NAME = "timeZone";
     private static final String TIME_ZONE_PARAMETER_NAME = "timeZone";
-    public static final String USER_REQUEST_ATTRIBUTE_NAME = "user";
     public static final String WORKSPACE_ID_ATTRIBUTE_NAME = "workspaceId";
-    private final UserRepository userRepository;
     private final Configuration configuration;
 
-    public VisalloBaseParameterProvider(UserRepository userRepository, Configuration configuration) {
-        this.userRepository = userRepository;
+    public VisalloBaseParameterProvider(Configuration configuration) {
         this.configuration = configuration;
     }
 
     public static String getActiveWorkspaceIdOrDefault(
             final HttpServletRequest request,
-            final WorkspaceRepository workspaceRepository,
-            final UserRepository userRepository
+            final WorkspaceRepository workspaceRepository
     ) {
         String workspaceId = (String) request.getAttribute(WORKSPACE_ID_ATTRIBUTE_NAME);
         if (workspaceId == null || workspaceId.trim().length() == 0) {
@@ -56,7 +50,7 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
             }
         }
 
-        User user = getUser(request, userRepository);
+        User user = CurrentUser.get(request);
         try {
             if (!workspaceRepository.hasReadPermissions(workspaceId, user)) {
                 throw new VisalloAccessDeniedException(
@@ -78,10 +72,9 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
 
     protected static String getActiveWorkspaceId(
             final HttpServletRequest request,
-            final WorkspaceRepository workspaceRepository,
-            final UserRepository userRepository
+            final WorkspaceRepository workspaceRepository
     ) {
-        String workspaceId = getActiveWorkspaceIdOrDefault(request, workspaceRepository, userRepository);
+        String workspaceId = getActiveWorkspaceIdOrDefault(request, workspaceRepository);
         if (workspaceId == null || workspaceId.trim().length() == 0) {
             throw new VisalloException(VISALLO_WORKSPACE_ID_HEADER_NAME + " is a required header.");
         }
@@ -225,27 +218,6 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
         return paramValue;
     }
 
-    protected User getUser(HttpServletRequest request) {
-        return getUser(request, getUserRepository());
-    }
-
-    public static User getUser(
-            HttpServletRequest request,
-            UserRepository userRepository
-    ) {
-        ProxyUser user = (ProxyUser) request.getAttribute(USER_REQUEST_ATTRIBUTE_NAME);
-        if (user != null) {
-            return user;
-        }
-        String userId = CurrentUser.getUserId(request);
-        if (userId == null) {
-            return null;
-        }
-        user = new ProxyUser(userId, userRepository);
-        request.setAttribute(USER_REQUEST_ATTRIBUTE_NAME, user);
-        return user;
-    }
-
     protected WebApp getWebApp(HttpServletRequest request) {
         return (WebApp) App.getApp(request);
     }
@@ -282,9 +254,5 @@ public abstract class VisalloBaseParameterProvider<T> extends ParameterProvider<
             }
         }
         return timeZone;
-    }
-
-    public UserRepository getUserRepository() {
-        return userRepository;
     }
 }

@@ -22,23 +22,20 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class AuthToken {
-    private static final String CLAIM_USERID = "userId";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final String userId;
-    private final String username;
     private final SecretKey jwtKey;
     private final Date expiration;
     private final String tokenId;
 
-    public AuthToken(String userId, String username, SecretKey macKey, Date expiration) {
-        this(AuthToken.generateTokenId(), userId, username, macKey, expiration);
+    public AuthToken(String userId, SecretKey macKey, Date expiration) {
+        this(AuthToken.generateTokenId(), userId, macKey, expiration);
     }
 
-    private AuthToken(String tokenId, String userId, String username, SecretKey macKey, Date expiration) {
+    private AuthToken(String tokenId, String userId, SecretKey macKey, Date expiration) {
         this.tokenId = tokenId;
         this.userId = userId;
-        this.username = username;
         this.jwtKey = macKey;
         this.expiration = expiration;
     }
@@ -56,7 +53,7 @@ public class AuthToken {
 
             if (signedJWT.verify(verifier)) {
                 JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
-                return new AuthToken(claims.getJWTID(), claims.getStringClaim(CLAIM_USERID), claims.getSubject(), macKey, claims.getExpirationTime());
+                return new AuthToken(claims.getJWTID(), claims.getSubject(), macKey, claims.getExpirationTime());
             } else {
                 throw new AuthTokenException("JWT signature verification failed");
             }
@@ -68,8 +65,7 @@ public class AuthToken {
     public String serialize() throws AuthTokenException {
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
                 .jwtID(tokenId)
-                .subject(username)
-                .claim(CLAIM_USERID, userId)
+                .subject(userId)
                 .expirationTime(expiration)
                 .build();
 
@@ -89,10 +85,6 @@ public class AuthToken {
 
     public String getUserId() {
         return userId;
-    }
-
-    public String getUsername() {
-        return username;
     }
 
     public Date getExpiration() {

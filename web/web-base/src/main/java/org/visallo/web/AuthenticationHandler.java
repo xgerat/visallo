@@ -1,8 +1,9 @@
 package org.visallo.web;
 
+import org.visallo.core.user.User;
+import org.visallo.web.util.RemoteAddressUtil;
 import org.visallo.webster.HandlerChain;
 import org.visallo.webster.RequestResponseHandler;
-import org.visallo.web.util.RemoteAddressUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -12,8 +13,8 @@ public class AuthenticationHandler implements RequestResponseHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) throws Exception {
-        String currentUserId = CurrentUser.getUserId(request);
-        if (currentUserId != null) {
+        User currentUser = CurrentUser.get(request);
+        if (currentUser != null) {
             chain.next(request, response);
         } else {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);

@@ -21,7 +21,6 @@ import org.visallo.core.model.user.*;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.trace.Traced;
-import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
@@ -388,12 +387,6 @@ public class VertexiumUserRepository extends UserRepository {
         if (!value.equals(user.getCustomProperties().get(propertyName))) {
             Vertex userVertex = findByIdUserVertex(user.getUserId());
             userVertex.setProperty(propertyName, value, VISIBILITY.getVisibility(), authorizations);
-            if (user instanceof ProxyUser) {
-                User proxiedUser = ((ProxyUser) user).getProxiedUser();
-                if (proxiedUser instanceof VertexiumUser) {
-                    user = proxiedUser;
-                }
-            }
             if (user instanceof VertexiumUser) {
                 ((VertexiumUser) user).setProperty(propertyName, value);
             }

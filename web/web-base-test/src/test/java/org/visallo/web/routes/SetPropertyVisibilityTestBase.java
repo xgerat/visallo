@@ -7,7 +7,7 @@ import org.vertexium.Authorizations;
 import org.vertexium.Element;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.graph.GraphRepository;
-import org.visallo.core.user.ProxyUser;
+import org.visallo.core.user.User;
 import org.visallo.web.BadRequestException;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
@@ -114,7 +114,7 @@ public abstract class SetPropertyVisibilityTestBase extends RouteTestBase {
             String propertyName,
             String workspaceId,
             ResourceBundle resourceBundle,
-            ProxyUser user,
+            User user,
             Authorizations authorizations
     ) throws Exception;
 }

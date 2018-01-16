@@ -2,8 +2,11 @@ package org.visallo.web.auth;
 
 import org.apache.commons.lang.StringUtils;
 import org.atmosphere.cpr.*;
+import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.CurrentUser;
@@ -20,6 +23,7 @@ public class AuthTokenWebSocketInterceptor implements AtmosphereInterceptor {
 
     private SecretKey tokenSigningKey;
     private int tokenExpirationToleranceInSeconds;
+    private UserRepository userRepository;
 
     @Override
     public void configure(AtmosphereConfig config) {
@@ -28,6 +32,7 @@ public class AuthTokenWebSocketInterceptor implements AtmosphereInterceptor {
         String keySalt = config.getInitParameter(AUTH_TOKEN_SALT);
         checkNotNull(keySalt, "AtmosphereConfig init parameter '" + AUTH_TOKEN_SALT + "' was not set.");
         tokenExpirationToleranceInSeconds = config.getInitParameter(Configuration.AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS, 0);
+        userRepository = InjectHelper.getInstance(UserRepository.class);
 
         try {
             tokenSigningKey = AuthToken.generateKey(keyPassword, keySalt);
@@ -86,7 +91,7 @@ public class AuthTokenWebSocketInterceptor implements AtmosphereInterceptor {
 
     private void setCurrentUser(HttpServletRequest request, AuthToken token) {
         checkNotNull(token.getUserId(), "Auth token did not contain the userId");
-        checkNotNull(token.getUsername(), "Auth token did not contain the username");
-        CurrentUser.set(request, token.getUserId(), token.getUsername());
+        User user = userRepository.findById(token.getUserId());
+        CurrentUser.set(request, user);
     }
 }

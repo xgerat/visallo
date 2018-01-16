@@ -32,11 +32,10 @@ public class AuthTokenTest {
         String userid = "userid";
         String username = "username";
         Date expiration = new Date(System.currentTimeMillis() + 10000);
-        AuthToken token = new AuthToken(userid, username, key, expiration);
+        AuthToken token = new AuthToken(userid, key, expiration);
         String tokenText = token.serialize();
         AuthToken parsedToken = AuthToken.parse(tokenText, key);
         assertEquals(userid, parsedToken.getUserId());
-        assertEquals(username, parsedToken.getUsername());
         assertTrue("Dates aren't close enough to each other",
                 Math.abs(expiration.getTime() - parsedToken.getExpiration().getTime()) < 1000);
     }
@@ -45,7 +44,7 @@ public class AuthTokenTest {
     public void testTokenReportsExpirationCorrectly() throws Exception {
         SecretKey key = AuthToken.generateKey("password", "salt");
         Date expiration = new Date(System.currentTimeMillis() - 10);
-        AuthToken token = new AuthToken("userid", "username", key, expiration);
+        AuthToken token = new AuthToken("userid", key, expiration);
         String tokenText = token.serialize();
         AuthToken parsedToken = AuthToken.parse(tokenText, key);
         assertFalse(parsedToken.isExpired(60));
@@ -56,7 +55,7 @@ public class AuthTokenTest {
     public void testTokenValidationFailure() throws Exception {
         SecretKey key = AuthToken.generateKey("password", "salt");
         Date expiration = new Date(System.currentTimeMillis() + 10000);
-        AuthToken token = new AuthToken("userid", "username", key, expiration);
+        AuthToken token = new AuthToken("userid", key, expiration);
         String tokenText = token.serialize();
 
         try {
@@ -71,7 +70,7 @@ public class AuthTokenTest {
     public void testNewTokenContainsIdClaim() throws InvalidKeySpecException, NoSuchAlgorithmException {
         SecretKey key = AuthToken.generateKey("password", "salt");
         Date expiration = new Date(System.currentTimeMillis() + 10000);
-        AuthToken token = new AuthToken("userid", "username", key, expiration);
+        AuthToken token = new AuthToken("userid", key, expiration);
         assertNotNull(token.getTokenId());
     }
 }

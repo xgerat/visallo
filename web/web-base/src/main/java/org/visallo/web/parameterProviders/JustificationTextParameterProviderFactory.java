@@ -2,13 +2,13 @@ package org.visallo.web.parameterProviders;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.visallo.webster.HandlerChain;
-import org.visallo.webster.parameterProviders.ParameterProvider;
-import org.visallo.webster.parameterProviders.ParameterProviderFactory;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.web.WebConfiguration;
+import org.visallo.webster.HandlerChain;
+import org.visallo.webster.parameterProviders.ParameterProvider;
+import org.visallo.webster.parameterProviders.ParameterProviderFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,7 +24,7 @@ public class JustificationTextParameterProviderFactory extends ParameterProvider
     public JustificationTextParameterProviderFactory(UserRepository userRepository, final Configuration configuration) {
         final boolean isJustificationRequired = WebConfiguration.justificationRequired(configuration);
 
-        parameterProvider = new VisalloBaseParameterProvider<String>(userRepository, configuration) {
+        parameterProvider = new VisalloBaseParameterProvider<String>(configuration) {
             @Override
             public String getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
                 String propertyName = getOptionalParameter(request, "propertyName");

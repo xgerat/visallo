@@ -2,9 +2,6 @@ package org.visallo.web.auth.usernameonly.routes;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.visallo.webster.ParameterizedHandler;
-import org.visallo.webster.annotations.Handle;
-import org.visallo.webster.utils.UrlUtils;
 import org.json.JSONObject;
 import org.visallo.core.model.user.AuthorizationContext;
 import org.visallo.core.model.user.UserNameAuthorizationContext;
@@ -13,6 +10,9 @@ import org.visallo.core.security.AuditService;
 import org.visallo.core.user.User;
 import org.visallo.web.CurrentUser;
 import org.visallo.web.util.RemoteAddressUtil;
+import org.visallo.webster.ParameterizedHandler;
+import org.visallo.webster.annotations.Handle;
+import org.visallo.webster.utils.UrlUtils;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -31,9 +31,7 @@ public class Login implements ParameterizedHandler {
     }
 
     @Handle
-    public JSONObject handle(
-            HttpServletRequest request
-    ) throws Exception {
+    public JSONObject handle(HttpServletRequest request) {
         final String username = UrlUtils.urlDecode(request.getParameter("username")).trim().toLowerCase();
         User user = userRepository.findByUsername(username);
         if (user == null) {
@@ -53,7 +51,7 @@ public class Login implements ParameterizedHandler {
         );
         userRepository.updateUser(user, authorizationContext);
 
-        CurrentUser.set(request, user.getUserId(), user.getUsername());
+        CurrentUser.set(request, user);
         auditService.auditLogin(user);
         JSONObject json = new JSONObject();
         json.put("status", "OK");

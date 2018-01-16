@@ -6,10 +6,10 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.workspace.Workspace;
-import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.User;
-import org.visallo.web.routes.RouteTestBase;
+import org.visallo.vertexium.model.user.InMemoryUser;
 import org.visallo.web.clientapi.model.ClientApiUser;
+import org.visallo.web.routes.RouteTestBase;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -31,7 +31,7 @@ public class MeGetTest extends RouteTestBase {
     public void before() throws IOException {
         super.before();
         meGet = new MeGet(userRepository, workspaceRepository);
-        User otherUser = new ProxyUser("other-user", userRepository);
+        User otherUser = new InMemoryUser("other-user");
 
         workspaceShared1 = new TestWorkspace("junit-id-1", "B-junit-display-title");
         workspaceShared2 = new TestWorkspace("junit-id-2", "a-junit-display-title");

@@ -2,12 +2,11 @@ package org.visallo.web.parameterProviders;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.visallo.core.config.Configuration;
+import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.webster.HandlerChain;
 import org.visallo.webster.parameterProviders.ParameterProvider;
 import org.visallo.webster.parameterProviders.ParameterProviderFactory;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workspace.WorkspaceRepository;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,19 +22,18 @@ public class ActiveWorkspaceIdParameterProviderFactory extends ParameterProvider
 
     @Inject
     public ActiveWorkspaceIdParameterProviderFactory(
-            UserRepository userRepository,
             Configuration configuration,
             WorkspaceRepository workspaceRepository) {
-        requiredParameterProvider = new VisalloBaseParameterProvider<String>(userRepository, configuration) {
+        requiredParameterProvider = new VisalloBaseParameterProvider<String>(configuration) {
             @Override
             public String getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
-                return getActiveWorkspaceId(request, workspaceRepository, userRepository);
+                return getActiveWorkspaceId(request, workspaceRepository);
             }
         };
-        notRequiredParameterProvider = new VisalloBaseParameterProvider<String>(userRepository, configuration) {
+        notRequiredParameterProvider = new VisalloBaseParameterProvider<String>(configuration) {
             @Override
             public String getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
-                return getActiveWorkspaceIdOrDefault(request, workspaceRepository, userRepository);
+                return getActiveWorkspaceIdOrDefault(request, workspaceRepository);
             }
         };
     }

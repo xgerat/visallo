@@ -19,14 +19,11 @@ public class InMemoryUser implements User {
     private final Date createDate;
     private final String currentWorkspaceId;
     private JSONObject preferences;
-    private Date currentLoginDate;
-    private String currentLoginRemoteAddr;
-    private Date previousLoginDate;
-    private String previousLoginRemoteAddr;
-    private int loginCount;
-    private String passwordResetToken;
-    private Date passwordResetTokenExpirationDate;
     private Map<String, Object> properties = new HashMap<>();
+
+    public InMemoryUser(String userId) {
+        this(userId, null, null, null, null);
+    }
 
     public InMemoryUser(
             String userName,
@@ -34,7 +31,17 @@ public class InMemoryUser implements User {
             String emailAddress,
             String currentWorkspaceId
     ) {
-        this.userId = UUID.randomUUID().toString();
+        this(UUID.randomUUID().toString(), userName, displayName, emailAddress, currentWorkspaceId);
+    }
+
+    public InMemoryUser(
+            String userId,
+            String userName,
+            String displayName,
+            String emailAddress,
+            String currentWorkspaceId
+    ) {
+        this.userId = userId;
         this.userName = userName;
         this.displayName = displayName;
         this.emailAddress = emailAddress;
@@ -70,27 +77,27 @@ public class InMemoryUser implements User {
 
     @Override
     public Date getCurrentLoginDate() {
-        return currentLoginDate;
+        return null;
     }
 
     @Override
     public String getCurrentLoginRemoteAddr() {
-        return currentLoginRemoteAddr;
+        return null;
     }
 
     @Override
     public Date getPreviousLoginDate() {
-        return previousLoginDate;
+        return null;
     }
 
     @Override
     public String getPreviousLoginRemoteAddr() {
-        return previousLoginRemoteAddr;
+        return null;
     }
 
     @Override
     public int getLoginCount() {
-        return loginCount;
+        return 0;
     }
 
     @Override
@@ -119,12 +126,12 @@ public class InMemoryUser implements User {
 
     @Override
     public String getPasswordResetToken() {
-        return passwordResetToken;
+        return null;
     }
 
     @Override
     public Date getPasswordResetTokenExpirationDate() {
-        return passwordResetTokenExpirationDate;
+        return null;
     }
 
     @Override

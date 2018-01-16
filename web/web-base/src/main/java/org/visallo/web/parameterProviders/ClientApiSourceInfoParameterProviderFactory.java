@@ -2,12 +2,11 @@ package org.visallo.web.parameterProviders;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.visallo.core.config.Configuration;
+import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.webster.HandlerChain;
 import org.visallo.webster.parameterProviders.ParameterProvider;
 import org.visallo.webster.parameterProviders.ParameterProviderFactory;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,8 +18,8 @@ public class ClientApiSourceInfoParameterProviderFactory extends ParameterProvid
     private ParameterProvider<ClientApiSourceInfo> parameterProvider;
 
     @Inject
-    public ClientApiSourceInfoParameterProviderFactory(UserRepository userRepository, Configuration configuration) {
-        parameterProvider = new VisalloBaseParameterProvider<ClientApiSourceInfo>(userRepository, configuration) {
+    public ClientApiSourceInfoParameterProviderFactory(Configuration configuration) {
+        parameterProvider = new VisalloBaseParameterProvider<ClientApiSourceInfo>(configuration) {
             @Override
             public ClientApiSourceInfo getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
                 final String sourceInfoString = getOptionalParameter(request, "sourceInfo");

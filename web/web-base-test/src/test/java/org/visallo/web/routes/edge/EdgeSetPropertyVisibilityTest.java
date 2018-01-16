@@ -8,7 +8,7 @@ import org.vertexium.Authorizations;
 import org.vertexium.Edge;
 import org.vertexium.Vertex;
 import org.vertexium.Visibility;
-import org.visallo.core.user.ProxyUser;
+import org.visallo.core.user.User;
 import org.visallo.web.routes.SetPropertyVisibilityTestBase;
 
 import java.io.IOException;
@@ -59,7 +59,7 @@ public class EdgeSetPropertyVisibilityTest extends SetPropertyVisibilityTestBase
             String propertyName,
             String workspaceId,
             ResourceBundle resourceBundle,
-            ProxyUser user,
+            User user,
             Authorizations authorizations
     ) throws Exception {
         edgeSetPropertyVisibility.handle(

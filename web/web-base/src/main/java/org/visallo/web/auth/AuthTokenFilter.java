@@ -1,8 +1,11 @@
 package org.visallo.web.auth;
 
 import org.apache.commons.lang.StringUtils;
+import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
+import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.CurrentUser;
@@ -25,6 +28,7 @@ public class AuthTokenFilter implements Filter {
     private SecretKey tokenSigningKey;
     private long tokenValidityDurationInMinutes;
     private int tokenExpirationToleranceInSeconds;
+    private UserRepository userRepository;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -44,6 +48,7 @@ public class AuthTokenFilter implements Filter {
 
         String keyPassword = getRequiredInitParameter(filterConfig, AUTH_TOKEN_PASSWORD);
         String keySalt = getRequiredInitParameter(filterConfig, AUTH_TOKEN_SALT);
+        userRepository = InjectHelper.getInstance(UserRepository.class);
 
         try {
             tokenSigningKey = AuthToken.generateKey(keyPassword, keySalt);
@@ -53,11 +58,11 @@ public class AuthTokenFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException {
         doFilter((HttpServletRequest) servletRequest, (HttpServletResponse) servletResponse, filterChain);
     }
 
-    public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException {
         try {
             AuthToken token = getAuthToken(request);
             AuthTokenHttpResponse authTokenResponse = new AuthTokenHttpResponse(token, request, response, tokenSigningKey, tokenValidityDurationInMinutes);
@@ -66,7 +71,12 @@ public class AuthTokenFilter implements Filter {
                 if (token.isExpired(tokenExpirationToleranceInSeconds)) {
                     authTokenResponse.invalidateAuthentication();
                 } else {
-                    setCurrentUser(request, token);
+                    User user = userRepository.findById(token.getUserId());
+                    if (user != null) {
+                        CurrentUser.set(request, user);
+                    } else {
+                        authTokenResponse.invalidateAuthentication();
+                    }
                 }
             }
 
@@ -107,12 +117,6 @@ public class AuthTokenFilter implements Filter {
         }
 
         return found;
-    }
-
-    private void setCurrentUser(HttpServletRequest request, AuthToken token) {
-        checkNotNull(token.getUserId(), "Auth token did not contain the userId");
-        checkNotNull(token.getUsername(), "Auth token did not contain the username");
-        CurrentUser.set(request, token.getUserId(), token.getUsername());
     }
 
     private String getRequiredInitParameter(FilterConfig filterConfig, String parameterName) {

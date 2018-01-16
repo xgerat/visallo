@@ -1,6 +1,5 @@
 package org.visallo.web.parameterProviders;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -9,9 +8,10 @@ import org.vertexium.Authorizations;
 import org.vertexium.inmemory.InMemoryAuthorizations;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
-import org.visallo.core.user.ProxyUser;
+import org.visallo.core.user.User;
+import org.visallo.vertexium.model.user.InMemoryUser;
+import org.visallo.web.CurrentUser;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -26,32 +26,24 @@ public class AuthorizationsParameterProviderFactoryTest {
     private HttpServletRequest request;
 
     @Mock
-    private UserRepository userRepository;
-
-    @Mock
     private AuthorizationRepository authorizationRepository;
 
     @Mock
     private WorkspaceRepository workspaceRepository;
 
-    private ProxyUser proxyUser;
-
-    @Before
-    public void before() {
-        proxyUser = new ProxyUser("user123", userRepository);
-    }
+    private User testUser = new InMemoryUser("user123");
 
     @Test
     public void testGetAuthorizations() {
         Authorizations authorizations = new InMemoryAuthorizations("a", "b", "workspace123");
 
         when(request.getAttribute(eq(VisalloBaseParameterProvider.WORKSPACE_ID_ATTRIBUTE_NAME))).thenReturn("workspace123");
-        when(request.getAttribute(eq(VisalloBaseParameterProvider.USER_REQUEST_ATTRIBUTE_NAME))).thenReturn(proxyUser);
-        when(authorizationRepository.getGraphAuthorizations(eq(proxyUser), eq("workspace123"))).thenReturn(authorizations);
-        when(workspaceRepository.hasReadPermissions(eq("workspace123"), eq(proxyUser))).thenReturn(true);
+        when(request.getAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME)).thenReturn(testUser);
+        when(authorizationRepository.getGraphAuthorizations(eq(testUser), eq("workspace123"))).thenReturn(authorizations);
+        when(workspaceRepository.hasReadPermissions(eq("workspace123"), eq(testUser))).thenReturn(true);
+
         Authorizations auth = AuthorizationsParameterProviderFactory.getAuthorizations(
                 request,
-                userRepository,
                 authorizationRepository,
                 workspaceRepository
         );
@@ -61,12 +53,11 @@ public class AuthorizationsParameterProviderFactoryTest {
     @Test
     public void testGetAuthorizationsNoWorkspaceAccess() {
         when(request.getAttribute(eq(VisalloBaseParameterProvider.WORKSPACE_ID_ATTRIBUTE_NAME))).thenReturn("workspace123");
-        when(request.getAttribute(eq(VisalloBaseParameterProvider.USER_REQUEST_ATTRIBUTE_NAME))).thenReturn(proxyUser);
-        when(workspaceRepository.hasReadPermissions(eq("workspace123"), eq(proxyUser))).thenReturn(false);
+        when(request.getAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME)).thenReturn(testUser);
+        when(workspaceRepository.hasReadPermissions(eq("workspace123"), eq(testUser))).thenReturn(false);
         try {
             AuthorizationsParameterProviderFactory.getAuthorizations(
                     request,
-                    userRepository,
                     authorizationRepository,
                     workspaceRepository
             );
@@ -81,11 +72,10 @@ public class AuthorizationsParameterProviderFactoryTest {
         Authorizations authorizations = new InMemoryAuthorizations("a", "b");
 
         when(request.getAttribute(eq(VisalloBaseParameterProvider.WORKSPACE_ID_ATTRIBUTE_NAME))).thenReturn(null);
-        when(request.getAttribute(eq(VisalloBaseParameterProvider.USER_REQUEST_ATTRIBUTE_NAME))).thenReturn(proxyUser);
-        when(authorizationRepository.getGraphAuthorizations(eq(proxyUser))).thenReturn(authorizations);
+        when(authorizationRepository.getGraphAuthorizations(eq(testUser))).thenReturn(authorizations);
+        when(request.getAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME)).thenReturn(testUser);
         Authorizations auth = AuthorizationsParameterProviderFactory.getAuthorizations(
                 request,
-                userRepository,
                 authorizationRepository,
                 workspaceRepository
         );
@@ -94,10 +84,9 @@ public class AuthorizationsParameterProviderFactoryTest {
 
     @Test
     public void testGetAuthorizationsNoUser() {
-        when(request.getAttribute(eq(VisalloBaseParameterProvider.USER_REQUEST_ATTRIBUTE_NAME))).thenReturn(null);
+        when(request.getAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME)).thenReturn(null);
         Authorizations auth = AuthorizationsParameterProviderFactory.getAuthorizations(
                 request,
-                userRepository,
                 authorizationRepository,
                 workspaceRepository
         );

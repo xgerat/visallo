@@ -1,6 +1,5 @@
 package org.visallo.web.routes;
 
-import org.visallo.webster.HandlerChain;
 import org.json.JSONArray;
 import org.mockito.Mock;
 import org.vertexium.Graph;
@@ -20,14 +19,13 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.WorkspaceUser;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
-import org.visallo.core.user.ProxyUser;
 import org.visallo.core.user.User;
 import org.visallo.vertexium.model.user.InMemoryUser;
+import org.visallo.web.CurrentUser;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -55,9 +53,6 @@ public abstract class RouteTestBase {
     protected HttpServletResponse response;
 
     @Mock
-    protected HandlerChain chain;
-
-    @Mock
     protected OntologyRepository ontologyRepository;
 
     @Mock
@@ -69,10 +64,10 @@ public abstract class RouteTestBase {
     @Mock
     protected WorkspaceHelper workspaceHelper;
 
-    protected GraphRepository graphRepository;
-
     @Mock
     protected WorkQueueRepository workQueueRepository;
+
+    protected GraphRepository graphRepository;
 
     protected ResourceBundle resourceBundle;
 
@@ -82,10 +77,7 @@ public abstract class RouteTestBase {
 
     protected Graph graph;
 
-    @Mock
-    protected HttpSession httpSession;
-
-    protected ProxyUser user;
+    protected User user;
 
     protected User nonProxiedUser;
 
@@ -112,7 +104,8 @@ public abstract class RouteTestBase {
         nonProxiedUser = new InMemoryUser("jdoe", "Jane Doe", "jane.doe@email.com", currentWorkspaceId);
         when(userRepository.findById(eq(USER_ID))).thenReturn(nonProxiedUser);
 
-        user = new ProxyUser(USER_ID, userRepository);
+        user = new InMemoryUser(USER_ID);
+        when(request.getAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME)).thenReturn(user);
 
         when(request.getSession()).thenThrow(UnsupportedOperationException.class);
 

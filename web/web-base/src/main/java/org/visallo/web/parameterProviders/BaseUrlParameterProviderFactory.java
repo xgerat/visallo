@@ -2,11 +2,10 @@ package org.visallo.web.parameterProviders;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.visallo.core.config.Configuration;
 import org.visallo.webster.HandlerChain;
 import org.visallo.webster.parameterProviders.ParameterProvider;
 import org.visallo.webster.parameterProviders.ParameterProviderFactory;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,8 +17,8 @@ public class BaseUrlParameterProviderFactory extends ParameterProviderFactory<St
     private final ParameterProvider<String> parameterProvider;
 
     @Inject
-    public BaseUrlParameterProviderFactory(UserRepository userRepository, final Configuration configuration) {
-        parameterProvider = new VisalloBaseParameterProvider<String>(userRepository, configuration) {
+    public BaseUrlParameterProviderFactory(Configuration configuration) {
+        parameterProvider = new VisalloBaseParameterProvider<String>(configuration) {
             @Override
             public String getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
                 String configuredBaseUrl = configuration.get(Configuration.BASE_URL, null);

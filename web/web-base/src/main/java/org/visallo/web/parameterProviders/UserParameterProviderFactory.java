@@ -2,12 +2,12 @@ package org.visallo.web.parameterProviders;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.visallo.core.config.Configuration;
+import org.visallo.core.user.User;
+import org.visallo.web.CurrentUser;
 import org.visallo.webster.HandlerChain;
 import org.visallo.webster.parameterProviders.ParameterProvider;
 import org.visallo.webster.parameterProviders.ParameterProviderFactory;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.user.User;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,18 +19,15 @@ public class UserParameterProviderFactory extends ParameterProviderFactory<User>
     private final ParameterProvider<User> parameterProvider;
 
     @Inject
-    public UserParameterProviderFactory(UserRepository userRepository, Configuration configuration) {
-        parameterProvider = new VisalloBaseParameterProvider<User>(
-                userRepository,
-                configuration
-        ) {
+    public UserParameterProviderFactory(Configuration configuration) {
+        parameterProvider = new VisalloBaseParameterProvider<User>(configuration) {
             @Override
             public User getParameter(
                     HttpServletRequest request,
                     HttpServletResponse response,
                     HandlerChain chain
             ) {
-                return getUser(request);
+                return CurrentUser.get(request);
             }
         };
     }

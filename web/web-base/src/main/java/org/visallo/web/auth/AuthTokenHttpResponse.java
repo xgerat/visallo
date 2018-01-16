@@ -1,5 +1,6 @@
 package org.visallo.web.auth;
 
+import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.CurrentUser;
@@ -73,12 +74,11 @@ public class AuthTokenHttpResponse extends HttpServletResponseWrapper {
             return;
         }
 
-        String userId = CurrentUser.getUserId(request);
-        String username = CurrentUser.getUsername(request);
+        User currentUser = CurrentUser.get(request);
 
-        if (userId != null && username != null) {
+        if (currentUser != null) {
             Date tokenExpiration = calculateTokenExpiration();
-            AuthToken token = new AuthToken(userId, username, macKey, tokenExpiration);
+            AuthToken token = new AuthToken(currentUser.getUserId(), macKey, tokenExpiration);
 
             try {
                 writeAuthTokenCookie(token.serialize(), tokenValidityDurationInMinutes);

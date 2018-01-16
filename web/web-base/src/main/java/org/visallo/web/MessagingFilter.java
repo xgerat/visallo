@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.user.User;
 import org.visallo.core.util.JSONUtil;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
@@ -77,12 +78,12 @@ public class MessagingFilter implements PerRequestBroadcastFilter {
     private boolean shouldRejectMessageToWorkspaces(JSONObject permissionsJson, HttpServletRequest request) {
         JSONArray workspaces = permissionsJson.optJSONArray("workspaces");
         if (workspaces != null) {
-            String currentUserId = CurrentUser.getUserId(request);
-            if (currentUserId == null) {
+            User currentUser = CurrentUser.get(request);
+            if (currentUser == null) {
                 return true;
             }
 
-            String currentWorkspaceId = userRepository.getCurrentWorkspaceId(currentUserId);
+            String currentWorkspaceId = userRepository.getCurrentWorkspaceId(currentUser.getUserId());
             if (currentWorkspaceId == null) {
                 return true;
             }
@@ -97,8 +98,8 @@ public class MessagingFilter implements PerRequestBroadcastFilter {
     private boolean shouldRejectMessageByUsers(JSONObject permissionsJson, HttpServletRequest request) {
         JSONArray users = permissionsJson.optJSONArray("users");
         if (users != null) {
-            String currentUserId = CurrentUser.getUserId(request);
-            if (currentUserId != null && !JSONUtil.isInArray(users, currentUserId)) {
+            User currentUser = CurrentUser.get(request);
+            if (currentUser != null && currentUser.getUserId() != null && !JSONUtil.isInArray(users, currentUser.getUserId())) {
                 return true;
             }
         }

@@ -24,6 +24,11 @@
             <artifactId>visallo-model-vertexium-inmemory</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.visallo</groupId>
+            <artifactId>visallo-core-test</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>junit</groupId>

@@ -3,15 +3,11 @@ package org.visallo.web;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.visallo.webster.resultWriters.ResultWriter;
-import org.visallo.webster.resultWriters.ResultWriterBase;
-import org.visallo.webster.resultWriters.ResultWriterFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.ACLProvider;
 import org.visallo.core.trace.Trace;
@@ -21,6 +17,9 @@ import org.visallo.web.clientapi.model.ClientApiObject;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
 import org.visallo.web.clientapi.util.ObjectMapperFactory;
 import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
+import org.visallo.webster.resultWriters.ResultWriter;
+import org.visallo.webster.resultWriters.ResultWriterBase;
+import org.visallo.webster.resultWriters.ResultWriterFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,18 +34,15 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
     private final String responseHeaderXFrameOptions;
     private ACLProvider aclProvider;
     private WorkspaceRepository workspaceRepository;
-    private UserRepository userRepository;
 
     @Inject
     public VisalloDefaultResultWriterFactory(
             ACLProvider aclProvider,
             WorkspaceRepository workspaceRepository,
-            UserRepository userRepository,
             Configuration configuration
     ) {
         this.aclProvider = aclProvider;
         this.workspaceRepository = workspaceRepository;
-        this.userRepository = userRepository;
         this.responseHeaderXFrameOptions = configuration.get(WEB_RESPONSE_HEADER_X_FRAME_OPTIONS, WEB_RESPONSE_HEADER_X_FRAME_OPTIONS_DEFAULT);
     }
 
@@ -91,12 +87,12 @@ public class VisalloDefaultResultWriterFactory implements ResultWriterFactory {
                         ClientApiObject clientApiObject = (ClientApiObject) result;
                         try (TraceSpan ignored = Trace.start("aclProvider.appendACL")) {
                             if (clientApiObject != VisalloResponse.SUCCESS) {
-                                User user = VisalloBaseParameterProvider.getUser(request, userRepository);
+                                User user = CurrentUser.get(request);
                                 String workspaceId;
                                 if (clientApiObject instanceof ClientApiWorkspace) {
                                     workspaceId = ((ClientApiWorkspace)clientApiObject).getWorkspaceId();
                                 } else {
-                                    workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request, workspaceRepository, userRepository);
+                                    workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request, workspaceRepository);
                                 }
                                 if (StringUtils.isEmpty(workspaceId)) {
                                     workspaceId = user == null ? null : user.getCurrentWorkspaceId();

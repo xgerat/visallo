@@ -31,8 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 @AtmosphereHandlerService(
         path = Messaging.PATH,
         broadcasterCache = UUIDBroadcasterCache.class,
@@ -229,16 +227,11 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
     private void setStatus(AtmosphereResource resource, UserStatus status) {
         broadcaster = resource.getBroadcaster();
         try {
-            String authUserId = CurrentUser.getUserId(resource.getRequest());
-            if (authUserId != null) {
-                User authUser = userRepository.findById(authUserId);
-                checkNotNull(authUser, "Could not find user with id: " + authUserId);
-
-                if (authUser.getUserStatus() != status) {
-                    LOGGER.debug("Setting user %s status to %s", authUserId, status.toString());
-                    userRepository.setStatus(authUserId, status);
-                    workQueueRepository.pushUserStatusChange(authUser, status);
-                }
+            User authUser = CurrentUser.get(resource.getRequest());
+            if (authUser != null && authUser.getUserStatus() != status) {
+                LOGGER.debug("Setting user %s status to %s", authUser.getUserId(), status.toString());
+                userRepository.setStatus(authUser.getUserId(), status);
+                workQueueRepository.pushUserStatusChange(authUser, status);
             } else {
                 LOGGER.warn("User not found in atmosphere request");
             }
@@ -263,9 +256,13 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
     }
 
     private String getCurrentUserId(AtmosphereResource resource) {
-        String userId = CurrentUser.getUserId(resource.getRequest());
-        if (userId != null && userId.trim().length() > 0) {
-            return userId;
+        User user = CurrentUser.get(resource.getRequest());
+
+        if (user != null) {
+            String userId = user.getUserId();
+            if (userId != null && userId.trim().length() > 0) {
+                return userId;
+            }
         }
 
         return null;

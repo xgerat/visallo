@@ -2,11 +2,10 @@ package org.visallo.web.parameterProviders;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.visallo.core.config.Configuration;
 import org.visallo.webster.HandlerChain;
 import org.visallo.webster.parameterProviders.ParameterProvider;
 import org.visallo.webster.parameterProviders.ParameterProviderFactory;
-import org.visallo.core.config.Configuration;
-import org.visallo.core.model.user.UserRepository;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,11 +18,8 @@ public class LocaleParameterProviderFactory extends ParameterProviderFactory<Loc
     private final ParameterProvider<Locale> parameterProvider;
 
     @Inject
-    public LocaleParameterProviderFactory(
-            UserRepository userRepository,
-            Configuration configuration
-    ) {
-        parameterProvider = new VisalloBaseParameterProvider<Locale>(userRepository, configuration) {
+    public LocaleParameterProviderFactory(Configuration configuration) {
+        parameterProvider = new VisalloBaseParameterProvider<Locale>(configuration) {
             @Override
             public Locale getParameter(HttpServletRequest request, HttpServletResponse response, HandlerChain chain) {
                 return getLocale(request);

@@ -1,28 +1,24 @@
 package org.visallo.web;
 
 import org.slf4j.MDC;
+import org.visallo.core.user.User;
 import org.visallo.web.util.RemoteAddressUtil;
 
 import javax.servlet.http.HttpServletRequest;
 
 public class CurrentUser {
-    public static final String STRING_USERID_ATTRIBUTE_NAME = "userid";
-    public static final String STRING_USERNAME_ATTRIBUTE_NAME = "username";
+    public static final String CURRENT_USER_REQ_ATTR_NAME = "user.current";
     private static final String MDC_USER_ID = "userId";
     private static final String MDC_USER_NAME = "userName";
     private static final String MDC_CLIENT_IP_ADDRESS = "clientIpAddress";
 
-    public static void set(HttpServletRequest request, String userId, String userName) {
-        request.setAttribute(CurrentUser.STRING_USERID_ATTRIBUTE_NAME, userId);
-        request.setAttribute(CurrentUser.STRING_USERNAME_ATTRIBUTE_NAME, userName);
+    public static void set(HttpServletRequest request, User user) {
+        request.setAttribute(CURRENT_USER_REQ_ATTR_NAME, user);
+        setUserInLogMappedDiagnosticContexts(request);
     }
 
-    public static String getUserId(HttpServletRequest request) {
-        return (String) request.getAttribute(CurrentUser.STRING_USERID_ATTRIBUTE_NAME);
-    }
-
-    public static String getUsername(HttpServletRequest request) {
-        return (String) request.getAttribute(CurrentUser.STRING_USERNAME_ATTRIBUTE_NAME);
+    public static User get(HttpServletRequest request) {
+        return (User) request.getAttribute(CURRENT_USER_REQ_ATTR_NAME);
     }
 
     public static void clearUserFromLogMappedDiagnosticContexts() {
@@ -32,15 +28,20 @@ public class CurrentUser {
     }
 
     public static void setUserInLogMappedDiagnosticContexts(HttpServletRequest request) {
-        String userId = CurrentUser.getUserId(request);
-        if (userId != null) {
-            MDC.put(MDC_USER_ID, userId);
-        }
-        String userName = CurrentUser.getUsername(request);
-        if (userName != null) {
-            MDC.put(MDC_USER_NAME, userName);
+        User currentUser = CurrentUser.get(request);
+
+        if (currentUser != null) {
+            String userId = currentUser.getUserId();
+            if (userId != null) {
+                MDC.put(MDC_USER_ID, userId);
+            }
+            String userName = currentUser.getUsername();
+            if (userName != null) {
+                MDC.put(MDC_USER_NAME, userName);
+            }
         }
 
         MDC.put(MDC_CLIENT_IP_ADDRESS, RemoteAddressUtil.getClientIpAddr(request));
     }
+
 }

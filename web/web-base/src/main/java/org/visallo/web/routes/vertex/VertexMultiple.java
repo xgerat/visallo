@@ -3,22 +3,21 @@ package org.visallo.web.routes.vertex;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.visallo.webster.ParameterizedHandler;
-import org.visallo.webster.annotations.Handle;
-import org.visallo.webster.annotations.Optional;
-import org.visallo.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
 import org.visallo.core.exception.VisalloAccessDeniedException;
 import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.web.clientapi.model.ClientApiVertex;
 import org.visallo.web.clientapi.model.ClientApiVertexMultipleResponse;
 import org.visallo.web.parameterProviders.VisalloBaseParameterProvider;
+import org.visallo.webster.ParameterizedHandler;
+import org.visallo.webster.annotations.Handle;
+import org.visallo.webster.annotations.Optional;
+import org.visallo.webster.annotations.Required;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -27,19 +26,16 @@ import java.util.List;
 @Singleton
 public class VertexMultiple implements ParameterizedHandler {
     private final Graph graph;
-    private final UserRepository userRepository;
     private final WorkspaceRepository workspaceRepository;
     private final AuthorizationRepository authorizationRepository;
 
     @Inject
     public VertexMultiple(
             Graph graph,
-            UserRepository userRepository,
             WorkspaceRepository workspaceRepository,
             AuthorizationRepository authorizationRepository
     ) {
         this.graph = graph;
-        this.userRepository = userRepository;
         this.workspaceRepository = workspaceRepository;
         this.authorizationRepository = authorizationRepository;
     }
@@ -56,7 +52,7 @@ public class VertexMultiple implements ParameterizedHandler {
         String workspaceId = null;
 
         try {
-            workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request, workspaceRepository, userRepository);
+            workspaceId = VisalloBaseParameterProvider.getActiveWorkspaceIdOrDefault(request, workspaceRepository);
             result.setRequiredFallback(false);
         } catch (VisalloAccessDeniedException ex) {
             if (fallbackToPublic) {

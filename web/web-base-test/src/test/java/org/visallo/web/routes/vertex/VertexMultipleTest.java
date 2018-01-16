@@ -17,12 +17,9 @@ import org.visallo.web.routes.RouteTestBase;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
-import static org.visallo.web.parameterProviders.VisalloBaseParameterProvider.USER_REQUEST_ATTRIBUTE_NAME;
 import static org.visallo.web.parameterProviders.VisalloBaseParameterProvider.WORKSPACE_ID_ATTRIBUTE_NAME;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -51,7 +48,7 @@ public class VertexMultipleTest extends RouteTestBase {
         visibilityJson.addWorkspace(WORKSPACE_ID);
         sandboxedVertex = graph.addVertex("v2", visibilityTranslator.toVisibility(visibilityJson).getVisibility(), workspaceAuthorizations);
 
-        route = new VertexMultiple(graph, userRepository, workspaceRepository, authorizationRepository);
+        route = new VertexMultiple(graph, workspaceRepository, authorizationRepository);
     }
 
     @Test
@@ -69,7 +66,6 @@ public class VertexMultipleTest extends RouteTestBase {
     @Test(expected = VisalloAccessDeniedException.class)
     public void testGetVerticesWithNoWorkspaceAccessAndNoFallback() throws Exception {
         when(authorizationRepository.getGraphAuthorizations(user)).thenReturn(userAuthorizations);
-        when(request.getAttribute(USER_REQUEST_ATTRIBUTE_NAME)).thenReturn(user);
         when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user)).thenReturn(false);
 
         route.handle(request, new String[]{publicVertex.getId()}, false, false, user);
@@ -78,7 +74,6 @@ public class VertexMultipleTest extends RouteTestBase {
     @Test
     public void testGetVerticesWithNoWorkspaceAccessAndFallbackToPublic() throws Exception {
         when(authorizationRepository.getGraphAuthorizations(user)).thenReturn(userAuthorizations);
-        when(request.getAttribute(USER_REQUEST_ATTRIBUTE_NAME)).thenReturn(user);
         when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user)).thenReturn(false);
 
         ClientApiVertexMultipleResponse response = route.handle(request, new String[]{publicVertex.getId(), sandboxedVertex.getId()}, true, false, user);
@@ -91,7 +86,6 @@ public class VertexMultipleTest extends RouteTestBase {
     @Test
     public void testGetVertices() throws Exception {
         when(authorizationRepository.getGraphAuthorizations(user, WORKSPACE_ID)).thenReturn(workspaceAuthorizations);
-        when(request.getAttribute(USER_REQUEST_ATTRIBUTE_NAME)).thenReturn(user);
         when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user)).thenReturn(true);
 
         ClientApiVertexMultipleResponse response = route.handle(request, new String[]{publicVertex.getId(), sandboxedVertex.getId()}, true, false, user);
@@ -105,7 +99,6 @@ public class VertexMultipleTest extends RouteTestBase {
     @Test
     public void testGetVerticesWithUnknownId() throws Exception {
         when(authorizationRepository.getGraphAuthorizations(user, WORKSPACE_ID)).thenReturn(workspaceAuthorizations);
-        when(request.getAttribute(USER_REQUEST_ATTRIBUTE_NAME)).thenReturn(user);
         when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user)).thenReturn(true);
 
         ClientApiVertexMultipleResponse response = route.handle(request, new String[]{"no-vertex-id"}, true, false, user);
@@ -116,7 +109,6 @@ public class VertexMultipleTest extends RouteTestBase {
     @Test
     public void testGetVerticesWithNoneSpecified() throws Exception {
         when(authorizationRepository.getGraphAuthorizations(user, WORKSPACE_ID)).thenReturn(workspaceAuthorizations);
-        when(request.getAttribute(USER_REQUEST_ATTRIBUTE_NAME)).thenReturn(user);
         when(workspaceRepository.hasReadPermissions(WORKSPACE_ID, user)).thenReturn(true);
 
         ClientApiVertexMultipleResponse response = route.handle(request, new String[]{}, true, false, user);

@@ -7,7 +7,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.vertexium.Authorizations;
 import org.vertexium.Vertex;
 import org.vertexium.Visibility;
-import org.visallo.core.user.ProxyUser;
+import org.visallo.core.user.User;
 import org.visallo.web.routes.SetPropertyVisibilityTestBase;
 
 import java.io.IOException;
@@ -55,7 +55,7 @@ public class VertexSetPropertyVisibilityTest extends SetPropertyVisibilityTestBa
             String propertyName,
             String workspaceId,
             ResourceBundle resourceBundle,
-            ProxyUser user,
+            User user,
             Authorizations authorizations
     ) throws Exception {
         vertexSetPropertyVisibility.handle(
