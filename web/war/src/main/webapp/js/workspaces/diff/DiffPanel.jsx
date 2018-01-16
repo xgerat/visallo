@@ -211,7 +211,7 @@ define([
 
         renderRequiresOntologyPublish(diff) {
             return Privileges.canPUBLISH && diff.requiresOntologyPublish && Privileges.missingONTOLOGY_PUBLISH ?
-                (<div title={ i18n('workspaces.diff.requires.ontology.publish.title') } className="action-subtype">{ i18n('workspaces.diff.requires.ontology.publish') }</div>) : null;
+                (<div className="action-subtype">{ i18n('workspaces.diff.requires.ontology.publish') }</div>) : null;
         },
 
         renderVertexDiff: function(key, style, diff) {
