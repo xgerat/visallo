@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 
-public class TeeInputStream {
+public class TeeInputStream implements AutoCloseable {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(TeeInputStream.class);
     private static final int DEFAULT_BUFFER_SIZE = 1 * 1024 * 1024;
     public static final int LOOP_REPORT_INTERVAL = 10 * 1000; // report to the user every 10 seconds that a queue is waiting
@@ -53,6 +53,7 @@ public class TeeInputStream {
         return tees[idx].isClosed();
     }
 
+    @Override
     public void close() throws IOException {
         for (InputStream tee : tees) {
             tee.close();
