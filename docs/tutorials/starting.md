@@ -34,27 +34,27 @@ Point your browser to `https://localhost:8443` and Visallo will load the login p
 
 ## Working with the app
 
-You should definitely spend some time looking around Visallo.  When you download the archetype and artifacts it comes prebundled with:
+You should definitely spend some time looking around Visallo.  When you download the archetype and artifacts it comes pre-bundled with:
 
 * An example authentication plugin that logs you in as long as your user name and password are the same
 * An example graph property worker that extracts person names from a csv that is imported
 * An web app plugin which adds the ability to google a person concept's name from the Inspector of that entity inside of Visallo
 
-Since we are already logged in as admin with the password of admin, we know that the authentication module works and the source code can be found inside of your project in the ```./auth``` folder.
+Since we are already logged in as admin with the password of admin, we know that the authentication module works and the source code can be found inside of your project in the ```./plugins/auth``` folder.
 
 ### Example Graph Property Worker
 
-The graph property worker that is inside of your project is inside of the ```./worker``` folder.  It is designed to pull names outside of csv files, add the entities inside as people, then show the results in your case.
+The graph property worker that is inside of your project is inside of the ```./plugins/worker``` folder.  It is designed to pull names outside of csv files, add the entities inside as people, then show the results in your case.
 
-* Switch to the graph view by clicking the graph button on the left hand side of your screen.
-* Drag and drop the file at ```./worker/src/test/resources/contacts.csv``` in your project onto the graph.
+* Switch to the graph view by clicking the "Work" button on the left hand side of your screen, clicking the "New..." button, and selecting Graph.
+* Drag and drop the file at ```./plugins/worker/src/test/resources/contacts.csv``` in your project onto the graph.
 * Click Import on the dialog that pops up.
 
 The file was imported into Visallo and run through the graph property work queue inside of your server.  It pulled out Bruce Wayne and Clark Kent from inside of the csv and added them to your graph.
 
 ### Example Web Plugin
 
-Now that we have some people in our system, we can use the example web plugin to google their names.  To see the code that makes up this plugin, look inside of the ```./web``` folder in your project.  Click on "Bruce Wayne" in the graph and the Inspector will open.  In the Inspector you can view the information that you are allowed to see about Bruce Wayne.  Click the "Google" button at the top menu bar of the Inspector to open a new window that automatically opens the search results page for "Bruce Wayne" in Google.  
+Now that we have some people in our system, we can use the example web plugin to google their names.  To see the code that makes up this plugin, look inside of the ```./plugins/web``` folder in your project.  Click on "Bruce Wayne" in the graph and the Inspector will open.  In the Inspector you can view the information that you are allowed to see about Bruce Wayne.  Click the "Google" button at the top menu bar of the Inspector to open a new window that automatically opens the search results page for "Bruce Wayne" in Google.  
 
 ### Example Command Line Tool
 

@@ -6,9 +6,9 @@ Ensure that you have gone through the [starting](starting.md) instructions.  The
 
 ## Background
 
-One of the major parts of Visallo is the system of Graph Property Workers that enhance and analyze the data.  Since most organizations are going to have different use-cases and needs for working with the data, we designed the graph property workers we designed to be as pluggable as possible.  For more information on graph property workers, please [read the documentation](../extension-points/back-end/graphpropertyworkers.md) about graph property workers before beginning this tutorial.
+One of the major parts of Visallo is the system of Graph Property Workers that enhance and analyze the data.  Since most organizations are going to have different use-cases and needs for working with the data, we designed the graph property workers to be as pluggable as possible.  For more information on graph property workers, please [read the documentation](../extension-points/back-end/graphpropertyworkers.md) before beginning this tutorial.
 
-[After the last section](starting.md), we have created our own visallo project to run Visallo, but haven't customized it.  We will be working in the same directory to add our own functionality to that app.
+[After the last section](starting.md), we have created our own project to run Visallo, but haven't customized it.  We will be working in the same directory to add new functionality to that app.
 
 ## Graph Property Worker Skeleton
 
@@ -18,7 +18,7 @@ With the web app loaded, (```mvn clean package && ./run.sh``` in the project dir
 
 Stop the server by hitting Ctrl+c where maven was running the project from.
 
-Navigate into the ```./worker/src/main/java/com/visalloexample/worker``` directory and create a new class called HelloWorldGraphPropertyWorker.  Make this class extend GraphPropertyWorker and create the two required abstract methods isHandled and execute.  The file should look like the following:
+Navigate into the ```./plugins/worker/src/main/java/com/visalloexample/helloworld/worker``` directory and create a new class called `HelloWorldGraphPropertyWorker`.  Make this class extend `GraphPropertyWorker` and create the two required abstract methods `isHandled` and `execute`.  The file should look like the following:
 
 
 ```java
@@ -44,7 +44,7 @@ public class HelloWorldGraphPropertyWorker extends GraphPropertyWorker {
 }
 ```
 
-This is the most barebones that a graph property worker can be.  In order to load it on the classpath, we need to modify the services file in the resources directory for java.  Go into the ```worker/src/main/resources/META-INF/services``` directory and add the HelloWorldGraphPropertyWorker line to the file ```org.visallo.core.ingest.graphProperty.GraphPropertyWorker```.  It should now look like this:
+This is the most barebones that a graph property worker can be.  In order to load it on the classpath, we need to modify the services file in the resources directory for java.  Go into the ```worker/src/main/resources/META-INF/services``` directory and add the `HelloWorldGraphPropertyWorker` line to the file ```org.visallo.core.ingest.graphProperty.GraphPropertyWorker```.  It should now look like this:
 
 ```bash
 com.visalloexample.helloworld.worker.ExampleGraphPropertyWorker
@@ -52,9 +52,12 @@ com.visalloexample.helloworld.worker.HelloWorldGraphPropertyWorker
 ```
 
 Go back to the root of your project and run ```mvn clean package```, then ```./run.sh``` and wait for the server to come up.  Go back to the admin pane, check the list of plugins, and expand the graph property worker drop down.  You will now see your graph property worker in the list of plugins.  Unfortunately, there isn't a nice name for it or a description, so let us add one.  
-Add the following annotations to the class (look at the example graph property worker for a reference)
+Add the following annotations to the class (look at the example graph property worker for a reference) and import the correct classes.
 
 ```java
+import org.visallo.core.model.Description;
+import org.visallo.core.model.Name;
+
 @Name("My Hello World Graph Property Worker")
 @Description("Sets the title of every person vertex to Hello World")
 ```
@@ -63,7 +66,7 @@ Run ```mvn clean package```, then ```./run.sh``` in your project again.  You wil
 
 ## Adding Functionality
 
-Right now we have a skeleton of a graph property worker, but it doesn't do anything.  As it stands, it only tells the entire graph property framework that it can't work on anything because it returns false every time the isHandled method is called.  We want to enable it to do whatever it needs to do.  Ctrl+C out of the web server then change the isHandled method to return element instanceof Vertex and import the correct classes.  
+Right now we have a skeleton of a graph property worker, but it doesn't do anything.  As it stands, it only tells the entire graph property framework that it can't work on anything because it returns false every time the isHandled method is called.  We want to enable it to do whatever it needs to do.  Ctrl+C out of the web server then change the `isHandled` method to return `element instanceof Vertex` and import the correct classes.
 
 Now your code should look like:
 
@@ -126,12 +129,27 @@ getWorkQueueRepository().pushGraphPropertyQueue(v, "", "http://example.org/visal
 Since we now are changing the properties, we need to make sure that the graph property worker won't change the title to "Hello World" continually.  Add the following boolean condition to the isHandled method
 
 ```java
-!"Hello World".equals(element.getPropertyValue("http://example.org/visallo-helloworld-gpw#fullName"))
+!"Hello World".equals(element.getPropertyValue("http://example.org/visallo-helloworld#fullName"))
 ```
 
 Your HelloWorldGraphPropertyWorker class now looks like:
 
 ```java
+package com.visalloexample.helloworld.worker;
+
+import org.vertexium.Element;
+import org.vertexium.Property;
+import org.vertexium.Vertex;
+
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorkData;
+import org.visallo.core.ingest.graphProperty.GraphPropertyWorker;
+import org.visallo.core.model.Description;
+import org.visallo.core.model.Name;
+import org.visallo.core.model.properties.VisalloProperties;
+import org.visallo.core.model.workQueue.Priority;
+
+import java.io.InputStream;
+
 @Name("My Hello World Graph Property Worker")
 @Description("Sets the title of every person vertex to Hello World")
 public class HelloWorldGraphPropertyWorker extends GraphPropertyWorker {
@@ -139,7 +157,7 @@ public class HelloWorldGraphPropertyWorker extends GraphPropertyWorker {
     public boolean isHandled(Element element, Property property) {
         return element instanceof Vertex &&
                "http://example.org/visallo-helloworld#person".equals(VisalloProperties.CONCEPT_TYPE.getPropertyValue(element)) &&
-               !"Hello World".equals(element.getPropertyValue("http://example.org/visallo-helloworld-gpw#fullName"));
+               !"Hello World".equals(element.getPropertyValue("http://example.org/visallo-helloworld#fullName"));
     }
 
     @Override
@@ -156,9 +174,9 @@ Go to your project root and run ```mvn clean package``` and then ```./run.sh``` 
 
 We need to test out that the graph property worker actually makes the changes that we intend.  To do that, we are going to add an entity to the graph and watch it's name change.
 
-1. Click on Graph in the right hand side of the screen 
+1. Click on Graph in the right hand side of the screen
 1. Right click on the graph.
-1. Click New Entity... 
+1. Click New Entity...
 1. In the concept type text box, type Person and hit enter
 1. Click on Create
 

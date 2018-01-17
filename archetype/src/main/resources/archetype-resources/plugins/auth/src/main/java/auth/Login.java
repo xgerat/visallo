@@ -40,7 +40,7 @@ public class Login implements ParameterizedHandler {
         if (isValid(username, password)) {
             User user = findOrCreateUser(username);
             userRepository.updateUser(user, new UserNameAuthorizationContext(username, RemoteAddressUtil.getClientIpAddr(request)));
-            CurrentUser.set(request, user.getUserId(), user.getUsername());
+            CurrentUser.set(request, user);
             JSONObject json = new JSONObject();
             json.put("status", "OK");
             return json;
