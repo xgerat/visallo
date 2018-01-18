@@ -31,7 +31,7 @@ define([
     const MaxPathsToFocus = 100;
     const MaxPreviewPopovers = 5;
     const MaxEdgesBetween = 5;
-    const MaxTitleWords = 15;
+    const MaxTitleWords = 12; // Matches detail/item/layoutComponents/vertex#MaxTitleWords
     const REQUEST_UPDATE_DEBOUNCE = 300;
     const FORCE_UPDATE_DEBOUNCE = 1000;
 

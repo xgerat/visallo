@@ -5,6 +5,8 @@ define([
 ], function(Toolbar, F, ontology) {
     'use strict';
 
+    const MaxTitleWords = 12;
+
     var conceptDisplay = _.compose(_.property('displayName'), F.vertex.concept),
         vertexDisplay = F.vertex.title;
 
@@ -166,7 +168,7 @@ define([
             className: 'vertex-header',
             children: [
                 { componentPath: 'detail/headerImage/image', className: 'entity-glyphicon', modelAttribute: 'data' },
-                { ref: 'org.visallo.layout.text', style: 'title', model: vertexDisplay, truncate: 12 },
+                { ref: 'org.visallo.layout.text', style: 'title', model: vertexDisplay, truncate: MaxTitleWords },
                 { ref: 'org.visallo.layout.text', style: 'subtitle', model: conceptDisplay }
             ]
         }
