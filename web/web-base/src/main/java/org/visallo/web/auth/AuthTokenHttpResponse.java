@@ -48,6 +48,12 @@ public class AuthTokenHttpResponse extends HttpServletResponseWrapper {
         return super.getWriter();
     }
 
+    @Override
+    public void sendRedirect(String location) throws IOException {
+        updateAuthToken();
+        super.sendRedirect(location);
+    }
+
     public void invalidateAuthentication() {
         if (isCommitted()) {
             throw new IllegalStateException("Unable to clear auth token. The response is already committed.");
