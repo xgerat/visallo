@@ -28,7 +28,6 @@ else
     fi
   fi
 
-  CREATED_BY="${TRAVIS_REPO_SLUG} commit "`git rev-parse --short HEAD`""
   REPOS_BRANCH=${TRAVIS_BRANCH}
 
   if [ ${TRAVIS_BRANCH} = "master" ] || echo ${TRAVIS_BRANCH} | grep -Eq '^release-.*$'; then
@@ -36,6 +35,8 @@ else
       REPOS_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH}
     fi
   fi
+  
+  CREATED_BY="${TRAVIS_REPO_SLUG} branch ${REPOS_BRANCH} commit "`git rev-parse --short HEAD`""
 
   # Checking to see if repo branch exists in visallo-lts
   set +e
