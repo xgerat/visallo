@@ -82,8 +82,6 @@ define([], function() {
         };
 
         this.handleDataRequest = function(event, data) {
-            var self = this;
-
             this.trigger('dataRequestStarted', _.pick(data, 'requestId'));
 
             if (data.parameters) {
@@ -115,7 +113,8 @@ define([], function() {
         };
 
         this.fastPassNoWorker = function(message) {
-            var path = message.data.service + '/' + message.data.method;
+            const self = this;
+            const path = message.data.service + '/' + message.data.method;
             if (path in FAST_PASSED) {
                 if (FAST_PASSED[path]) {
                    FAST_PASSED[path].promise.then(r => {
@@ -131,7 +130,38 @@ define([], function() {
                     )) {
                         const ontologyPath = 'ontology/ontology';
                         const existing = FAST_PASSED[ontologyPath] && FAST_PASSED[ontologyPath].promise;
-                        Promise.resolve(existing || this.refreshOntology()).then(r => {
+                        let ontologyPromise;
+                        if (existing) {
+                            ontologyPromise = new Promise((fulfill) => {
+                                this.on('ontologyUpdated', onOntologyUpdated);
+
+                                Promise.resolve(existing).then(result => {
+                                    this.off('ontologyUpdated', onOntologyUpdated);
+                                    fulfill(result);
+                                });
+
+                                function onOntologyUpdated(event, data) {
+                                    self.off('ontologyUpdated', onOntologyUpdated);
+
+                                    const completed = {
+                                        success: true,
+                                        type: 'dataRequestCompleted',
+                                        result: data.ontology,
+                                        originalRequest: {
+                                            method: 'ontology',
+                                            service: 'ontology',
+                                            parameters: []
+                                        }
+                                    };
+
+                                    fulfill(completed);
+                                }
+                            })
+                        } else {
+                            ontologyPromise = this.refreshOntology();
+                        }
+
+                        Promise.resolve(ontologyPromise).then(r => {
                             this.trigger(r.type, {
                                 ...r,
                                 result: r.result[message.data.method],
