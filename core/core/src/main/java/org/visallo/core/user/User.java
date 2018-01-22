@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.Map;
 
 public interface User extends Serializable {
-    long serialVersionUID = 3L;
+    long serialVersionUID = 2L;
 
     String getUserId();
 

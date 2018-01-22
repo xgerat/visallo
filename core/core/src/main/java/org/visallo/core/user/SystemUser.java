@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SystemUser implements User {
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 1L;
     public static final String USERNAME = "system";
     public static final String USER_ID = UserRepository.GRAPH_USER_ID_PREFIX + "system";
 
