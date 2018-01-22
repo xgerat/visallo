@@ -3,22 +3,28 @@ package org.visallo.core.model.termMention;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.vertexium.*;
+import org.vertexium.mutation.ElementMutation;
 import org.vertexium.mutation.ExistingElementMutation;
 import org.vertexium.util.FilterIterable;
 import org.vertexium.util.IterableUtils;
 import org.vertexium.util.JoinIterable;
 import org.visallo.core.model.PropertyJustificationMetadata;
+import org.visallo.core.model.graph.GraphRepository;
+import org.visallo.core.model.graph.GraphUpdateContext;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.GraphAuthorizationRepository;
+import org.visallo.core.model.workQueue.Priority;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
-import org.visallo.core.util.ClientApiConverter;
-import org.visallo.core.util.SourceInfoSnippetSanitizer;
-import org.visallo.core.util.VisalloLogger;
-import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.core.security.VisibilityTranslator;
+import org.visallo.core.util.*;
 import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.web.clientapi.model.ClientApiTermMentionsResponse;
+import org.visallo.web.clientapi.model.SandboxStatus;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -31,11 +37,20 @@ public class TermMentionRepository {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(TermMentionRepository.class);
     public static final String VISIBILITY_STRING = "termMention";
     public static final String OWL_IRI = "http://visallo.org/termMention";
+    private final VisibilityTranslator visibilityTranslator;
+    private final WorkQueueRepository workQueueRepository;
     private final Graph graph;
 
     @Inject
-    public TermMentionRepository(Graph graph, GraphAuthorizationRepository graphAuthorizationRepository) {
+    public TermMentionRepository(
+            Graph graph,
+            VisibilityTranslator visibilityTranslator,
+            WorkQueueRepository workQueueRepository,
+            GraphAuthorizationRepository graphAuthorizationRepository
+    ) {
         this.graph = graph;
+        this.visibilityTranslator = visibilityTranslator;
+        this.workQueueRepository = workQueueRepository;
         graphAuthorizationRepository.addAuthorizationToGraph(VISIBILITY_STRING);
     }
 
@@ -226,6 +241,42 @@ public class TermMentionRepository {
     public Vertex findById(String termMentionId, Authorizations authorizations) {
         Authorizations authorizationsWithTermMention = getAuthorizations(authorizations);
         return graph.getVertex(termMentionId, authorizationsWithTermMention);
+    }
+
+    public void updateEdgeVisibility(String vertexId, String newVisibilitySource, String workspaceId, Authorizations authorizations) {
+        Authorizations authorizationsWithTermMention = getAuthorizations(authorizations);
+        Iterable<Vertex> termMentions = this.findByVertexIdForVertex(vertexId, authorizationsWithTermMention);
+        Iterable<String> edgeIds = stream(termMentions)
+                .map(VisalloProperties.TERM_MENTION_RESOLVED_EDGE_ID::getPropertyValue)
+                .filter(id -> id != null)
+                .collect(Collectors.toList());
+
+        List<Edge> edges = stream(graph.getEdges(edgeIds, authorizations)).map(edge -> {
+            ExistingElementMutation<Edge> m = edge.prepareMutation();
+            VisibilityJson visibilityJson = SandboxStatusUtil.getSandboxStatus(edge, workspaceId) != SandboxStatus.PUBLIC
+                    ? VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, newVisibilitySource, workspaceId)
+                    : VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, newVisibilitySource, null);
+            Visibility visibility = visibilityTranslator.toVisibilityNoSuperUser(visibilityJson);
+            Visibility defaultVisibility = visibilityTranslator.getDefaultVisibility();
+
+            m.alterElementVisibility(visibility);
+            VisalloProperties.VISIBILITY_JSON.setProperty(m, visibilityJson, defaultVisibility);
+
+            return m.save(authorizations);
+        }).collect(Collectors.toList());
+
+        graph.flush();
+
+        stream(edges).forEach(edge -> {
+            this.workQueueRepository.pushGraphPropertyQueue(
+                    edge,
+                    null,
+                    VisalloProperties.VISIBILITY_JSON.getPropertyName(),
+                    workspaceId,
+                    newVisibilitySource,
+                    Priority.HIGH
+            );
+        });
     }
 
     public void updateVisibility(Vertex termMention, Visibility newVisibility, Authorizations authorizations) {

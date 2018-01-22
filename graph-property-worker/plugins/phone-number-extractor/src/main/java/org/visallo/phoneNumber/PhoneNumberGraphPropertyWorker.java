@@ -57,7 +57,7 @@ public class PhoneNumberGraphPropertyWorker extends GraphPropertyWorker {
         final String text = CharStreams.toString(new InputStreamReader(in, Charsets.UTF_8));
 
         Vertex outVertex = (Vertex) data.getElement();
-        VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(outVertex);
+        VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, null, data.getWorkspaceId());
         final Iterable<PhoneNumberMatch> phoneNumbers = phoneNumberUtil.findNumbers(text, defaultRegionCode);
         List<Vertex> termMentions = new ArrayList<>();
         for (final PhoneNumberMatch phoneNumber : phoneNumbers) {

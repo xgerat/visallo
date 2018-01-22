@@ -164,6 +164,8 @@ public abstract class VisalloInMemoryTestBase {
         }
         termMentionRepository = new TermMentionRepository(
                 getGraph(),
+                getVisibilityTranslator(),
+                getWorkQueueRepository(),
                 getGraphAuthorizationRepository()
         );
         return termMentionRepository;

@@ -89,7 +89,7 @@ public abstract class GraphPropertyWorkerTestSetupBase {
         visibilityJson.addWorkspace(WORKSPACE_ID);
         visibilityTranslator = new DirectVisibilityTranslator();
         graphAuthorizationRepository = new InMemoryGraphAuthorizationRepository();
-        termMentionRepository = new TermMentionRepository(graph, graphAuthorizationRepository);
+        termMentionRepository = new TermMentionRepository(graph, visibilityTranslator, workQueueRepository, graphAuthorizationRepository);
 
         worker = createGraphPropertyWorker();
         worker.setVisibilityTranslator(visibilityTranslator);

@@ -153,16 +153,21 @@ define([
                 resolvedToVertexId,
                 vertices
             } = this.props;
-            const actions = [
-                { label: i18n('detail.text.terms.open'), title: i18n('detail.text.terms.open.tooltip'), handler: onOpen },
-                { label: i18n('detail.text.terms.openfullscreen'), title: i18n('detail.text.terms.openfullscreen.tooltip'), handler: onFullscreen }
-            ]
-            const canUnresolve = canEdit && termMentionFor === 'VERTEX' && sandboxStatus !== 'PUBLIC';
-            if (canUnresolve) {
-                actions.push({ label: i18n('detail.text.terms.unresolve'), title: i18n('detail.text.terms.unresolve.tooltip'), handler: onUnresolve, classes: { 'btn-danger': true }})
-            }
             const concept = getConceptOrDefault(conceptType);
-            const element = vertices[resolvedToVertexId]
+            const element = vertices[resolvedToVertexId];
+            const actions = [];
+
+            if (element) {
+                actions.push(
+                        { label: i18n('detail.text.terms.open'), title: i18n('detail.text.terms.open.tooltip'), handler: onOpen },
+                        { label: i18n('detail.text.terms.openfullscreen'), title: i18n('detail.text.terms.openfullscreen.tooltip'), handler: onFullscreen }
+                    );
+
+                    const canUnresolve = canEdit && termMentionFor === 'VERTEX' && sandboxStatus !== 'PUBLIC';
+                if (canUnresolve) {
+                        actions.push({ label: i18n('detail.text.terms.unresolve'), title: i18n('detail.text.terms.unresolve.tooltip'), handler: onUnresolve, classes: { 'btn-danger': true }})
+                    }
+            }
 
             return (
                 <li className="resolved" onMouseEnter={onHoverTerm}>

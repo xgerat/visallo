@@ -2,6 +2,9 @@ package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.vertexium.Visibility;
+import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.web.clientapi.model.ClientApiSourceInfo;
 import org.visallo.webster.ParameterizedHandler;
 import org.visallo.webster.annotations.Handle;
 import org.visallo.webster.annotations.Required;
@@ -40,6 +43,7 @@ public class VertexSetVisibility implements ParameterizedHandler {
     private final GraphRepository graphRepository;
     private final VisibilityTranslator visibilityTranslator;
     private final PrivilegeRepository privilegeRepository;
+    private final TermMentionRepository termMentionRepository;
 
     @Inject
     public VertexSetVisibility(
@@ -48,7 +52,8 @@ public class VertexSetVisibility implements ParameterizedHandler {
             WorkQueueRepository workQueueRepository,
             GraphRepository graphRepository,
             PrivilegeRepository privilegeRepository,
-            VisibilityTranslator visibilityTranslator
+            VisibilityTranslator visibilityTranslator,
+            TermMentionRepository termMentionRepository
     ) {
         this.graph = graph;
         this.workspaceRepository = workspaceRepository;
@@ -56,6 +61,7 @@ public class VertexSetVisibility implements ParameterizedHandler {
         this.graphRepository = graphRepository;
         this.visibilityTranslator = visibilityTranslator;
         this.privilegeRepository = privilegeRepository;
+        this.termMentionRepository = termMentionRepository;
     }
 
     @Handle
@@ -103,6 +109,12 @@ public class VertexSetVisibility implements ParameterizedHandler {
                 visibilitySource,
                 Priority.HIGH
         );
+
+        ClientApiSourceInfo sourceInfo = termMentionRepository.getSourceInfoForVertex(graphVertex, authorizations);
+        if (sourceInfo != null) {
+            termMentionRepository.updateEdgeVisibility(graphVertexId, visibilitySource, workspaceId, authorizations);
+            workQueueRepository.pushTextUpdated(sourceInfo.vertexId);
+        }
 
         return (ClientApiVertex) ClientApiConverter.toClientApi(graphVertex, workspaceId, authorizations);
     }

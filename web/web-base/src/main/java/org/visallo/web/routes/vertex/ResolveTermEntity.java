@@ -136,6 +136,7 @@ public class ResolveTermEntity implements ParameterizedHandler {
         }
 
         ClientApiSourceInfo sourceInfo = ClientApiSourceInfo.fromString(sourceInfoString);
+        VisibilityJson termMentionVisibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, null, workspaceId);
         new TermMentionBuilder()
                 .outVertex(artifactVertex)
                 .propertyKey(propertyKey)
@@ -145,7 +146,7 @@ public class ResolveTermEntity implements ParameterizedHandler {
                 .title(title)
                 .snippet(sourceInfo == null ? null : sourceInfo.snippet)
                 .conceptIri(conceptId)
-                .visibilityJson(visibilityJson)
+                .visibilityJson(termMentionVisibilityJson)
                 .resolvedTo(vertex, edge)
                 .resolvedFromTermMention(resolvedFromTermMention)
                 .process(getClass().getName())

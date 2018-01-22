@@ -16,6 +16,8 @@ import org.visallo.core.model.termMention.TermMentionRepository;
 import org.visallo.core.model.user.*;
 import org.visallo.core.model.workQueue.Priority;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
+import org.visallo.core.security.DirectVisibilityTranslator;
+import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
@@ -31,6 +33,7 @@ public class WorkspaceHelperTest {
     private Visibility visibility;
     private Visibility termMentionVisibility;
     private Authorizations authorizations;
+    private VisibilityTranslator visibilityTranslator;
     private WorkspaceHelper workspaceHelper;
     private TermMentionRepository termMentionRepository;
     private GraphAuthorizationRepository authorizationsRepository;
@@ -64,7 +67,8 @@ public class WorkspaceHelperTest {
         termMentionVisibility = new Visibility(TermMentionRepository.VISIBILITY_STRING);
         authorizations = graph.createAuthorizations(TermMentionRepository.VISIBILITY_STRING, WORKSPACE_ID);
         authorizationsRepository = new InMemoryGraphAuthorizationRepository();
-        termMentionRepository = new TermMentionRepository(graph, authorizationsRepository);
+        visibilityTranslator = new DirectVisibilityTranslator();
+        termMentionRepository = new TermMentionRepository(graph, visibilityTranslator, workQueueRepository, authorizationsRepository);
 
         when(ontologyRepository.getRelationshipIRIByIntent("entityHasImage", PUBLIC)).thenReturn(
                 "http://visallo.org/test#entityHasImage");

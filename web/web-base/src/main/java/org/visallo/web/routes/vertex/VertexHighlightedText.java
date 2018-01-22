@@ -3,14 +3,11 @@ package org.visallo.web.routes.vertex;
 import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.vertexium.*;
 import org.visallo.webster.ParameterizedHandler;
 import org.visallo.webster.annotations.Handle;
 import org.visallo.webster.annotations.Optional;
 import org.visallo.webster.annotations.Required;
-import org.apache.commons.io.IOUtils;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.Vertex;
 import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.EntityHighlighter;
 import org.visallo.core.config.Configuration;
@@ -28,7 +25,11 @@ import org.visallo.web.WebConfiguration;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.visallo.core.util.StreamUtil.stream;
 
 @Singleton
 public class VertexHighlightedText implements ParameterizedHandler {
@@ -85,6 +86,18 @@ public class VertexHighlightedText implements ParameterizedHandler {
                 response.respondWithHtml("");
             } else {
                 Iterable<Vertex> termMentions = termMentionRepository.findByOutVertexAndProperty(artifactVertex.getId(), propertyKey, propertyName, authorizationsWithTermMention);
+                List<String> resolvedToVertexIds = stream(termMentions)
+                        .map(VisalloProperties.TERM_MENTION_FOR_ELEMENT_ID::getPropertyValue)
+                        .filter(id -> id != null)
+                        .collect(Collectors.toList());
+                Map<String, Boolean> resolvedVerticesExist = graph.doVerticesExist(resolvedToVertexIds, authorizations);
+
+                termMentions = stream(termMentions)
+                        .filter(termMention -> {
+                            String resolvedToVertexId = VisalloProperties.TERM_MENTION_FOR_ELEMENT_ID.getPropertyValue(termMention);
+                            return resolvedToVertexId == null || resolvedVerticesExist.getOrDefault(resolvedToVertexId, false);
+                        }).collect(Collectors.toList());
+
                 entityHighlighter.transformHighlightedText(inputStream, response.getOutputStream(), termMentions, maxTextLength, workspaceId, authorizationsWithTermMention);
             }
         }

@@ -10,6 +10,7 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.termMention.TermMentionBuilder;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
+import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,6 +51,7 @@ public abstract class RegexGraphPropertyWorker extends GraphPropertyWorker {
             int start = matcher.start();
             int end = matcher.end();
 
+            VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(null, null, data.getWorkspaceId());
             Vertex termMention = new TermMentionBuilder()
                     .outVertex(outVertex)
                     .propertyKey(data.getProperty().getKey())
@@ -58,7 +60,7 @@ public abstract class RegexGraphPropertyWorker extends GraphPropertyWorker {
                     .end(end)
                     .title(patternGroup)
                     .conceptIri(getConcept().getIRI())
-                    .visibilityJson(data.getElementVisibilityJson())
+                    .visibilityJson(visibilityJson)
                     .process(getClass().getName())
                     .save(getGraph(), getVisibilityTranslator(), getUser(), getAuthorizations());
             termMentions.add(termMention);
