@@ -2,7 +2,6 @@ package org.visallo.core.user;
 
 import org.json.JSONObject;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
 
 import java.util.Date;
@@ -10,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SystemUser implements User {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
     public static final String USERNAME = "system";
     public static final String USER_ID = UserRepository.GRAPH_USER_ID_PREFIX + "system";
 
@@ -70,11 +69,6 @@ public class SystemUser implements User {
     @Override
     public UserType getUserType() {
         return UserType.SYSTEM;
-    }
-
-    @Override
-    public UserStatus getUserStatus() {
-        return UserStatus.OFFLINE;
     }
 
     @Override

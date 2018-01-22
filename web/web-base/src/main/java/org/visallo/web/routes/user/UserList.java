@@ -2,12 +2,10 @@ package org.visallo.web.routes.user;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.visallo.webster.ParameterizedHandler;
-import org.visallo.webster.annotations.Handle;
-import org.visallo.webster.annotations.Optional;
 import org.vertexium.util.ConvertingIterable;
 import org.vertexium.util.FilterIterable;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.user.UserSessionCounterRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.model.workspace.WorkspaceUser;
@@ -15,7 +13,9 @@ import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiUsers;
-import org.visallo.web.clientapi.model.UserStatus;
+import org.visallo.webster.ParameterizedHandler;
+import org.visallo.webster.annotations.Handle;
+import org.visallo.webster.annotations.Optional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,14 +30,17 @@ public class UserList implements ParameterizedHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserList.class);
     private final UserRepository userRepository;
     private final WorkspaceRepository workspaceRepository;
+    private final UserSessionCounterRepository userSessionCounterRepository;
 
     @Inject
     public UserList(
-            final UserRepository userRepository,
-            final WorkspaceRepository workspaceRepository
+            UserRepository userRepository,
+            WorkspaceRepository workspaceRepository,
+            UserSessionCounterRepository userSessionCounterRepository
     ) {
         this.userRepository = userRepository;
         this.workspaceRepository = workspaceRepository;
+        this.userSessionCounterRepository = userSessionCounterRepository;
     }
 
     @Handle
@@ -46,7 +49,7 @@ public class UserList implements ParameterizedHandler {
             @Optional(name = "q") String query,
             @Optional(name = "workspaceId") String workspaceId,
             @Optional(name = "userIds[]") String[] userIds,
-            @Optional(name = "status") String status,
+            @Optional(name = "online") Boolean online,
             @Optional(name = "skip", defaultValue = "0") int skip,
             @Optional(name = "limit", defaultValue = "100") int limit
     ) throws Exception {
@@ -63,8 +66,9 @@ public class UserList implements ParameterizedHandler {
                 }
                 users.add(u);
             }
-        } else if (status != null && status.length() > 0) {
-            users = toList(userRepository.findByStatus(skip, limit, UserStatus.valueOf(status)));
+        } else if (online != null && online) {
+            users = toList(userRepository.find(skip, limit));
+            users.removeIf(u -> userSessionCounterRepository.getSessionCount(u.getUserId()) < 1);
         } else {
             users = toList(userRepository.find(query));
 

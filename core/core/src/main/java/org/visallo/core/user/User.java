@@ -1,7 +1,6 @@
 package org.visallo.core.user;
 
 import org.json.JSONObject;
-import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
 
 import java.io.Serializable;
@@ -9,7 +8,7 @@ import java.util.Date;
 import java.util.Map;
 
 public interface User extends Serializable {
-    long serialVersionUID = 2L;
+    long serialVersionUID = 3L;
 
     String getUserId();
 
@@ -32,8 +31,6 @@ public interface User extends Serializable {
     int getLoginCount();
 
     UserType getUserType();
-
-    UserStatus getUserStatus();
 
     String getCurrentWorkspaceId();
 

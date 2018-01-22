@@ -23,7 +23,6 @@ import org.visallo.core.status.JmxMetricsManager;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.UserStatus;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -145,7 +144,6 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
     }
 
     public void onOpen(AtmosphereResource resource) throws IOException {
-        setStatus(resource, UserStatus.ACTIVE);
         incrementUserConnectionCount(resource);
     }
 
@@ -174,7 +172,6 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
         if (lastConnection) {
             String userId = getCurrentUserId(event.getResource());
             LOGGER.info("last connection for user %s", userId);
-            setStatus(event.getResource(), UserStatus.OFFLINE);
             auditService.auditLogout(userId);
         }
     }
@@ -221,22 +218,6 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
             workQueueRepository.pushUserCurrentWorkspaceChange(authUser, workspace.getWorkspaceId());
 
             LOGGER.debug("User %s switched current workspace to %s", authUserId, workspaceId);
-        }
-    }
-
-    private void setStatus(AtmosphereResource resource, UserStatus status) {
-        broadcaster = resource.getBroadcaster();
-        try {
-            User authUser = CurrentUser.get(resource.getRequest());
-            if (authUser != null && authUser.getUserStatus() != status) {
-                LOGGER.debug("Setting user %s status to %s", authUser.getUserId(), status.toString());
-                userRepository.setStatus(authUser.getUserId(), status);
-                workQueueRepository.pushUserStatusChange(authUser, status);
-            } else {
-                LOGGER.warn("User not found in atmosphere request");
-            }
-        } catch (Exception ex) {
-            LOGGER.error("Could not update user status", ex);
         }
     }
 

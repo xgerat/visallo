@@ -8,10 +8,8 @@ import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.user.*;
-import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
-import org.visallo.web.clientapi.model.UserStatus;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,7 +23,6 @@ public class InMemoryUserRepository extends UserRepository {
     public InMemoryUserRepository(
             Configuration configuration,
             UserSessionCounterRepository userSessionCounterRepository,
-            WorkQueueRepository workQueueRepository,
             LockRepository lockRepository,
             AuthorizationRepository authorizationRepository,
             PrivilegeRepository privilegeRepository
@@ -33,7 +30,6 @@ public class InMemoryUserRepository extends UserRepository {
         super(
                 configuration,
                 userSessionCounterRepository,
-                workQueueRepository,
                 lockRepository,
                 authorizationRepository,
                 privilegeRepository
@@ -102,11 +98,6 @@ public class InMemoryUserRepository extends UserRepository {
 
     @Override
     public void setUiPreferences(User user, JSONObject preferences) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public User setStatus(String userId, UserStatus status) {
         throw new RuntimeException("Not implemented");
     }
 

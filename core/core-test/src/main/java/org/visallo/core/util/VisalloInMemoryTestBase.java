@@ -16,8 +16,6 @@ import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.formula.FormulaEvaluator;
 import org.visallo.core.model.WorkQueueNames;
-import org.visallo.core.model.thumbnails.ThumbnailRepository;
-import org.visallo.core.model.thumbnails.InMemoryThumbnailRepository;
 import org.visallo.core.model.file.ClassPathFileSystemRepository;
 import org.visallo.core.model.file.FileSystemRepository;
 import org.visallo.core.model.graph.GraphRepository;
@@ -30,6 +28,8 @@ import org.visallo.core.model.notification.SystemNotificationRepository;
 import org.visallo.core.model.notification.UserNotificationRepository;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.termMention.TermMentionRepository;
+import org.visallo.core.model.thumbnails.InMemoryThumbnailRepository;
+import org.visallo.core.model.thumbnails.ThumbnailRepository;
 import org.visallo.core.model.user.*;
 import org.visallo.core.model.workQueue.TestWorkQueueRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -361,7 +361,6 @@ public abstract class VisalloInMemoryTestBase {
                 getGraph(),
                 getOntologyRepository(),
                 getUserSessionCounterRepository(),
-                getWorkQueueRepository(),
                 getLockRepository(),
                 getAuthorizationRepository(),
                 getPrivilegeRepository()
@@ -376,7 +375,6 @@ public abstract class VisalloInMemoryTestBase {
         getGraph().defineProperty(UserVisalloProperties.CREATE_DATE.getPropertyName()).dataType(String.class).define();
         getGraph().defineProperty(UserVisalloProperties.PASSWORD_HASH.getPropertyName()).dataType(String.class).define();
         getGraph().defineProperty(UserVisalloProperties.PASSWORD_SALT.getPropertyName()).dataType(String.class).define();
-        getGraph().defineProperty(UserVisalloProperties.STATUS.getPropertyName()).dataType(String.class).define();
         getGraph().defineProperty(UserVisalloProperties.EMAIL_ADDRESS.getPropertyName()).dataType(String.class).define();
         return userRepository;
     }
