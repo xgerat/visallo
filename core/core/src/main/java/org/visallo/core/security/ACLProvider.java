@@ -283,6 +283,10 @@ public abstract class ACLProvider {
             appendACL(((ClientApiEdgeMultipleResponse) clientApiObject).getEdges(), ontology, user, workspaceId);
         } else if (clientApiObject instanceof ClientApiElementSearchResponse) {
             appendACL(((ClientApiElementSearchResponse) clientApiObject).getElements(), ontology, user, workspaceId);
+            List<ClientApiVertexiumObject> referencedElements = ((ClientApiElementSearchResponse) clientApiObject).getReferencedElements();
+            if (referencedElements != null) {
+                appendACL(referencedElements, ontology, user, workspaceId);
+            }
         } else if (clientApiObject instanceof ClientApiEdgeSearchResponse) {
             appendACL(((ClientApiEdgeSearchResponse) clientApiObject).getResults(), ontology, user, workspaceId);
         } else if (clientApiObject instanceof ClientApiVertexEdges) {
