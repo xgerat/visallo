@@ -149,9 +149,8 @@ define([
             const colors = ['#FFFF00', '#FFAB00', '#FF0000'];
             const step = d3.scale.linear().domain([1, colors.length]).range([newMin, 1]);
             const opacity = d3.scale.linear()
-                .interpolate(d3.interpolateRound)
                 .domain([newMin, 1])
-                .range(opacityRange.map(o => o * 255))
+                .range(opacityRange)
             const colorScale = d3.scale.linear()
                 .interpolate(d3.interpolateHcl)
                 .domain(colors.map((c, i, l) => {
@@ -165,13 +164,13 @@ define([
                 const index = (255 * w) | 0;
                 let style = styleCache[index];
                 if (!style) {
-                    const color = colorScale(w);
-                    const colorWithAlpha = color + opacity(w).toString(16);
-                    const c = colorjs(color);
+                    const color = colorjs(colorScale(w));
+                    const colorWithAlpha = color.setAlpha(opacity(w)).toCSS();
+                    const colorDarkened = color.darkenByAmount(0.1).toCSS();
                     style = [
                         new ol.style.Style({
                             fill: new ol.style.Fill({ color: colorWithAlpha }),
-                            stroke: new ol.style.Stroke({ color: c.darkenByAmount(0.1).toCSS(), width: 1 })
+                            stroke: new ol.style.Stroke({ color: colorDarkened, width: 1 })
                         })
                     ];
                     styleCache[index] = style;
