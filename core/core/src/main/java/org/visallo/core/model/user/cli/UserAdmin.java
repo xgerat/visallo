@@ -11,7 +11,6 @@ import org.visallo.core.model.user.cli.args.*;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.UserStatus;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -24,7 +23,7 @@ public class UserAdmin extends CommandLineTool {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(UserAdmin.class, "cli-userAdmin");
     public static final String ACTION_CREATE = "create";
     public static final String ACTION_LIST = "list";
-    public static final String ACTION_ACTIVE = "active";
+    public static final String ACTION_ONLINE = "online";
     public static final String ACTION_EXPORT_PASSWORDS = "export-passwords";
     public static final String ACTION_UPDATE_PASSWORD = "update-password";
     public static final String ACTION_DELETE = "delete";
@@ -43,7 +42,7 @@ public class UserAdmin extends CommandLineTool {
     protected JCommander parseArguments(String[] args) {
         actions.add(ACTION_CREATE);
         actions.add(ACTION_LIST);
-        actions.add(ACTION_ACTIVE);
+        actions.add(ACTION_ONLINE);
         actions.add(ACTION_EXPORT_PASSWORDS);
         actions.add(ACTION_UPDATE_PASSWORD);
         actions.add(ACTION_DELETE);
@@ -105,8 +104,8 @@ public class UserAdmin extends CommandLineTool {
                 return new CreateUserArgs();
             case ACTION_LIST:
                 return new ListUsersArgs();
-            case ACTION_ACTIVE:
-                return new ListActiveUsersArgs();
+            case ACTION_ONLINE:
+                return new ListOnlineUsersArgs();
             case ACTION_EXPORT_PASSWORDS:
                 return new ExportPasswordsArgs();
             case ACTION_UPDATE_PASSWORD:
@@ -138,8 +137,8 @@ public class UserAdmin extends CommandLineTool {
                     return create((CreateUserArgs) this.args);
                 case ACTION_LIST:
                     return list((ListUsersArgs) this.args);
-                case ACTION_ACTIVE:
-                    return active((ListActiveUsersArgs) this.args);
+                case ACTION_ONLINE:
+                    return online((ListOnlineUsersArgs) this.args);
                 case ACTION_EXPORT_PASSWORDS:
                     return exportPasswords((ExportPasswordsArgs) this.args);
                 case ACTION_UPDATE_PASSWORD:
@@ -237,10 +236,13 @@ public class UserAdmin extends CommandLineTool {
         return 0;
     }
 
-    private int active(ListActiveUsersArgs args) {
-        List<User> activeUsers = loadUsers(UserStatus.ACTIVE);
-        System.out.println(activeUsers.size() + " " + UserStatus.ACTIVE + " user" + (activeUsers.size() == 1 ? "" : "s"));
-        printUsers(activeUsers);
+    private int online(ListOnlineUsersArgs args) {
+        List<User> users = loadUsers();
+        users.removeIf(user -> {
+           return getUserSessionCounterRepository().getSessionCount(user.getUserId()) < 1;
+        });
+        System.out.println(users.size() + " online user(s)");
+        printUsers(users);
         return 0;
     }
 
@@ -378,18 +380,11 @@ public class UserAdmin extends CommandLineTool {
     }
 
     private List<User> loadUsers() {
-        return loadUsers(null);
-    }
-
-    private List<User> loadUsers(UserStatus filter) {
         List<User> allUsers = new ArrayList<>();
 
         int limit = 100;
         for (int skip = 0; ; skip += limit) {
-            Iterable<User> usersIterable = (filter == null) ?
-                    getUserRepository().find(skip, limit) :
-                    getUserRepository().findByStatus(skip, limit, filter);
-
+            Iterable<User> usersIterable = getUserRepository().find(skip, limit);
             List<User> userPage = toList(usersIterable);
             if (userPage.size() == 0) {
                 break;

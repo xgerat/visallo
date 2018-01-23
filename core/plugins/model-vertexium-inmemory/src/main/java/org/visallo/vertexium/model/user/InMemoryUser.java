@@ -3,7 +3,6 @@ package org.visallo.vertexium.model.user;
 import com.google.common.collect.ImmutableMap;
 import org.json.JSONObject;
 import org.visallo.core.user.User;
-import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
 
 import java.util.Date;
@@ -103,11 +102,6 @@ public class InMemoryUser implements User {
     @Override
     public UserType getUserType() {
         return UserType.USER;
-    }
-
-    @Override
-    public UserStatus getUserStatus() {
-        throw new RuntimeException("not implemented");
     }
 
     @Override

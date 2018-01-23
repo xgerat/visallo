@@ -13,7 +13,6 @@ public final class UserVisalloProperties {
     public static final DateSingleValueVisalloProperty PREVIOUS_LOGIN_DATE = new DateSingleValueVisalloProperty("http://visallo.org/user#previousLoginDate");
     public static final StringSingleValueVisalloProperty PREVIOUS_LOGIN_REMOTE_ADDR = new StringSingleValueVisalloProperty("http://visallo.org/user#previousLoginRemoteAddr");
     public static final IntegerSingleValueVisalloProperty LOGIN_COUNT = new IntegerSingleValueVisalloProperty("http://visallo.org/user#loginCount");
-    public static final StringSingleValueVisalloProperty STATUS = new StringSingleValueVisalloProperty("http://visallo.org/user#status");
     public static final StringSingleValueVisalloProperty CURRENT_WORKSPACE = new StringSingleValueVisalloProperty("http://visallo.org/user#currentWorkspace");
     public static final JsonSingleValueVisalloProperty UI_PREFERENCES = new JsonSingleValueVisalloProperty("http://visallo.org/user#uiPreferences");
     public static final ByteArraySingleValueVisalloProperty PASSWORD_SALT = new ByteArraySingleValueVisalloProperty("http://visallo.org/user#passwordSalt");

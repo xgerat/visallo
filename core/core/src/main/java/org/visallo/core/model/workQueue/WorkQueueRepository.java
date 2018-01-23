@@ -32,7 +32,6 @@ import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.clientapi.model.ClientApiWorkspace;
-import org.visallo.web.clientapi.model.UserStatus;
 
 import java.util.*;
 
@@ -867,19 +866,6 @@ public abstract class WorkQueueRepository {
         json.put("type", "userAccessChange");
         json.put("permissions", getPermissionsWithUserIds(user.getUserId()));
         json.put("data", getUserRepository().toJsonWithAuths(user));
-        broadcastJson(json);
-    }
-
-    public void pushUserStatusChange(User user, UserStatus status) {
-        broadcastUserStatusChange(user, status);
-    }
-
-    protected void broadcastUserStatusChange(User user, UserStatus status) {
-        JSONObject json = new JSONObject();
-        json.put("type", "userStatusChange");
-        JSONObject data = UserRepository.toJson(user);
-        data.put("status", status.toString());
-        json.put("data", data);
         broadcastJson(json);
     }
 

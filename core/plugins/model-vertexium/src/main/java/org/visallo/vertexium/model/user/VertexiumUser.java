@@ -6,7 +6,6 @@ import org.vertexium.Property;
 import org.vertexium.Vertex;
 import org.visallo.core.model.user.UserVisalloProperties;
 import org.visallo.core.user.User;
-import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
 
 import java.io.Serializable;
@@ -79,15 +78,6 @@ public class VertexiumUser implements User, Serializable {
     @Override
     public UserType getUserType() {
         return UserType.USER;
-    }
-
-    @Override
-    public UserStatus getUserStatus() {
-        return UserStatus.valueOf(UserVisalloProperties.STATUS.getPropertyValue(properties));
-    }
-
-    public void setUserStatus(UserStatus status) {
-        UserVisalloProperties.STATUS.setProperty(properties, status.name());
     }
 
     @Override

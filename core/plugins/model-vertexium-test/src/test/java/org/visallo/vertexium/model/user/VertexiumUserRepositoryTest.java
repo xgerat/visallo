@@ -24,7 +24,6 @@ public class VertexiumUserRepositoryTest extends VisalloInMemoryTestBase {
                 getGraph(),
                 getOntologyRepository(),
                 getUserSessionCounterRepository(),
-                getWorkQueueRepository(),
                 getLockRepository(),
                 getAuthorizationRepository(),
                 getPrivilegeRepository()

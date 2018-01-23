@@ -7,7 +7,6 @@ import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.model.lock.LockRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
-import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
@@ -16,7 +15,6 @@ import org.visallo.core.util.JSONUtil;
 import org.visallo.web.clientapi.model.ClientApiUser;
 import org.visallo.web.clientapi.model.ClientApiUsers;
 import org.visallo.web.clientapi.model.Privilege;
-import org.visallo.web.clientapi.model.UserStatus;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -32,7 +30,6 @@ public abstract class UserRepository {
     public static final String OWL_IRI = "http://visallo.org/user";
     public static final String USER_CONCEPT_IRI = "http://visallo.org/user#user";
     private final UserSessionCounterRepository userSessionCounterRepository;
-    private final WorkQueueRepository workQueueRepository;
     private final LockRepository lockRepository;
     private final Configuration configuration;
     private final AuthorizationRepository authorizationRepository;
@@ -43,14 +40,12 @@ public abstract class UserRepository {
     protected UserRepository(
             Configuration configuration,
             UserSessionCounterRepository userSessionCounterRepository,
-            WorkQueueRepository workQueueRepository,
             LockRepository lockRepository,
             AuthorizationRepository authorizationRepository,
             PrivilegeRepository privilegeRepository
     ) {
         this.configuration = configuration;
         this.userSessionCounterRepository = userSessionCounterRepository;
-        this.workQueueRepository = workQueueRepository;
         this.lockRepository = lockRepository;
         this.authorizationRepository = authorizationRepository;
         this.privilegeRepository = privilegeRepository;
@@ -59,20 +54,6 @@ public abstract class UserRepository {
     public abstract User findByUsername(String username);
 
     public abstract Iterable<User> find(int skip, int limit);
-
-    /*
-    simple and likely slow implementation expected to be overridden in production implementations
-     */
-    public Iterable<User> findByStatus(int skip, int limit, UserStatus status) {
-        List<User> allUsers = toList(find(skip, limit));
-        List<User> matchingUsers = new ArrayList<>();
-        for (User user : allUsers) {
-            if (user.getUserStatus() == status) {
-                matchingUsers.add(user);
-            }
-        }
-        return matchingUsers;
-    }
 
     public abstract User findById(String userId);
 
@@ -101,8 +82,6 @@ public abstract class UserRepository {
     public abstract User setCurrentWorkspace(String userId, String workspaceId);
 
     public abstract String getCurrentWorkspaceId(String userId);
-
-    public abstract User setStatus(String userId, UserStatus status);
 
     public abstract void setDisplayName(User user, String displayName);
 
@@ -172,7 +151,6 @@ public abstract class UserRepository {
         u.setId(user.getUserId());
         u.setUserName(user.getUsername());
         u.setDisplayName(user.getDisplayName());
-        u.setStatus(user.getUserStatus());
         u.setUserType(user.getUserType());
         u.setEmail(user.getEmailAddress());
         u.setCurrentLoginDate(user.getCurrentLoginDate());
@@ -208,7 +186,6 @@ public abstract class UserRepository {
             json.put("id", user.getUserId());
             json.put("userName", user.getUsername());
             json.put("displayName", user.getDisplayName());
-            json.put("status", user.getUserStatus().toString().toUpperCase());
             json.put("userType", user.getUserType().toString().toUpperCase());
             json.put("email", user.getEmailAddress());
             json.put("currentWorkspaceId", user.getCurrentWorkspaceId());
@@ -244,7 +221,6 @@ public abstract class UserRepository {
     public final void delete(User user) {
         internalDelete(user);
         userSessionCounterRepository.deleteSessions(user.getUserId());
-        workQueueRepository.pushUserStatusChange(user, UserStatus.OFFLINE);
         fireUserDeletedEvent(user);
     }
 
@@ -305,12 +281,6 @@ public abstract class UserRepository {
     protected void fireUserLoginEvent(User user, AuthorizationContext authorizationContext) {
         for (UserListener userListener : getUserListeners()) {
             userListener.userLogin(user, authorizationContext);
-        }
-    }
-
-    protected void fireUserStatusChangeEvent(User user, UserStatus status) {
-        for (UserListener userListener : getUserListeners()) {
-            userListener.userStatusChange(user, status);
         }
     }
 

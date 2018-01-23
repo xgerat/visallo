@@ -11,7 +11,6 @@ public class ClientApiUser implements ClientApiObject {
     private String displayName;
     private UserType userType;
     private String currentWorkspaceId;
-    private UserStatus status;
     private String email;
     private String currentWorkspaceName;
     private String csrfToken;
@@ -71,14 +70,6 @@ public class ClientApiUser implements ClientApiObject {
 
     public void setCurrentWorkspaceId(String currentWorkspaceId) {
         this.currentWorkspaceId = currentWorkspaceId;
-    }
-
-    public UserStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(UserStatus status) {
-        this.status = status;
     }
 
     public Date getCurrentLoginDate() {

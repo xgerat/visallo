@@ -30,7 +30,7 @@ define([
                 error: null
             });
             this.dataRequest('user', 'search', {
-                status: 'ACTIVE'
+                online: 'true'
             })
                 .then(users => {
                     this.setState({
@@ -40,7 +40,7 @@ define([
                     });
                 })
                 .catch(err => {
-                    console.error('Could not get active users', err);
+                    console.error('Could not get online users', err);
                     this.setState({
                         loading: false,
                         error: err

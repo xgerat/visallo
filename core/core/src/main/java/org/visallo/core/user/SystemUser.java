@@ -2,7 +2,6 @@ package org.visallo.core.user;
 
 import org.json.JSONObject;
 import org.visallo.core.model.user.UserRepository;
-import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
 
 import java.util.Date;
@@ -70,11 +69,6 @@ public class SystemUser implements User {
     @Override
     public UserType getUserType() {
         return UserType.SYSTEM;
-    }
-
-    @Override
-    public UserStatus getUserStatus() {
-        return UserStatus.OFFLINE;
     }
 
     @Override

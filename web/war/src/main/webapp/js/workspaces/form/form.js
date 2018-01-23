@@ -45,8 +45,6 @@ define([
         this.after('initialize', function() {
             var self = this;
 
-            this.on(document, 'userStatusChange', this.onUserStatusChange);
-
             this.editable = this.attr.data.editable;
 
             this.$node.html(template({
@@ -93,17 +91,6 @@ define([
                 this.select('titleSelector').on('change keyup paste', this.onChangeTitle.bind(this));
             }
         });
-
-        this.onUserStatusChange = function(event, user) {
-            this.$node.find('.share-list > .user-row').each(function() {
-                var $this = $(this);
-                if ($this.data('userId') === user.id) {
-                    $this.find('.user-status')
-                        .removePrefixedClasses('st-')
-                        .addClass('st-' + (user.status && user.status.toLowerCase() || 'unknown'));
-                }
-            })
-        };
 
         var timeout;
         this.saveWorkspace = function(immediate, options) {
@@ -186,7 +173,6 @@ define([
                     displayName: user.displayName,
                     subtitle: (user.displayName.toLowerCase() !== (user.email || user.userName).toLowerCase()) ?
                         (user.email || user.userName) : null,
-                    statusClass: `st-${user.status ? user.status.toLowerCase() : 'unknown'}`,
                     accessName: userPermission.access.toUpperCase(),
                     accessDisplay: {
                         read: i18n('workspaces.form.sharing.access.view'),

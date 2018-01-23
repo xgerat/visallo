@@ -50,19 +50,6 @@ define([
                     dispatch(productActions.get({ productId, invalidate: true }))
                 });
             },
-            userStatusChange: (function() {
-                var previousById = {};
-                return function(data) {
-                    var previous = data && previousById[data.id];
-                    if (!previous || !_.isEqual(data, previous)) {
-                        previousById[data.id] = data;
-                        dispatchMain('rebroadcastEvent', {
-                            eventName: 'userStatusChange',
-                            data: data
-                        });
-                    }
-                }
-            })(),
             userAccessChange: function(user) {
                 require(['../store/user/actions-impl'], function(actions) {
                     store.getStore().dispatch(actions.putUser({ user }));

@@ -22,7 +22,6 @@ define([
         this.after('initialize', function() {
             this.on('clearUser', this.onClearUser);
             this.on('updateFilterUserIds', this.onUpdateFilterUserIds);
-            this.on(document, 'userStatusChange', this.onUserStatusChange);
 
             this.$node.html(template({
                 placeholder: this.attr.placeholder || i18n('user.selection.field.placeholder')
@@ -30,17 +29,6 @@ define([
 
             this.setupTypeahead();
         });
-
-        this.onUserStatusChange = function(event, user) {
-            this.$node.find('.user-row').each(function() {
-                var $this = $(this);
-                if ($this.data('user').id === user.id) {
-                    $this.find('.user-status')
-                        .removeClass('active idle offline unknown')
-                        .addClass('st-' + (user.status && user.status.toLowerCase() || 'unknown'));
-                }
-            })
-        };
 
         this.onUpdateFilterUserIds = function(event, data) {
             this.attr.filterUserIds = data.userIds;
@@ -94,7 +82,6 @@ define([
                     const user = userMap[userId];
                     return userTemplate({
                         json: JSON.stringify(user),
-                        statusClass: `st-${user.status ? user.status.toLowerCase() : 'unknown'}`,
                         displayName: user.displayName,
                         subtitle: (user.displayName.toLowerCase() !== (user.email || user.userName).toLowerCase()) ?
                             (user.email || user.userName) : null

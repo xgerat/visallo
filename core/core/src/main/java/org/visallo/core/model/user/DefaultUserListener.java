@@ -1,7 +1,6 @@
 package org.visallo.core.model.user;
 
 import org.visallo.core.user.User;
-import org.visallo.web.clientapi.model.UserStatus;
 
 import java.util.Set;
 
@@ -33,11 +32,6 @@ public class DefaultUserListener implements UserListener {
 
     @Override
     public void userLogin(User user, AuthorizationContext authorizationContext) {
-
-    }
-
-    @Override
-    public void userStatusChange(User user, UserStatus status) {
 
     }
 }

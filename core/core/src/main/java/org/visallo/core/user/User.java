@@ -1,7 +1,6 @@
 package org.visallo.core.user;
 
 import org.json.JSONObject;
-import org.visallo.web.clientapi.model.UserStatus;
 import org.visallo.web.clientapi.model.UserType;
 
 import java.io.Serializable;
@@ -32,8 +31,6 @@ public interface User extends Serializable {
     int getLoginCount();
 
     UserType getUserType();
-
-    UserStatus getUserStatus();
 
     String getCurrentWorkspaceId();
 
