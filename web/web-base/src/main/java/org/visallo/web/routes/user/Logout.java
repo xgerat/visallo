@@ -32,14 +32,16 @@ public class Logout implements ParameterizedHandler {
     @Handle
     public ClientApiSuccess handle(HttpServletRequest request, HttpServletResponse response) throws Exception {
         User user = CurrentUser.get(request);
-        auditService.auditLogout(user.getUserId());
-        CurrentUser.set(request, null);
+        if (user != null) {
+            auditService.auditLogout(user.getUserId());
+            CurrentUser.set(request, null);
 
-        if (response instanceof AuthTokenHttpResponse) {
-            AuthTokenHttpResponse authResponse = (AuthTokenHttpResponse) response;
-            authResponse.invalidateAuthentication();
-        } else {
-            LOGGER.error("Logout called but response is not an instance of %s. User may not actually be logged out.", AuthTokenHttpResponse.class.getName());
+            if (response instanceof AuthTokenHttpResponse) {
+                AuthTokenHttpResponse authResponse = (AuthTokenHttpResponse) response;
+                authResponse.invalidateAuthentication();
+            } else {
+                LOGGER.error("Logout called but response is not an instance of %s. User may not actually be logged out.", AuthTokenHttpResponse.class.getName());
+            }
         }
 
         return VisalloResponse.SUCCESS;
