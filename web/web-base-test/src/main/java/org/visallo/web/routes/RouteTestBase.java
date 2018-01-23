@@ -20,9 +20,11 @@ import org.visallo.core.model.workspace.WorkspaceUser;
 import org.visallo.core.security.DirectVisibilityTranslator;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
+import org.visallo.core.util.JSONUtil;
 import org.visallo.vertexium.model.user.InMemoryUser;
 import org.visallo.web.CurrentUser;
 import org.visallo.web.clientapi.model.WorkspaceAccess;
+import org.visallo.web.closurecompiler.com.google.gson.JsonObject;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -87,6 +89,8 @@ public abstract class RouteTestBase {
 
     private HashMap<String, Object> attributes;
 
+    private PrintWriter responseWriter;
+
     protected void before() throws IOException {
         requestParameters = new HashMap<>();
         attributes = new HashMap<>();
@@ -117,7 +121,8 @@ public abstract class RouteTestBase {
         when(workspaceRepository.findUsersWithAccess(WORKSPACE_ID, user)).thenReturn(Collections.singletonList(workspaceUser));
 
         responseByteArrayOutputStream = new ByteArrayOutputStream();
-        when(response.getWriter()).thenReturn(new PrintWriter(responseByteArrayOutputStream));
+        responseWriter = new PrintWriter(responseByteArrayOutputStream);
+        when(response.getWriter()).thenReturn(responseWriter);
 
         when(request.getParameterNames()).thenAnswer(
                 invocationOnMock -> Collections.enumeration(requestParameters.keySet())
@@ -165,6 +170,7 @@ public abstract class RouteTestBase {
     }
 
     protected byte[] getResponse() {
+        responseWriter.flush();
         return responseByteArrayOutputStream.toByteArray();
     }
 
