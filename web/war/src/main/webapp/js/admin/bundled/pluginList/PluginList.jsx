@@ -23,7 +23,10 @@ define([
                 <h2 className="description">{item.description}</h2>
                 <dl>
                 {details.map(function({display, value}) {
-                    return [<dt>{display}</dt>, <dd title={value}>{value}</dd>]
+                    return [
+                        <dt key="dt">{display}</dt>,
+                        <dd key="dd" title={value}>{value}</dd>
+                    ];
                 })}
                 </dl>
             </li>
