@@ -94,8 +94,8 @@ define(['../util/ajax', '../store', '../store/user/actions-impl'], function(ajax
             if (options.query) {
                 data.q = options.query;
             }
-            if (options.status) {
-                data.status = options.status;
+            if (options.online) {
+                data.online = options.online;
             }
             if (options.userIds) {
                 if (!_.isArray(options.userIds)) {

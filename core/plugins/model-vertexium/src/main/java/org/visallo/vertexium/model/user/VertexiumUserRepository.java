@@ -18,14 +18,12 @@ import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.*;
-import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisalloVisibility;
 import org.visallo.core.trace.Traced;
 import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
-import org.visallo.web.clientapi.model.UserStatus;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -53,7 +51,6 @@ public class VertexiumUserRepository extends UserRepository {
             Graph graph,
             OntologyRepository ontologyRepository,
             UserSessionCounterRepository userSessionCounterRepository,
-            WorkQueueRepository workQueueRepository,
             LockRepository lockRepository,
             AuthorizationRepository authorizationRepository,
             PrivilegeRepository privilegeRepository
@@ -61,7 +58,6 @@ public class VertexiumUserRepository extends UserRepository {
         super(
                 configuration,
                 userSessionCounterRepository,
-                workQueueRepository,
                 lockRepository,
                 authorizationRepository,
                 privilegeRepository
@@ -120,22 +116,6 @@ public class VertexiumUserRepository extends UserRepository {
     }
 
     @Override
-    public Iterable<User> findByStatus(int skip, int limit, UserStatus status) {
-        QueryResultsIterable<Vertex> userVertices = graph.query(authorizations)
-                .has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), userConceptId)
-                .has(UserVisalloProperties.STATUS.getPropertyName(), status.toString())
-                .skip(skip)
-                .limit(limit)
-                .vertices();
-        return new ConvertingIterable<Vertex, User>(userVertices) {
-            @Override
-            protected User convert(Vertex vertex) {
-                return createFromVertex(vertex);
-            }
-        };
-    }
-
-    @Override
     @Traced
     public User findById(String userId) {
         if (SystemUser.USER_ID.equals(userId)) {
@@ -174,11 +154,6 @@ public class VertexiumUserRepository extends UserRepository {
         UserVisalloProperties.CREATE_DATE.setProperty(userBuilder, new Date(), VISIBILITY.getVisibility());
         UserVisalloProperties.PASSWORD_SALT.setProperty(userBuilder, salt, VISIBILITY.getVisibility());
         UserVisalloProperties.PASSWORD_HASH.setProperty(userBuilder, passwordHash, VISIBILITY.getVisibility());
-        UserVisalloProperties.STATUS.setProperty(
-                userBuilder,
-                UserStatus.OFFLINE.toString(),
-                VISIBILITY.getVisibility()
-        );
 
         if (emailAddress != null) {
             UserVisalloProperties.EMAIL_ADDRESS.setProperty(userBuilder, emailAddress, VISIBILITY.getVisibility());
@@ -293,23 +268,6 @@ public class VertexiumUserRepository extends UserRepository {
                 authorizations
         );
         graph.flush();
-    }
-
-    @Override
-    public User setStatus(String userId, UserStatus status) {
-        VertexiumUser user = (VertexiumUser) findById(userId);
-        checkNotNull(user, "Could not find user: " + userId);
-        Vertex userVertex = findByIdUserVertex(user.getUserId());
-        UserVisalloProperties.STATUS.setProperty(
-                userVertex,
-                status.toString(),
-                VISIBILITY.getVisibility(),
-                authorizations
-        );
-        graph.flush();
-        user.setUserStatus(status);
-        fireUserStatusChangeEvent(user, status);
-        return user;
     }
 
     @Override

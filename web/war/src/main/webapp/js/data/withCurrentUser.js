@@ -9,16 +9,6 @@ define(['data/web-worker/store/user/actions'], function(userActions) {
             this.on('didLogout', function() {
                 this.setPublicApi('currentUser', undefined);
                 this.setPublicApi('socketSourceGuid', undefined);
-            })
-            this.on('userStatusChange', function(event, user) {
-                if (user &&
-                    user.status &&
-                    user.status === 'OFFLINE' &&
-                    user.id &&
-                    visalloData.currentUser &&
-                    user.id === visalloData.currentUser.id) {
-                    $(document).trigger('logout', { message: i18n('visallo.session.expired') });
-                }
             });
         });
 

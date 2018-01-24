@@ -15,6 +15,7 @@ import org.visallo.core.model.ontology.OntologyRepository;
 import org.visallo.core.model.user.AuthorizationRepository;
 import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.user.UserSessionCounterRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
@@ -40,6 +41,7 @@ public abstract class CommandLineTool {
     private OntologyRepository ontologyRepository;
     private VisibilityTranslator visibilityTranslator;
     private ShutdownService shutdownService;
+    private UserSessionCounterRepository userSessionCounterRepository;
     private JCommander jCommander;
     private boolean frameworkInitialized;
 
@@ -186,6 +188,16 @@ public abstract class CommandLineTool {
         this.shutdownService = shutdownService;
     }
 
+    @Inject
+    public void setVisibilityTranslator(VisibilityTranslator visibilityTranslator) {
+        this.visibilityTranslator = visibilityTranslator;
+    }
+
+    @Inject
+    public void setUserSessionCounterRepository(UserSessionCounterRepository userSessionCounterRepository) {
+        this.userSessionCounterRepository = userSessionCounterRepository;
+    }
+
     public Graph getGraph() {
         return graph;
     }
@@ -218,9 +230,8 @@ public abstract class CommandLineTool {
         return shutdownService;
     }
 
-    @Inject
-    public void setVisibilityTranslator(VisibilityTranslator visibilityTranslator) {
-        this.visibilityTranslator = visibilityTranslator;
+    public UserSessionCounterRepository getUserSessionCounterRepository() {
+        return userSessionCounterRepository;
     }
 
     public static void main(CommandLineTool commandLineTool, String[] args, boolean initFramework) throws Exception {
