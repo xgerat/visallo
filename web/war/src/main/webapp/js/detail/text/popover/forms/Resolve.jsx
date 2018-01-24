@@ -19,6 +19,7 @@ define([
     VisibilityEditor,
     F) {
 
+    const DefaultVisibility = { value: '', valid: true };
     const Resolve = createReactClass({
         propTypes: {
             artifactId: PropTypes.string.isRequired,
@@ -36,7 +37,7 @@ define([
         },
         getInitialState() {
             return {
-                visibility: { value: '', valid: true },
+                visibility: DefaultVisibility,
                 conceptId: this.props.conceptType
             }
         },
@@ -75,10 +76,11 @@ define([
                                 onJustificationChanged={this.onJustificationChanged}
                                 />
 
-
-                            <VisibilityEditor
-                                value={visibility && visibility.value}
-                                onVisibilityChanged={this.onVisibilityChanged} />
+                            { !resolvedVertexId ?
+                                (<VisibilityEditor
+                                    value={visibility && visibility.value}
+                                    onVisibilityChanged={this.onVisibilityChanged} />) : null
+                            }
                         </div>
                     ) : null }
                     <div className="buttons">
@@ -116,7 +118,11 @@ define([
             })
         },
         onElementSelected(element) {
-            this.setState({ resolvedVertexId: element ? element.id : null, newElementText: null })
+            this.setState({
+                resolvedVertexId: element ? element.id : null,
+                newElementText: null,
+                visibility: DefaultVisibility
+            })
         },
         onCreateNewElement(text) {
             this.setState({ newElementText: text, resolvedVertexId: null })
