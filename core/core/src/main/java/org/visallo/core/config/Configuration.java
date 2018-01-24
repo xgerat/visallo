@@ -100,6 +100,7 @@ public class Configuration {
     public static final String AUTH_TOKEN_EXPIRATION_IN_MINS = WEB_CONFIGURATION_PREFIX + "auth.token.expiration_minutes";
     public static final String AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS = "auth.token.expiration_tolerance_seconds";
     public static final String SYSTEM_PROPERTY_PREFIX = "visallo.";
+    public static final String WEB_RESPONSE_HEADER_X_FRAME_OPTIONS = "web.response.header.X-Frame-Options";
 
     private final ConfigurationLoader configurationLoader;
     private final VisalloResourceBundleManager visalloResourceBundleManager;
@@ -113,6 +114,7 @@ public class Configuration {
     static {
         DEFAULTS.put(AUTH_TOKEN_EXPIRATION_IN_MINS, "60");
         DEFAULTS.put(AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS, "60");
+        DEFAULTS.put(WEB_RESPONSE_HEADER_X_FRAME_OPTIONS, "DENY");
     }
 
     public Configuration(final ConfigurationLoader configurationLoader, final Map<?, ?> config) {
