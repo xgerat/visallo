@@ -3,6 +3,7 @@ package org.visallo.web;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import org.visallo.web.routes.security.ContentSecurityPolicyReport;
 import org.visallo.webster.Handler;
 import org.visallo.webster.handlers.StaticResourceHandler;
 import org.visallo.core.bootstrap.InjectHelper;
@@ -219,6 +220,8 @@ public class Router extends HttpServlet {
 
             app.get("/ping", RateLimitFilter.class, Ping.class);
             app.get("/ping/stats", authenticator, AdminPrivilegeFilter.class, PingStats.class);
+
+            app.post("/csp-report", ContentSecurityPolicyReport.class);
 
             List<WebAppPlugin> webAppPlugins = toList(ServiceLoaderUtil.load(WebAppPlugin.class, configuration));
             for (WebAppPlugin webAppPlugin : webAppPlugins) {

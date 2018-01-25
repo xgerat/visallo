@@ -4,9 +4,11 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.io.ServletContextTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.visallo.web.ContentSecurityPolicy;
 import org.visallo.webster.ParameterizedHandler;
 import org.visallo.webster.annotations.Handle;
 import org.apache.commons.io.IOUtils;
@@ -27,6 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 @Singleton
 public class Index implements ParameterizedHandler {
+    private static final String HEADER_CONTENT_SECURITY_POLICY = "Content-Security-Policy";
     private static final String PLUGIN_JS_RESOURCES_BEFORE_AUTH_PARAM = "pluginJsResourcesBeforeAuth";
     private static final String PLUGIN_JS_RESOURCES_WEB_WORKER_PARAM = "pluginJsResourcesWebWorker";
     private static final String PLUGIN_JS_RESOURCES_AFTER_AUTH_PARAM = "pluginJsResourcesAfterAuth";
@@ -41,12 +44,15 @@ public class Index implements ParameterizedHandler {
             "description", "visallo.description"
     );
 
+    private final ContentSecurityPolicy contentSecurityPolicy;
+
     private String indexHtml;
     private boolean showVersionComments;
 
     @Inject
-    public Index(Configuration configuration) {
+    public Index(Configuration configuration, ContentSecurityPolicy contentSecurityPolicy) {
         showVersionComments = configuration.getBoolean(WebConfiguration.SHOW_VERSION_COMMENTS, true);
+        this.contentSecurityPolicy = contentSecurityPolicy;
     }
 
     @Handle
@@ -57,6 +63,11 @@ public class Index implements ParameterizedHandler {
             HttpServletResponse response
     ) throws Exception {
         response.setContentType("text/html");
+        response.setCharacterEncoding(Charsets.UTF_8.name());
+        if (!response.containsHeader(HEADER_CONTENT_SECURITY_POLICY)) {
+            response.addHeader(HEADER_CONTENT_SECURITY_POLICY, contentSecurityPolicy.generatePolicy(request));
+        }
+
         response.getWriter().write(getIndexHtml(request, webApp, resourceBundle));
     }
 
