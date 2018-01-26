@@ -134,10 +134,13 @@ public abstract class WorkspaceRepository {
         return add(null, user);
     }
 
+    public String getDefaultWorkspaceName(User user) {
+        return visalloResourceBundle.getString("workspace.default.title").replace("{0}", user.getDisplayName());
+    }
 
     public Workspace add(String title, User user) {
         if (title == null) {
-            title = visalloResourceBundle.getString("workspace.default.title").replace("{0}", user.getDisplayName());
+            title = getDefaultWorkspaceName(user);
         }
         return add(null, title, user);
     }
