@@ -77,11 +77,11 @@ define(['util/withFormFieldErrors'], function(withFormFieldErrors) {
 
         this.buttonLoading = function(selector) {
             selector = selector || '.btn-primary';
-            this.$node.find(selector).addClass('loading').attr('disabled', true);
+            this.$node.find(selector).addClass('loading').prop('disabled', true);
         };
 
         this.clearLoading = function() {
-            this.$node.find('.btn:disabled').removeClass('loading').removeAttr('disabled');
+            this.$node.find('.btn:disabled').removeClass('loading').prop('disabled', false);
         };
 
         this.manualOpen = function() {

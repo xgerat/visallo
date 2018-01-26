@@ -11,6 +11,7 @@ define([
     './addItemTpl.hbs',
     './extensionToolbarPopover',
     'gridstack',
+    'gridstack-ui',
     'require',
     './registerDefaultItems',
     './reportRenderers'
@@ -27,6 +28,7 @@ define([
     addItemTemplate,
     ToolbarExtensionPopover,
     gridStack,
+    gridStackJQueryUI,
     require) {
     'use strict';
 
@@ -600,19 +602,19 @@ define([
                 $header = this.select('headerSelector');
 
             if (this.isCreator) {
-                this.gridstack.batch_update();
+                this.gridstack.batchUpdate();
 
                 var finished;
                 if (this.$node.hasClass('editing')) {
                     $edit.text('Edit');
                     ignoreGridStackChange = true;
                     this.$node.find('.new-item').each(function() {
-                        self.gridstack.remove_widget(this);
+                        self.gridstack.removeWidget(this);
                     });
                     this.gridstack.disable();
                     this.$node.removeClass('editing');
                     finished = Promise.resolve();
-                    $header.attr('disabled', true);
+                    $header.prop('disabled', true);
                 } else {
                     $edit
                         .text(i18n('dashboard.title.editing.done'))
@@ -620,7 +622,7 @@ define([
                     this.$node.addClass('editing');
                     this.gridstack.enable();
                     finished = this.createDashboardItemToGridStack();
-                    $header.removeAttr('disabled');
+                    $header.prop('disabled', false);
                 }
                 this.adjustHeader();
 
@@ -649,9 +651,9 @@ define([
                 this.request('dashboardItemDelete', itemId)
                     .done(function() {
                         ignoreGridStackChange = true;
-                        self.gridstack.batch_update();
+                        self.gridstack.batchUpdate();
                         Attacher().node($content).teardown();
-                        self.gridstack.remove_widget(gridItem);
+                        self.gridstack.removeWidget(gridItem);
                         self.createDashboardItemToGridStack().then(function() {
                             self.gridstack.commit();
                             ignoreGridStackChange = false;
@@ -679,9 +681,9 @@ define([
                 };
 
             ignoreGridStackChange = true;
-            this.gridstack.batch_update();
-            this.gridstack.remove_widget($(event.target).closest('.grid-stack-item'));
-            this.gridstack.add_widget(node,
+            this.gridstack.batchUpdate();
+            this.gridstack.removeWidget($(event.target).closest('.grid-stack-item'));
+            this.gridstack.addWidget(node,
                 placeholderMetrics.x,
                 placeholderMetrics.y,
                 placeholderMetrics.width,
@@ -779,7 +781,7 @@ define([
         this.createDashboardItemToGridStackInBatch = function() {
             var self = this,
                 stack = this.gridstack,
-                begin = stack.batch_update.bind(stack),
+                begin = stack.batchUpdate.bind(stack),
                 commit = stack.commit.bind(stack);
 
             return Promise.resolve()
@@ -797,13 +799,13 @@ define([
             var newItem = this.$node.find('.new-item');
             if (newItem.length) {
                 ignoreGridStackChange = true;
-                this.gridstack.remove_widget(newItem);
+                this.gridstack.removeWidget(newItem);
             }
 
             return this.createNewDashboardItem()
                 .then(function(newItem) {
                     ignoreGridStackChange = true;
-                    self.gridstack.add_widget(newItem);
+                    self.gridstack.addWidget(newItem);
                     self.gridstack.movable(newItem, false);
                     self.gridstack.resizable(newItem, false);
                     ignoreGridStackChange = false;
@@ -993,12 +995,11 @@ define([
         this.initializeGridStack = function() {
             var $container = this.select('containerSelector');
             this.gridstack = $container.gridstack({
-                    /*eslint camelcase:0*/
-                    cell_height: 60,
+                    cellHeight: 60,
                     float: true,
                     animate: true,
-                    vertical_margin: 40,
-                    always_show_resize_handle: true,
+                    verticalMargin: 40,
+                    alwaysShowResizeHandle: true,
                     width: 12
                 }).on('change', this.onGridChange.bind(this))
                   .data('gridstack');

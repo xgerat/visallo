@@ -27,6 +27,15 @@ function(jQuery,
     'use strict';
 
     $.ui = { keyCode: { ENTER: 13 } };
+    // For backward compatibility
+    jQuery.fn.size = function() {
+        console.warn('$.size is deprecated');
+        return this.length;
+    };
+    jQuery.fn.andSelf = function() {
+        console.warn('$.andSelf is deprecated, use $.addBack');
+        return jQuery.fn.addBack.apply(this, arguments);
+    };
 
     lockDownUnderscore(_);
 

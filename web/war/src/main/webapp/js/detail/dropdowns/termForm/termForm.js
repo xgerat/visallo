@@ -106,7 +106,7 @@ define([
                     this.select('actionButtonSelector')
                         .text(i18n('detail.resolve.form.button.unresolve'))
                         .show();
-                    this.$node.find('input,select').attr('disabled', true);
+                    this.$node.find('input,select').prop('disabled', true);
                 } else {
                     this.select('actionButtonSelector')
                         .text(newGraphVertexId && !initial && !this.attr.coords ?
@@ -336,7 +336,7 @@ define([
                 );
             }
 
-            button.attr('disabled', disabled);
+            button.prop('disabled', disabled);
         };
 
         this.setupContent = function() {
@@ -476,7 +476,7 @@ define([
                     });
 
                     if (!self.selectedConceptId) {
-                        self.select('actionButtonSelector').attr('disabled', true);
+                        self.select('actionButtonSelector').prop('disabled', true);
                     }
                 });
         };

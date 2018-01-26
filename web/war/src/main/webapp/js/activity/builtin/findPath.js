@@ -43,11 +43,7 @@ define([
                 noResults = (self.attr.process.resultsCount || 0) === 0,
                 disabled = onDifferentWorkspace || noResults;
 
-            if (disabled) {
-                $button.attr('disabled', true);
-            } else {
-                $button.removeAttr('disabled');
-            }
+            $button.prop('disabled', Boolean(disabled));
 
             $button.attr('title', onDifferentWorkspace ?
                 i18n('popovers.find_path.wrong_workspace') :
@@ -89,7 +85,7 @@ define([
 
         this.onPathClick = function(event) {
             var self = this,
-                $target = $(event.target).addClass('loading').attr('disabled', true);
+                $target = $(event.target).addClass('loading').prop('disabled', true);
 
             this.dataRequest('longRunningProcess', 'get', this.attr.process.id)
                 .done(function(process) {
@@ -109,7 +105,7 @@ define([
                     var $addButton = $('<button>').addClass('btn btn-mini btn-primary add-vertices');
 
                     if (vertices.length === 0) {
-                        $addButton.attr('disabled', true);
+                        $addButton.prop('disabled', true);
                     }
 
                     $addButton.text(i18n('popovers.find_path.add'));

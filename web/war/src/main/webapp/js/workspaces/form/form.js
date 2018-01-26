@@ -282,14 +282,14 @@ define([
 
             this.trigger('workspaceDeleting', this.attr.data);
 
-            $target.text(i18n('workspaces.form.button.deleting')).attr('disabled', true);
+            $target.text(i18n('workspaces.form.button.deleting')).prop('disabled', true);
 
             this.dataRequest('workspace', 'delete', workspaceId)
                 .then(function() {
                     //self.trigger('workspaceDeleted', { workspaceId: workspaceId });
                 })
                 .catch(function() {
-                    $target.text(previousText).removeAttr('disabled');
+                    $target.text(previousText).prop('disabled', false);
                 })
         };
 

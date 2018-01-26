@@ -110,10 +110,10 @@ define([
             var button = this.select('loginButtonSelector');
 
             if (enable) {
-                button.removeClass('loading').removeAttr('disabled');
+                button.removeClass('loading').prop('disabled', false);
             } else {
                 button.toggleClass('loading', !!loading)
-                    .attr('disabled', true);
+                    .prop('disabled', true);
             }
         };
     }

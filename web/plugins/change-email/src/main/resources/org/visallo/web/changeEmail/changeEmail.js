@@ -43,16 +43,12 @@ define(['configuration/plugins/registry'], function(registry) {
                                     return input.validity && !input.validity.valid;
                                  }).length;
 
-                if (anyInvalid) {
-                    this.select('buttonSelector').attr('disabled', true);
-                } else {
-                    this.select('buttonSelector').removeAttr('disabled');
-                }
+                this.select('buttonSelector').prop('disabled', Boolean(anyInvalid));
             };
 
             this.onChange = function(event) {
                 var self = this,
-                    btn = $(event.target).addClass('loading').attr('disabled', true),
+                    btn = $(event.target).addClass('loading').prop('disabled', true),
                     newEmail = this.$node.find('.current').val();
 
                 this.clearFieldErrors(this.$node);
@@ -63,7 +59,7 @@ define(['configuration/plugins/registry'], function(registry) {
                     csrfToken: visalloData.currentUser.csrfToken
                 })
                     .always(function() {
-                        btn.removeClass('loading').removeAttr('disabled');
+                        btn.removeClass('loading').prop('disabled', false);
                     })
                     .fail(function(e) {
                         self.markFieldErrors(e && e.responseText || e, self.$node);

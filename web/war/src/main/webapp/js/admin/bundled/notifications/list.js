@@ -187,10 +187,10 @@ define([
                             })
                             this.select('.btn-danger').on('click', function(n) {
                                 var btn = $(this)
-                                    .addClass('loading').attr('disabled', true);
+                                    .addClass('loading').prop('disabled', true);
                                 self.dataRequest('admin', 'systemNotificationDelete', n.id)
                                     .finally(function() {
-                                        btn.removeClass('loading').removeAttr('disabled');
+                                        btn.removeClass('loading').prop('disabled', false);
                                     })
                             })
                         })

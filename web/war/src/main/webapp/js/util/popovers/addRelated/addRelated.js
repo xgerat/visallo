@@ -138,7 +138,7 @@ define([
                 searchButton = this.popover.find('.search').hide(),
                 promptAdd = this.popover.find('.prompt-add').hide(),
                 cancelButton = this.popover.find('.cancel').show(),
-                button = $(event.target).addClass('loading').attr('disabled', true);
+                button = $(event.target).addClass('loading').prop('disabled', true);
 
             Promise.all([
                 this.dataRequest('config', 'properties'),
@@ -150,7 +150,7 @@ define([
                 )
             ])
                 .finally(function() {
-                    button.removeClass('loading').removeAttr('disabled');
+                    button.removeClass('loading').prop('disabled', false);
                     searchButton.hide();
                     promptAdd.hide();
                     cancelButton.hide();

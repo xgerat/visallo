@@ -59,7 +59,7 @@ define([
                     var $button = $(button),
                         text = $button.text();
 
-                    $button.attr('disabled', true);
+                    $button.prop('disabled', true);
 
                     if (promise.progress) {
                         promise.progress(function(v) {
@@ -70,7 +70,7 @@ define([
                     }
 
                     return promise.finally(function() {
-                        $button.removeAttr('disabled').text(text);
+                        $button.prop('disabled', false).text(text);
                     });
                 };
                 return init.apply(this, Array.prototype.slice.call(arguments, 1));

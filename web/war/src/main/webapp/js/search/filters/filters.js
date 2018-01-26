@@ -359,7 +359,7 @@ define([
         this.setMatchType = function(type) {
             this.matchType = type;
             this.$node.find('.match-type-' + type).prop('checked', true);
-            this.$node.find('.match-type-edge').closest('label').andSelf()
+            this.$node.find('.match-type-edge').closest('label').addBack()
                 .prop('disabled', this.disableMatchEdges === true);
             this.select('conceptFilterSelector').toggle(type === 'vertex');
             this.select('edgeLabelFilterSelector').toggle(Boolean(this.otherFilters.relatedToVertexIds || type === 'edge'));
