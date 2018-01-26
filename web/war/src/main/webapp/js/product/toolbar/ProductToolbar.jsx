@@ -237,7 +237,7 @@ define([
                 {
                     identifier: 'org-visallo-product-fit',
                     placementHint: 'button',
-                    label: 'Fit',
+                    label: i18n('product.toolbar.fit'),
                     props: { handler: onFit},
                     canHandle: () => showNavigationControls && !!onFit
                 }

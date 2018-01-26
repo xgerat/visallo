@@ -606,7 +606,7 @@ define([
 
                 var finished;
                 if (this.$node.hasClass('editing')) {
-                    $edit.text('Edit');
+                    $edit.text(i18n('dashboard.title.edit'));
                     ignoreGridStackChange = true;
                     this.$node.find('.new-item').each(function() {
                         self.gridstack.removeWidget(this);

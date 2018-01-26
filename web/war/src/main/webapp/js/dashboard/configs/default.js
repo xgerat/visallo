@@ -15,13 +15,17 @@ define(['flight/lib/component'], function(defineComponent) {
                 configuration = this.attr.item.configuration || {},
                 extension = this.attr.extension;
 
-            $('<section><label><header>Title</header>' +
-              '<button class="btn btn-link btn-small">reset</button></label>' +
+            $('<section><label><header></header>' +
+              '<button class="btn btn-link btn-small"></button></label>' +
               '<input type="text"></section>')
                 .find('input')
                 .val(this.getTitle())
                 .end()
+                .find('header')
+                .text(i18n('dashboard.configure.title'))
+                .end()
                 .find('button')
+                .text(i18n('dashboard.configure.title.reset'))
                 .css({
                     width: 'auto',
                     margin: '0 0 0 0.5em',

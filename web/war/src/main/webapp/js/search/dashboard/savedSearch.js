@@ -75,7 +75,7 @@ define([
                 .css('overflow', 'inherit')
                 .html(
                     $('<a>')
-                        .text('Configure Saved Search...')
+                        .text(i18n('dashboard.savedsearches.configure'))
                         .on('click', function() {
                             self.trigger('configureItem');
                         })

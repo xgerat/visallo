@@ -30,7 +30,7 @@ define([
 
                 <h1>{i18n('useraccount.page.access.authorizations')}</h1>
                 <p>
-                    {authorizations.length > 0 ? authorizations.join(', ') : (<i>none</i>)}
+                    {authorizations.length > 0 ? authorizations.join(', ') : (<i>{i18n('useraccount.modal.access.auths.none')}</i>)}
                 </p>
             </div>);
         }

@@ -4,6 +4,17 @@ define([
 ], function(messages) {
     'use strict';
 
+    // Set to true to not replace messages and just
+    // show keys to debug keys that are hard-coded
+    var DEBUG_MESSAGES = false;
+    try {
+        if ('true' === localStorage.getItem('i18nDebug')) {
+            DEBUG_MESSAGES = true;
+        }
+    } catch(e) {
+        console.error(e);
+    }
+
     /**
      * Use message bundles to convert keys to internationalized values.
      *
@@ -44,6 +55,11 @@ define([
         }
 
         key = args[0];
+
+        if (DEBUG_MESSAGES) {
+            return key;
+        }
+
         if (key in messages) {
             if (args.length === 1) {
                 return messages[key];

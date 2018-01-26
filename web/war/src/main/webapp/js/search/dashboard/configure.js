@@ -11,11 +11,11 @@ define([
     'use strict';
 
     var LIMITS = [
-            { value: '', name: 'Default' },
-            { value: '1', name: '1' },
-            { value: '5', name: '5' },
-            { value: '10', name: '10' },
-            { value: '25', name: '25' }
+            { value: '', name: i18n('dashboard.savedsearches.limit.none')},
+            { value: '1', name: i18n('dashboard.savedsearches.limit.1')},
+            { value: '5', name: i18n('dashboard.savedsearches.limit.5')},
+            { value: '10', name: i18n('dashboard.savedsearches.limit.10')},
+            { value: '25', name: i18n('dashboard.savedsearches.limit.25')}
         ];
 
     return defineComponent(SavedSearchConfig, withDataRequest);

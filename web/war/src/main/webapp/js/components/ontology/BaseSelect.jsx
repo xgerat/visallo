@@ -120,9 +120,10 @@ define([
                             searchable
                             isLoading={hasKey}
                             disabled={disabled || hasKey}
-                            placeholder={hasKey ? 'Creating…' : placeholder}
+                            placeholder={hasKey ?
+                                i18n('ontology.selector.placeholder') : placeholder}
                             selectComponent={selectComponent}
-                            promptTextCreator={label => `Create "${label}"`}
+                            promptTextCreator={label => i18n('ontology.selector.prompt', label) }
                             // Bug in Creatable? that the default optioncreator doesn't
                             // work when create option is not first because it's
                             // returning a new object. Memoize on label to fix

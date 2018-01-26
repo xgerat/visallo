@@ -305,7 +305,7 @@ define([
                 }
                 if (menus.length) {
                     menus.splice(0, 0, DIVIDER, {
-                        title: 'Previously Viewed',
+                        title: i18n('detail.toolbar.open.previous'),
                         cls: 'disabled'
                     });
                 }
