@@ -537,7 +537,7 @@ define([
                 const $target = $(e.target);
                 const elements = [];
 
-                $target.siblings('.active').andSelf().each(function() {
+                $target.siblings('.active').addBack().each(function() {
                     var data = $(this).find('a.draggable').data();
                     if (data.vertexId) {
                         elements.push(self._items[data.vertexId])

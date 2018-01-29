@@ -366,7 +366,7 @@ define([
                           i18n('popovers.file_import.importing') :
                           i18n('popovers.file_import.creating')
                     )
-                    .attr('disabled', true),
+                    .prop('disabled', true),
                 cancelButton = this.popover.find('.btn-default').show(),
                 collapsed = this.isVisibilityCollapsed(),
                 conceptValue = collapsed ?
@@ -425,7 +425,7 @@ define([
                         i18n('popovers.file_import.button.nofile.import')
                     )
                     .removeClass('loading')
-                    .removeAttr('disabled')
+                    .prop('disabled', false)
 
                 _.defer(self.positionDialog.bind(self));
             })

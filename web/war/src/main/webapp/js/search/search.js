@@ -573,7 +573,7 @@ define([
 
             var opened = SavedSearchPopover && !!$button.lookupComponent(SavedSearchPopover);
             if (opened) {
-                $button.siblings('button').andSelf().teardownAllComponents();
+                $button.siblings('button').addBack().teardownAllComponents();
             } else {
                 $button.addClass('loading');
                 require(['./save/popover'], function(Save) {

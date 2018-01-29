@@ -7,29 +7,29 @@ define([
 
     registry.registerExtension(adminExtensionPoint, {
         componentPath: 'admin/bundled/uiExtensionList/index',
-        section: 'Plugin',
-        name: 'UI Extensions',
-        subtitle: 'Extensions Available / Usages'
+        section: i18n('admin.plugin.title'),
+        name: i18n('admin.plugin.uiExtensions'),
+        subtitle: i18n('admin.plugin.uiExtensions.subtitle')
     });
 
     registry.registerExtension(adminExtensionPoint, {
         componentPath: 'admin/bundled/pluginList/PluginList',
-        section: 'Plugin',
-        name: 'List',
-        subtitle: 'Loaded plugins'
+        section: i18n('admin.plugin.title'),
+        name: i18n('admin.plugin.list'),
+        subtitle: i18n('admin.plugin.list.subtitle')
     });
 
     registry.registerExtension(adminExtensionPoint, {
         componentPath: 'admin/bundled/notifications/list',
-        section: 'System Notifications',
-        name: 'List',
-        subtitle: 'View all Notifications'
+        section: i18n('admin.notifications.title'),
+        name: i18n('admin.notifications.list'),
+        subtitle: i18n('admin.notifications.list.subtitle')
     });
 
     registry.registerExtension(adminExtensionPoint, {
         componentPath: 'admin/bundled/notifications/create',
-        section: 'System Notifications',
-        name: 'Create',
-        subtitle: 'Create a New Notification'
+        section: i18n('admin.notifications.title'),
+        name: i18n('admin.notifications.create'),
+        subtitle: i18n('admin.notifications.create.subtitle')
     });
 })

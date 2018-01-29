@@ -123,7 +123,7 @@ define([
                     this.selectedVertex = _.last(this.attr.vertices);
                 }
                 this.select('selectSelector').val(this.selectedVertex.id);
-                this.$node.find('.identifier input').attr('checked',
+                this.$node.find('.identifier input').prop('checked',
                     property && property.hints && property.hints.isIdentifier
                 );
                 return this.showField(property)

@@ -17,17 +17,17 @@ define([
     const AGGREGATIONS = [
             {
                 value: 'term',
-                name: 'Counts',
+                name: i18n('dashboard.savedsearches.aggregation.type.counts'),
                 dataTypes: ['date', 'boolean', 'string', ...DATA_TYPE_NUMBERS]
             },
             {
                 value: 'histogram',
-                name: 'Histogram',
+                name: i18n('dashboard.savedsearches.aggregation.type.histogram'),
                 dataTypes: ['date', ...DATA_TYPE_NUMBERS]
             },
             {
                 value: 'geohash',
-                name: 'Geo-coordinate Cluster',
+                name: i18n('dashboard.savedsearches.aggregation.type.geo'),
                 dataTypes: ['geoLocation']
             }
         ],
@@ -39,14 +39,14 @@ define([
         ],
         HISTOGRAM_CALCULATED_BUCKETS = 20,
         PRECISIONS = [
-            { value: 1, label: '5000 x 5000 km (large)' },
-            { value: 2, label: '1000 x 500 km' },
-            { value: 3, label: ' 150 x 150 km' },
-            { value: 4, label: '  50 x 25 km' },
-            { value: 5, label: '   5 x 5 km', selected: true },
-            { value: 6, label: '   1 x 0.5 km' },
-            { value: 7, label: ' 150 x 150 meters' },
-            { value: 8, label: '  25 x 25 meters (small)' }
+            { value: 1, label: i18n('dashboard.savedsearches.aggregation.geo.precision.1') },
+            { value: 2, label: i18n('dashboard.savedsearches.aggregation.geo.precision.2') },
+            { value: 3, label: i18n('dashboard.savedsearches.aggregation.geo.precision.3') },
+            { value: 4, label: i18n('dashboard.savedsearches.aggregation.geo.precision.4') },
+            { value: 5, label: i18n('dashboard.savedsearches.aggregation.geo.precision.5'), selected: true },
+            { value: 6, label: i18n('dashboard.savedsearches.aggregation.geo.precision.6') },
+            { value: 7, label: i18n('dashboard.savedsearches.aggregation.geo.precision.7') },
+            { value: 8, label: i18n('dashboard.savedsearches.aggregation.geo.precision.8') }
         ],
         defaultInterval = 20;
     var idIncrement = 1;
@@ -150,7 +150,7 @@ define([
                 this.updateAggregations()
             } else {
                 this.currentAggregation = aggregationToEdit;
-                this.select('addSelector').text('Cancel').show();
+                this.select('addSelector').text(i18n('dashboard.savedsearches.button.cancel')).show();
                 this.select('formSelector').show();
                 var aggregationField = this.select('aggregationSelector');
                 if (aggregationToEdit.parentAggregation) {

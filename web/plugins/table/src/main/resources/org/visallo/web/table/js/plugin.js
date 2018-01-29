@@ -2,8 +2,8 @@ require(['public/v1/api'], function(visallo) {
     'use strict';
 
     visallo.registry.registerExtension('org.visallo.dashboard.item', {
-        title: 'Saved Search Table',
-        description: 'Display tabular saved search results',
+        title: i18n('com.visallo.table.dashboard.title'),
+        description: i18n('com.visallo.table.dashboard.description'),
         identifier: 'org-visallo-saved-search-table',
         componentPath: 'org/visallo/web/table/dist/card',
         configurationPath: 'org/visallo/web/table/js/card/Config',

@@ -34,7 +34,7 @@ define([
                 username = match && match[1];
             if (username) {
                 this.select('usernameSelector').val(username);
-                this.select('loginButtonSelector').click();
+                this.select('loginButtonSelector').trigger('click');
             }
         });
 
@@ -95,10 +95,10 @@ define([
             var button = this.select('loginButtonSelector');
 
             if (enable) {
-                button.removeClass('loading').removeAttr('disabled');
+                button.removeClass('loading').prop('disabled', false);
             } else {
                 button.toggleClass('loading', !!loading)
-                    .attr('disabled', true);
+                    .prop('disabled', true);
             }
         }
     }

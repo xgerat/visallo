@@ -418,7 +418,7 @@ define([
 
         this.onDelete = function(e) {
             e.stopPropagation();
-            var button = this.popover.find('.btn-danger').addClass('loading').attr('disabled', true);
+            var button = this.popover.find('.btn-danger').addClass('loading').prop('disabled', true);
             this.trigger('deleteProperty', {
                 property: _.pick(this.attr.property, 'name', 'key')
             });

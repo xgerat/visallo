@@ -84,7 +84,7 @@ define([
                 loading: this.attr.loading
             }));
 
-            this.select('saveButtonSelector').attr('disabled', true);
+            this.select('saveButtonSelector').prop('disabled', true);
             this.select('deleteButtonSelector').hide();
 
             if (this.attr.property) {
@@ -339,7 +339,7 @@ define([
             var button = this.select('saveButtonSelector')
                 .text(isExistingProperty ? i18n('property.form.button.update') : i18n('property.form.button.add'));
 
-            button.attr('disabled', true);
+            button.prop('disabled', true);
 
             this.dataRequest('ontology', 'properties').done(function(properties) {
                 var propertyDetails = properties.byTitle[propertyName];
@@ -505,9 +505,9 @@ define([
             }
 
             if (this.valid && _.some(this.modified)) {
-                this.select('saveButtonSelector').removeAttr('disabled');
+                this.select('saveButtonSelector').prop('disabled', false);
             } else {
-                this.select('saveButtonSelector').attr('disabled', true);
+                this.select('saveButtonSelector').prop('disabled', true);
             }
         };
 

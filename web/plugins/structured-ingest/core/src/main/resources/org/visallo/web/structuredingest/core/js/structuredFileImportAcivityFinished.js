@@ -58,14 +58,14 @@ define([
                 $searchRelatedButton = self.select('searchRelatedSelector'),
                 $selectVertexButton = self.select('selectVertexSelector');
 
-            $selectVertexButton.removeAttr('disabled');
+            $selectVertexButton.prop('disabled', false);
             $selectVertexButton.attr('title', i18n('activity.tasks.type.com-visallo-structuredFile.selectVertex'));
 
             if (onDifferentWorkspace) {
-                $searchRelatedButton.attr('disabled', true);
+                $searchRelatedButton.prop('disabled', true);
                 $searchRelatedButton.attr('title', i18n('activity.tasks.type.com-visallo-structuredFile.searchRelatedDifferentWorkspace'));
             } else {
-                $searchRelatedButton.removeAttr('disabled');
+                $searchRelatedButton.prop('disabled', false);
                 $searchRelatedButton.attr('title', i18n('activity.tasks.type.com-visallo-structuredFile.searchRelated'));
             }
         };
@@ -75,19 +75,19 @@ define([
         };
 
         this.onSelectVertex = function(event) {
-            var $target = $(event.target).addClass('loading').attr('disabled', true);
+            var $target = $(event.target).addClass('loading').prop('disabled', true);
 
             this.req.then(results => {
-                $target.removeClass('loading').attr('disabled', false);
+                $target.removeClass('loading').prop('disabled', false);
                 this.trigger('selectObjects', { vertexIds: [results.vertexId] });
             })
         };
 
         this.onSearchRelatedClick = function(event) {
-            var $target = $(event.target).addClass('loading').attr('disabled', true);
+            var $target = $(event.target).addClass('loading').prop('disabled', true);
 
             this.req.then(results => {
-                $target.removeClass('loading').attr('disabled', false);
+                $target.removeClass('loading').prop('disabled', false);
                 this.trigger('searchRelated', { vertexId: results.vertexId });
             });
         };

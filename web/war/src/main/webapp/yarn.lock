@@ -886,15 +886,15 @@ boom@5.x.x:
   dependencies:
     hoek "4.x.x"
 
-bootstrap-datepicker@1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/bootstrap-datepicker/-/bootstrap-datepicker-1.5.0.tgz#0cd584192d263f36202b868346dbbe027697e536"
+bootstrap-datepicker@1.7.1:
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/bootstrap-datepicker/-/bootstrap-datepicker-1.7.1.tgz#4ee7faf34888dbec7834fbf9dbe7c4277e01ddaf"
   dependencies:
-    jquery ">=1.7.1"
+    jquery ">=1.7.1 <4.0.0"
 
-bootstrap-timepicker@0.5.1:
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/bootstrap-timepicker/-/bootstrap-timepicker-0.5.1.tgz#1ee36b4a7c27904c7c96da0988b711c9ee9e99b7"
+bootstrap-timepicker@0.5.2:
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/bootstrap-timepicker/-/bootstrap-timepicker-0.5.2.tgz#10ed9f2a2f0b8ccaefcde0fcf6a0738b919a3835"
 
 brace-expansion@^1.1.7:
   version "1.1.8"
@@ -2630,9 +2630,13 @@ gremlins.js@0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/gremlins.js/-/gremlins.js-0.1.0.tgz#8903d88710bedc8d18d0a1ddd48bfeca82a914cb"
 
-gridstack@0.2.3:
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/gridstack/-/gridstack-0.2.3.tgz#7ad7e4e8148e6200db158c9b889a316bd7ef14d1"
+gridstack@0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/gridstack/-/gridstack-0.3.0.tgz#be1c7891f3fbd2af60f9d60f4c7d517a30d3bb78"
+  dependencies:
+    jquery "^3.1.0"
+    jquery-ui "^1.12.0"
+    lodash "^4.14.2"
 
 growl@1.9.2:
   version "1.9.2"
@@ -3310,15 +3314,23 @@ jquery-ui-bundle@1.11.4:
   version "1.11.4"
   resolved "https://registry.yarnpkg.com/jquery-ui-bundle/-/jquery-ui-bundle-1.11.4.tgz#a4578eeaeb18c4b37cba4633e191256458c6ff38"
 
+jquery-ui@^1.12.0:
+  version "1.12.1"
+  resolved "https://registry.yarnpkg.com/jquery-ui/-/jquery-ui-1.12.1.tgz#bcb4045c8dd0539c134bc1488cdd3e768a7a9e51"
+
 jquery.easing@1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/jquery.easing/-/jquery.easing-1.3.0.tgz#e1d8c6e24d16e3aee39d167299caa9c77e52ceb6"
   dependencies:
     jquery ">= 1.3.0"
 
-jquery@2.1.4, "jquery@>= 1.3.0", jquery@>=1.2.3, jquery@>=1.7.1:
+"jquery@>= 1.3.0", jquery@>=1.2.3:
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/jquery/-/jquery-2.1.4.tgz#228bde698a0c61431dc2630a6a154f15890d2317"
+
+"jquery@>=1.7.1 <4.0.0", jquery@^3.1.0, jquery@^3.3.0:
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.3.1.tgz#958ce29e81c9790f31be7792df5d4d95fc57fbca"
 
 js-beautify@1.5.10:
   version "1.5.10"
@@ -3707,7 +3719,7 @@ lodash@3.7.x:
   version "3.7.0"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.7.0.tgz#3678bd8ab995057c07ade836ed2ef087da811d45"
 
-lodash@4.17.4, lodash@^4.0.0, lodash@^4.0.1, lodash@^4.14.0, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.5.0, lodash@^4.7.0, lodash@^4.8.0, lodash@^4.8.2, lodash@~4.17.4:
+lodash@4.17.4, lodash@^4.0.0, lodash@^4.0.1, lodash@^4.14.0, lodash@^4.14.2, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.5.0, lodash@^4.7.0, lodash@^4.8.0, lodash@^4.8.2, lodash@~4.17.4:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 

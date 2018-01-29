@@ -365,7 +365,10 @@ define([
             if (this.attr.emptyMessage) {
                 this.$container.find('.empty').remove();
                 if (!this.stack.length) {
-                    this.$container.append('<li class="empty">No Notifications Found</li>');
+                    $('<li>')
+                        .addClass('empty')
+                        .text(i18n('dashboard.notifications.empty'))
+                        .appendTo(this.$container)
                 }
             }
         };

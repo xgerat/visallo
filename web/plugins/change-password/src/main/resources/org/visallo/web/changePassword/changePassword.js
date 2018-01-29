@@ -32,7 +32,7 @@ define(['configuration/plugins/registry'], function(registry) {
 
             this.onChange = function(event) {
                 var self = this,
-                    btn = $(event.target).addClass('loading').attr('disabled', true);
+                    btn = $(event.target).addClass('loading').prop('disabled', true);
 
                 this.clearFieldErrors(this.$node);
                 this.$node.find('.alert-info').remove();
@@ -44,7 +44,7 @@ define(['configuration/plugins/registry'], function(registry) {
                     csrfToken: visalloData.currentUser.csrfToken
                 })
                     .always(function() {
-                        btn.removeClass('loading').removeAttr('disabled');
+                        btn.removeClass('loading').prop('disabled', false);
                     })
                     .fail(function(e) {
                         self.markFieldErrors(e && e.responseText || e, self.$node);

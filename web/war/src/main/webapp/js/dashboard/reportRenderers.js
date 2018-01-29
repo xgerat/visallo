@@ -9,7 +9,7 @@ define([
         supportsResponse: function(data) {
             return data.type === 'TYPE_ELEMENTS';
         },
-        label: 'Element List',
+        label: i18n('dashboard.renderers.elementlist'),
         componentPath: 'dashboard/reportRenderers/element-list'
     });
 
@@ -23,7 +23,7 @@ define([
                     return item.value && ('count' in item.value || 'nestedResults' in item.value) && !('cell' in item.value)
                 });
         },
-        label: 'Vertical Bar Chart',
+        label: i18n('dashboard.renderers.bar.vertical'),
         componentPath: 'dashboard/reportRenderers/bar'
     });
 
@@ -38,7 +38,7 @@ define([
                     return item.value && ('count' in item.value || 'nestedResults' in item.value) && !('cell' in item.value)
                 });
         },
-        label: 'Horizontal Bar Chart',
+        label: i18n('dashboard.renderers.bar.horizontal'),
         componentPath: 'dashboard/reportRenderers/bar'
     });
 
@@ -52,13 +52,13 @@ define([
                     return item.value && 'count' in item.value && !('nested' in item.value) && !('cell' in item.value)
                 });
         },
-        label: 'Pie Chart',
+        label: i18n('dashboard.renderers.pie'),
         componentPath: 'dashboard/reportRenderers/pie'
     });
 
     registry.registerExtension('org.visallo.dashboard.reportrenderer', {
         identifier: 'org-visallo-choropleth',
-        label: 'Choropleth',
+        label: i18n('dashboard.renderers.choropleth'),
         supportsResponse: function(data) {
             return data.type === 'TYPE_AGGREGATION' &&
                 _.size(data.root) === 1 &&
@@ -86,7 +86,7 @@ define([
                     return item.value && 'count' in item.value && !('nested' in item.value) && !('cell' in item.value)
                 });
         },
-        label: 'Text Overview',
+        label: i18n('dashboard.renderers.textoverview'),
         componentPath: 'dashboard/reportRenderers/text-overview'
     });
 
@@ -100,7 +100,7 @@ define([
                     return item.value && ('cell' in item.value && 'count' in item.value && 'point' in item.value);
                 });
         },
-        label: 'Heatmap',
+        label: i18n('dashboard.renderers.heatmap'),
         componentPath: 'dashboard/reportRenderers/geohash'
     });
 });

@@ -38,7 +38,7 @@
 @iconSpritePath: "../libs/@visallo/bootstrap/img/glyphicons-halflings.png";
 @iconWhiteSpritePath: "../libs/@visallo/bootstrap/img/glyphicons-halflings-white.png";
 @import "../libs/bootstrap-datepicker/less/datepicker.less";
-@import "../libs/bootstrap-timepicker/less/timepicker.less";
+@import "../libs/bootstrap-timepicker/css/timepicker.less";
 @import "../libs/react-virtualized/styles.css";
 
 @import "../libs/video.js/dist/video-js.min.css";
@@ -445,4 +445,9 @@ textarea, input[type="text"], input[type="password"], input[type="datetime"], in
 ::-ms-clear {
   width : 0;
   height: 0;
+}
+
+
+@media print {
+    @import "print";
 }

@@ -660,7 +660,7 @@ define([
             }
 
             const $textSection = $target.closest('.text-section');
-            const clicked = $target.parentsUntil('.text', 'span').andSelf();
+            const clicked = $target.parentsUntil('.text', 'span').addBack();
             const terms = [];
             clicked.each(function() {
                 const info = self.getElementInfoUsingRef(this);
@@ -761,7 +761,7 @@ define([
                         const $node = $(node);
                         if ($node.hasClass('text')) return;
                         const self = this;
-                        $(node).parentsUntil('.text', 'span').andSelf().each(function() {
+                        $(node).parentsUntil('.text', 'span').addBack().each(function() {
                             const term = self.getElementInfoUsingRef(this)
                             if (term) {
                                 terms[term.id] = term;

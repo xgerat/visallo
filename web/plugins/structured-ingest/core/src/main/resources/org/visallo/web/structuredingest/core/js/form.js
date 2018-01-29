@@ -178,7 +178,7 @@ define([
                 var newItems;
 
                 if (modeIsChoosingHeader) {
-                    newItems = $target.siblings('td,th').andSelf();
+                    newItems = $target.siblings('td,th').addBack();
                 } else {
                     var index = $target.closest('td,th').index();
                     newItems = this.$node.find('tr > *:nth-child(' + (index + 1) + ')');

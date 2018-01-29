@@ -113,9 +113,9 @@ define([
             var visibilityValid = this.visibilitySource && this.visibilitySource.valid;
 
             if (val.length && visibilityValid) {
-                this.select('primarySelector').removeAttr('disabled');
+                this.select('primarySelector').prop('disabled', false);
             } else {
-                this.select('primarySelector').attr('disabled', true);
+                this.select('primarySelector').prop('disabled', true);
             }
 
             this.select('visibilityInputSelector').toggleClass('invalid', !visibilityValid)

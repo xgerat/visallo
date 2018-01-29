@@ -72,7 +72,7 @@ define([
         this.updateRelationshipLabels = function() {
             var button = this.select('connectButtonSelector');
 
-            button.text(i18n('org.visallo.web.product.graph.connection.button.connect')).attr('disabled', true);
+            button.text(i18n('org.visallo.web.product.graph.connection.button.connect')).prop('disabled', true);
 
             this.popover.find('.relationships').trigger('limitParentConceptId', {
                     sourceConceptId: this.attr.otherCyNode.data('conceptType'),
@@ -112,9 +112,9 @@ define([
             if (this.relationship &&
                 this.visibilitySource && this.visibilitySource.valid &&
                 this.justification && this.justification.valid) {
-                button.removeAttr('disabled');
+                button.prop('disabled', false);
             } else {
-                button.attr('disabled', true);
+                button.prop('disabled', true);
             }
         }
 
@@ -165,7 +165,7 @@ define([
             var self = this,
                 $target = $(e.target)
                     .text('Connecting...')
-                    .attr('disabled', true),
+                    .prop('disabled', true),
                 parameters = {
                     outVertexId: this.attr.outVertexId,
                     inVertexId: this.attr.inVertexId,
@@ -192,7 +192,7 @@ define([
                 })
                 .catch(function(error) {
                     $target.text(i18n('org.visallo.web.product.graph.connection.button.connect'))
-                        .removeAttr('disabled');
+                        .prop('disabled', false);
                     self.markFieldErrors(error);
                     self.positionDialog();
                 })

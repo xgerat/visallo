@@ -137,7 +137,7 @@ define([], function() {
                 } else {
                     var selector = this.attr[this.enterShouldSubmit];
                     if (selector) {
-                        this.popover.find(this.attr[this.enterShouldSubmit]).not(':disabled').click();
+                        this.popover.find(this.attr[this.enterShouldSubmit]).not(':disabled').trigger('click');
                     } else {
                         console.warn('Selector to trigger on enter not found in popover', selector);
                     }
