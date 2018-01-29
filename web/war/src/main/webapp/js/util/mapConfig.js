@@ -1,9 +1,12 @@
 define(['util/requirejs/promise!./service/propertiesPromise'], function(config) {
     'use strict';
 
-    return getTilePropsFromConfiguration;
+    return (layerConfig) => {
+        const provider = layerConfig && layerConfig.base && layerConfig.base.provider;
+        return getTilePropsFromConfiguration(provider);
+    };
 
-    function getTilePropsFromConfiguration() {
+    function getTilePropsFromConfiguration(provider) {
         const getOptions = function(providerName) {
             try {
                 var obj,
@@ -31,7 +34,7 @@ define(['util/requirejs/promise!./service/propertiesPromise'], function(config) 
             }
         };
 
-        var source = config['map.provider'] || 'osm';
+        var source = provider || config['map.provider'] || 'osm';
         var sourceOptions;
 
         if (source === 'google') {

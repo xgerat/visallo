@@ -138,7 +138,7 @@ define([
         render() {
             const { viewport, generatePreview } = this.state;
             const { product, registry, panelPadding, focused, layerConfig, setLayerOrder, onAddSelection, onSelectElements } = this.props;
-            const { source: baseSource, sourceOptions: baseSourceOptions, ...config } = mapConfig();
+            const { source: baseSource, sourceOptions: baseSourceOptions, ...config } = mapConfig(layerConfig);
             const layerExtensions = _.indexBy(registry['org.visallo.map.layer'], 'id');
 
             return (

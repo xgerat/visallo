@@ -54,19 +54,24 @@ define([
         },
 
         componentWillReceiveProps(nextProps) {
-            const { sourcesByLayerId: prevSourcesByLayerId, product: prevProduct } = this.props;
             const {
+                baseSource: prevBaseSource,
+                baseSourceOptions: prevBaseSourceOptions = {},
+                sourcesByLayerId: prevSourcesByLayerId,
+                product: prevProduct } = this.props;
+            const {
+                baseSource: nextBaseSource,
+                baseSourceOptions: nextBaseSourceOptions = {},
                 sourcesByLayerId: nextSourcesByLayerId,
                 product: nextProduct,
                 registry,
                 layerExtensions } = nextProps;
             const { map, layersWithSources } = this.state;
             const nextLayerIds = Object.keys(nextProps.sourcesByLayerId);
+            const layersChanged = nextLayerIds.length !== Object.keys(layersWithSources).length || nextLayerIds.some(layerId => !layersWithSources[layerId]);
+            const baseSourceChanged = nextBaseSource !== prevBaseSource || !_.isEqual(prevBaseSourceOptions, nextBaseSourceOptions);
 
-            if (layersWithSources && (
-                    nextLayerIds.length !== Object.keys(layersWithSources).length
-                    || nextLayerIds.some(layerId => !layersWithSources[layerId])
-                )) {
+            if (layersWithSources && (layersChanged || baseSourceChanged)) {
                 const previous = Object.keys(prevSourcesByLayerId);
                 const newLayers = [];
                 const nextLayers = map.getLayerGroup().getLayers().getArray().slice(0);
@@ -121,6 +126,14 @@ define([
                             addLayer(e, layerId, e.options, map);
                         }
                     })
+                }
+
+                if (baseSourceChanged) {
+                    const index = nextLayers.findIndex(layer => layer.get('id') === BASE_LAYER_ID);
+                    const layerWithSource = layerHelpers.byType.tile.configure(BASE_LAYER_ID, { source: nextBaseSource, sourceOptions: nextBaseSourceOptions });
+
+                    newLayersWithSources[BASE_LAYER_ID] = layerWithSource;
+                    nextLayers[index] = layerWithSource.layer;
                 }
 
                 map.getLayerGroup().setLayers(new ol.Collection(nextLayers));
