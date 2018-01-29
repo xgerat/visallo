@@ -14,14 +14,18 @@ import org.visallo.vertexium.model.user.InMemoryUser;
 import org.visallo.web.CurrentUser;
 
 import javax.crypto.SecretKey;
-import javax.servlet.*;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Collections;
 import java.util.Date;
+import java.util.function.BiFunction;
 
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -29,6 +33,10 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.visallo.core.config.Configuration.*;
+import static org.visallo.web.auth.AuthTokenFilter.TOKEN_HTTP_HEADER_NAME;
+import static org.visallo.web.auth.AuthTokenFilter.TOKEN_HTTP_HEADER_TYPE;
+import static org.visallo.web.auth.AuthTokenUse.API;
+import static org.visallo.web.auth.AuthTokenUse.WEB;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AuthTokenFilterTest {
@@ -81,10 +89,10 @@ public class AuthTokenFilterTest {
     }
 
     @Test
-    public void testValidInboundTokenSetsCurrentUser() throws Exception {
-        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() + 10000));
+    public void testValidInboundWebTokenSetsCurrentUser() throws Exception {
+        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() + 10000), WEB);
         Cookie cookie = getTokenCookie(token);
-        when(request.getCookies()).thenReturn(new Cookie[] { cookie });
+        when(request.getCookies()).thenReturn(new Cookie[]{cookie});
         when(userRepository.findById(token.getUserId())).thenReturn(user);
         filter.doFilter(request, response, chain);
         verify(request).setAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME, user);
@@ -92,10 +100,43 @@ public class AuthTokenFilterTest {
     }
 
     @Test
-    public void testExpiredTokenDoesNotSetCurrentUser() throws Exception {
-        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() - 10000));
+    public void testValidInboundWebTokenAsHeaderDoesNotSetCurrentUser() throws Exception {
+        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() + 10000), WEB);
+        when(request.getCookies()).thenReturn(new Cookie[]{});
+        when(request.getHeaders(TOKEN_HTTP_HEADER_NAME)).thenReturn(Collections.enumeration(Collections.singleton(getTokenHeader(token))));
+        when(userRepository.findById(token.getUserId())).thenReturn(user);
+        filter.doFilter(request, response, chain);
+        verify(request, never()).setAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME, user);
+        verify(chain).doFilter(eq(request), any(HttpServletResponse.class));
+    }
+
+    @Test
+    public void testValidInboundApiTokenAsHeaderSetsCurrentUser() throws Exception {
+        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() + 10000), API);
+        when(request.getCookies()).thenReturn(new Cookie[]{});
+        when(request.getHeaders(TOKEN_HTTP_HEADER_NAME)).thenReturn(Collections.enumeration(Collections.singleton(getTokenHeader(token))));
+        when(userRepository.findById(token.getUserId())).thenReturn(user);
+        filter.doFilter(request, response, chain);
+        verify(request).setAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME, user);
+        verify(chain).doFilter(eq(request), any(HttpServletResponse.class));
+    }
+
+    @Test
+    public void testValidInboundApiTokenAsCookieDoesNotSetCurrentUser() throws Exception {
+        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() + 10000), API);
         Cookie cookie = getTokenCookie(token);
-        when(request.getCookies()).thenReturn(new Cookie[] { cookie });
+        when(request.getCookies()).thenReturn(new Cookie[]{cookie});
+        when(userRepository.findById(token.getUserId())).thenReturn(user);
+        filter.doFilter(request, response, chain);
+        verify(request, never()).setAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME, user);
+        verify(chain).doFilter(eq(request), any(HttpServletResponse.class));
+    }
+
+    @Test
+    public void testExpiredTokenDoesNotSetCurrentUser() throws Exception {
+        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() - 10000), WEB);
+        Cookie cookie = getTokenCookie(token);
+        when(request.getCookies()).thenReturn(new Cookie[]{cookie});
         when(userRepository.findById(token.getUserId())).thenReturn(user);
         filter.doFilter(request, response, chain);
         verify(request, never()).setAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME, user);
@@ -104,9 +145,9 @@ public class AuthTokenFilterTest {
 
     @Test
     public void testExpiredTokenWithinToleranceDoesSetCurrentUser() throws Exception {
-        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() - 2000));
+        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() - 2000), WEB);
         Cookie cookie = getTokenCookie(token);
-        when(request.getCookies()).thenReturn(new Cookie[] { cookie });
+        when(request.getCookies()).thenReturn(new Cookie[]{cookie});
         when(userRepository.findById(token.getUserId())).thenReturn(user);
         filter.doFilter(request, response, chain);
         verify(request).setAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME, user);
@@ -115,20 +156,16 @@ public class AuthTokenFilterTest {
 
     @Test
     public void testExpiredTokenRemovesTokenCookie() throws Exception {
-        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() - 10000));
+        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() - 10000), WEB);
         Cookie cookie = getTokenCookie(token);
-        when(request.getCookies()).thenReturn(new Cookie[] { cookie });
+        when(request.getCookies()).thenReturn(new Cookie[]{cookie});
         when(response.isCommitted()).thenReturn(false);
         filter.doFilter(request, response, chain);
-        verify(response).addCookie(argThat(new ArgumentMatcher<Cookie>() {
-            @Override
-            public boolean matches(Object c) {
-                Cookie right = (Cookie) c;
-                return right.getName().equals(cookie.getName())
+        verify(response).addCookie(argThat(matchesCookie((right, rightToken) ->
+                right.getName().equals(cookie.getName())
                         && right.getMaxAge() == 0
-                        && right.getValue() == null;
-            }
-        }));
+                        && right.getValue() == null
+                        && rightToken == null)));
         verify(chain).doFilter(eq(request), any(HttpServletResponse.class));
     }
 
@@ -137,72 +174,40 @@ public class AuthTokenFilterTest {
         when(request.getCookies()).thenReturn(new Cookie[0]);
         when(response.isCommitted()).thenReturn(false);
 
-        FilterChain testChain = new FilterChain() {
-            @Override
-            public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
-                when(request.getAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME)).thenReturn(user);
-                response.getWriter();
-            }
+        FilterChain testChain = (request, response) -> {
+            when(request.getAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME)).thenReturn(user);
+            response.getWriter();
         };
 
         filter.doFilter(request, response, testChain);
 
-        verify(response).addCookie(argThat(new ArgumentMatcher<Cookie>() {
-            @Override
-            public boolean matches(Object c) {
-                try {
-                    Cookie cookie = (Cookie) c;
-                    SecretKey key = AuthToken.generateKey(PASSWORD, SALT);
-                    AuthToken token = AuthToken.parse(cookie.getValue(), key);
-                    return token.getUserId().equals(user.getUserId());
-                } catch (Exception e) {
-                    fail("token signing failed: " + e);
-                }
-                return false;
-            }
-        }));
+        verify(response).addCookie(argThat(matchesCookie((cokie, token) -> token.getUserId().equals(user.getUserId()))));
     }
 
     @Test
     public void testTokenCookieCloseToExpirationGetsReset() throws Exception {
-        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() + 60000));
+        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() + 60000), WEB);
         Cookie cookie = getTokenCookie(token);
-        when(request.getCookies()).thenReturn(new Cookie[] { cookie });
+        when(request.getCookies()).thenReturn(new Cookie[]{cookie});
         when(userRepository.findById(token.getUserId())).thenReturn(user);
         when(request.getAttribute(CurrentUser.CURRENT_USER_REQ_ATTR_NAME)).thenReturn(user);
 
         when(response.isCommitted()).thenReturn(false);
 
-        FilterChain testChain = new FilterChain() {
-            @Override
-            public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
-                response.getWriter();
-            }
-        };
+        FilterChain testChain = (request, response) -> response.getWriter();
 
         filter.doFilter(request, response, testChain);
 
-        verify(response).addCookie(argThat(new ArgumentMatcher<Cookie>() {
-            @Override
-            public boolean matches(Object c) {
-                try {
-                    Cookie cookie = (Cookie) c;
-                    SecretKey key = AuthToken.generateKey(PASSWORD, SALT);
-                    AuthToken token = AuthToken.parse(cookie.getValue(), key);
-                    return token.getUserId().equals(user.getUserId());
-                } catch (Exception e) {
-                    fail("token signing failed: " + e);
-                }
-                return false;
-            }
-        }));
+        verify(response).addCookie(argThat(matchesCookie((right, rightToken) ->
+                !rightToken.getTokenId().equals(token.getTokenId()) &&
+                        rightToken.getUserId().equals(user.getUserId()))));
     }
 
     @Test
     public void testTokenSignatureFailureSendsError() throws Exception {
-        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() + 10000));
+        AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() + 10000), WEB);
         Cookie cookie = getTokenCookie(token.serialize() + "a", token.getExpiration());
-        when(request.getCookies()).thenReturn(new Cookie[] { cookie });
+        when(request.getCookies()).thenReturn(new Cookie[]{cookie});
         when(userRepository.findById(token.getUserId())).thenReturn(user);
         filter.doFilter(request, response, chain);
         verify(response).sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -210,9 +215,13 @@ public class AuthTokenFilterTest {
         verify(chain, never()).doFilter(eq(request), any(HttpServletResponse.class));
     }
 
-    private AuthToken getToken(String userid, Date expiration) throws InvalidKeySpecException, NoSuchAlgorithmException {
+    private AuthToken getToken(String userid, Date expiration, AuthTokenUse use) throws InvalidKeySpecException, NoSuchAlgorithmException {
         SecretKey key = AuthToken.generateKey(PASSWORD, SALT);
-        return new AuthToken(userid, key, expiration);
+        return new AuthToken(userid, key, expiration, true, use);
+    }
+
+    private String getTokenHeader(AuthToken token) throws AuthTokenException {
+        return TOKEN_HTTP_HEADER_TYPE + " " + token.serialize();
     }
 
     private Cookie getTokenCookie(AuthToken token) throws AuthTokenException {
@@ -225,5 +234,22 @@ public class AuthTokenFilterTest {
         cookie.setSecure(true);
         cookie.setMaxAge((int) ((expiration.getTime() - System.currentTimeMillis()) / 1000));
         return cookie;
+    }
+
+    private ArgumentMatcher<Cookie> matchesCookie(BiFunction<Cookie, AuthToken, Boolean> matcher) {
+        return new ArgumentMatcher<Cookie>() {
+            @Override
+            public boolean matches(Object c) {
+                try {
+                    Cookie cookie = (Cookie) c;
+                    SecretKey key = AuthToken.generateKey(PASSWORD, SALT);
+                    AuthToken token = cookie.getValue() == null ? null : AuthToken.parse(cookie.getValue(), key);
+                    return matcher.apply(cookie, token);
+                } catch (Exception e) {
+                    fail("token signing failed: " + e);
+                }
+                return false;
+            }
+        };
     }
 }

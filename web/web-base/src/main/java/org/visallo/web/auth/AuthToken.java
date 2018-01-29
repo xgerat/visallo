@@ -23,21 +23,32 @@ import java.util.Date;
 
 public class AuthToken {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final String DESCRIPTION_CLAIM = "description";
 
     private final String userId;
     private final SecretKey jwtKey;
     private final Date expiration;
     private final String tokenId;
+    private final String description;
+    private final boolean verified;
+    private final AuthTokenUse usage;
 
-    public AuthToken(String userId, SecretKey macKey, Date expiration) {
-        this(AuthToken.generateTokenId(), userId, macKey, expiration);
+    public AuthToken(String userId, SecretKey macKey, Date expiration, boolean verified, AuthTokenUse usage) {
+        this(AuthToken.generateTokenId(), userId, macKey, expiration, verified, null, usage);
     }
 
-    private AuthToken(String tokenId, String userId, SecretKey macKey, Date expiration) {
+    public AuthToken(String userId, SecretKey macKey, Date expiration, boolean verified, String description, AuthTokenUse usage) {
+        this(AuthToken.generateTokenId(), userId, macKey, expiration, verified, description, usage);
+    }
+
+    private AuthToken(String tokenId, String userId, SecretKey macKey, Date expiration, boolean verified, String description, AuthTokenUse usage) {
         this.tokenId = tokenId;
         this.userId = userId;
         this.jwtKey = macKey;
         this.expiration = expiration;
+        this.verified = verified;
+        this.description = description;
+        this.usage = usage;
     }
 
     public static SecretKey generateKey(String keyPassword, String keySalt) throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -49,28 +60,38 @@ public class AuthToken {
     public static AuthToken parse(String token, SecretKey macKey) throws AuthTokenException {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
-            JWSVerifier verifier = new MACVerifier(macKey);
 
-            if (signedJWT.verify(verifier)) {
-                JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
-                return new AuthToken(claims.getJWTID(), claims.getSubject(), macKey, claims.getExpirationTime());
-            } else {
-                throw new AuthTokenException("JWT signature verification failed");
-            }
+            JWSVerifier verifier = new MACVerifier(macKey);
+            boolean verified = signedJWT.verify(verifier);
+
+            JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
+            AuthTokenUse usage = claims.getAudience().contains(AuthTokenUse.API.name()) ? AuthTokenUse.API : AuthTokenUse.WEB;
+            return new AuthToken(
+                    claims.getJWTID(),
+                    claims.getSubject(),
+                    macKey,
+                    claims.getExpirationTime(),
+                    verified,
+                    claims.getStringClaim(DESCRIPTION_CLAIM),
+                    usage);
         } catch (Exception e) {
             throw new AuthTokenException(e);
         }
     }
 
     public String serialize() throws AuthTokenException {
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+        JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder()
                 .jwtID(tokenId)
                 .subject(userId)
                 .expirationTime(expiration)
-                .build();
+                .audience(usage.name());
+
+        if (description != null) {
+            claimsBuilder.claim(DESCRIPTION_CLAIM, description);
+        }
 
         try {
-            SignedJWT signedJwt = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);
+            SignedJWT signedJwt = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsBuilder.build());
             JWSSigner signer = new MACSigner(jwtKey);
             signedJwt.sign(signer);
             return signedJwt.serialize();
@@ -89,6 +110,22 @@ public class AuthToken {
 
     public Date getExpiration() {
         return expiration;
+    }
+
+    public AuthTokenUse getUsage() {
+        return usage;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public boolean isVerified() {
+        return verified;
+    }
+
+    public boolean isValid(int toleranceInSeconds) {
+        return verified && !isExpired(toleranceInSeconds);
     }
 
     public boolean isExpired(int toleranceInSeconds) {

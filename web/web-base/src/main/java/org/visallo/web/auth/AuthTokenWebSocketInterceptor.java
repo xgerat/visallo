@@ -47,11 +47,11 @@ public class AuthTokenWebSocketInterceptor implements AtmosphereInterceptor {
             AtmosphereRequest request = resource.getRequest();
             AuthToken token = getAuthToken(request);
 
-            if (token != null && !token.isExpired(tokenExpirationToleranceInSeconds)) {
+            if (token != null && token.isValid(tokenExpirationToleranceInSeconds)) {
                 setCurrentUser(request, token);
             }
         } catch (AuthTokenException e) {
-            LOGGER.warn("Auth token signature verification failed", e);
+            LOGGER.warn("Auth token verification failed", e);
             return Action.CANCELLED;
         }
 
@@ -92,6 +92,6 @@ public class AuthTokenWebSocketInterceptor implements AtmosphereInterceptor {
     private void setCurrentUser(HttpServletRequest request, AuthToken token) {
         checkNotNull(token.getUserId(), "Auth token did not contain the userId");
         User user = userRepository.findById(token.getUserId());
-        CurrentUser.set(request, user);
+        CurrentUser.set(request, user, token);
     }
 }

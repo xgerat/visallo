@@ -84,7 +84,7 @@ public class AuthTokenHttpResponse extends HttpServletResponseWrapper {
 
         if (currentUser != null) {
             Date tokenExpiration = calculateTokenExpiration();
-            AuthToken token = new AuthToken(currentUser.getUserId(), macKey, tokenExpiration);
+            AuthToken token = new AuthToken(currentUser.getUserId(), macKey, tokenExpiration, true, AuthTokenUse.WEB);
 
             try {
                 writeAuthTokenCookie(token.serialize(), tokenValidityDurationInMinutes);

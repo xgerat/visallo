@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import org.json.JSONObject;
 import org.vertexium.Property;
 import org.vertexium.Vertex;
+import org.visallo.core.model.properties.types.SingleValueVisalloProperty;
 import org.visallo.core.model.user.UserVisalloProperties;
 import org.visallo.core.user.User;
 import org.visallo.web.clientapi.model.UserType;
@@ -32,47 +33,48 @@ public class VertexiumUser implements User, Serializable {
 
     @Override
     public String getUsername() {
-        return UserVisalloProperties.USERNAME.getPropertyValue(properties);
+        return getProperty(UserVisalloProperties.USERNAME);
     }
 
     @Override
     public String getDisplayName() {
-        return UserVisalloProperties.DISPLAY_NAME.getPropertyValue(properties);
+        return getProperty(UserVisalloProperties.DISPLAY_NAME);
     }
 
     @Override
     public String getEmailAddress() {
-        return UserVisalloProperties.EMAIL_ADDRESS.getPropertyValue(properties);
+        return getProperty(UserVisalloProperties.EMAIL_ADDRESS);
     }
 
     @Override
     public Date getCreateDate() {
-        return UserVisalloProperties.CREATE_DATE.getPropertyValue(properties);
+        return getProperty(UserVisalloProperties.CREATE_DATE);
     }
 
     @Override
     public Date getCurrentLoginDate() {
-        return UserVisalloProperties.CURRENT_LOGIN_DATE.getPropertyValue(properties);
+        return getProperty(UserVisalloProperties.CURRENT_LOGIN_DATE);
     }
 
     @Override
     public String getCurrentLoginRemoteAddr() {
-        return UserVisalloProperties.CURRENT_LOGIN_REMOTE_ADDR.getPropertyValue(properties);
+        return getProperty(UserVisalloProperties.CURRENT_LOGIN_REMOTE_ADDR);
     }
 
     @Override
     public Date getPreviousLoginDate() {
-        return UserVisalloProperties.PREVIOUS_LOGIN_DATE.getPropertyValue(properties);
+        return getProperty(UserVisalloProperties.PREVIOUS_LOGIN_DATE);
     }
 
     @Override
     public String getPreviousLoginRemoteAddr() {
-        return UserVisalloProperties.PREVIOUS_LOGIN_REMOTE_ADDR.getPropertyValue(properties);
+        return getProperty(UserVisalloProperties.PREVIOUS_LOGIN_REMOTE_ADDR);
     }
 
     @Override
     public int getLoginCount() {
-        return UserVisalloProperties.LOGIN_COUNT.getPropertyValue(properties, 0);
+        Integer loginCount = getProperty(UserVisalloProperties.LOGIN_COUNT);
+        return loginCount == null ? 0 : loginCount;
     }
 
     @Override
@@ -82,12 +84,12 @@ public class VertexiumUser implements User, Serializable {
 
     @Override
     public String getCurrentWorkspaceId() {
-        return UserVisalloProperties.CURRENT_WORKSPACE.getPropertyValue(properties);
+        return getProperty(UserVisalloProperties.CURRENT_WORKSPACE);
     }
 
     @Override
     public JSONObject getUiPreferences() {
-        JSONObject preferences = UserVisalloProperties.UI_PREFERENCES.getPropertyValue(properties);
+        JSONObject preferences = getProperty(UserVisalloProperties.UI_PREFERENCES);
         if (preferences == null) {
             preferences = new JSONObject();
             UserVisalloProperties.UI_PREFERENCES.setProperty(properties, preferences);
@@ -97,17 +99,22 @@ public class VertexiumUser implements User, Serializable {
 
     @Override
     public String getPasswordResetToken() {
-        return UserVisalloProperties.PASSWORD_RESET_TOKEN.getPropertyValue(properties);
+        return getProperty(UserVisalloProperties.PASSWORD_RESET_TOKEN);
     }
 
     @Override
     public Date getPasswordResetTokenExpirationDate() {
-        return UserVisalloProperties.PASSWORD_RESET_TOKEN_EXPIRATION_DATE.getPropertyValue(properties);
+        return getProperty(UserVisalloProperties.PASSWORD_RESET_TOKEN_EXPIRATION_DATE);
+    }
+
+    private <PROP_TYPE> PROP_TYPE getProperty(SingleValueVisalloProperty<PROP_TYPE, ?> property) {
+        return property.getPropertyValue(this.properties);
     }
 
     @Override
-    public Object getProperty(String propertyName) {
-        return this.properties.get(propertyName);
+    @SuppressWarnings("unchecked")
+    public <PROP_TYPE> PROP_TYPE getProperty(String propertyName) {
+        return (PROP_TYPE) this.properties.get(propertyName);
     }
 
     @Override

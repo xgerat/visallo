@@ -114,10 +114,6 @@ public class InMemoryUser implements User {
         return preferences;
     }
 
-    public void setPreferences(JSONObject preferences) {
-        this.preferences = preferences;
-    }
-
     @Override
     public String getPasswordResetToken() {
         return null;
@@ -129,8 +125,9 @@ public class InMemoryUser implements User {
     }
 
     @Override
-    public Object getProperty(String propertyName) {
-        return properties.get(propertyName);
+    @SuppressWarnings("unchecked")
+    public <PROP_TYPE> PROP_TYPE getProperty(String propertyName) {
+        return (PROP_TYPE) properties.get(propertyName);
     }
 
     @Override
@@ -153,11 +150,7 @@ public class InMemoryUser implements User {
 
         InMemoryUser that = (InMemoryUser) o;
 
-        if (!userId.equals(that.userId)) {
-            return false;
-        }
-
-        return true;
+        return userId.equals(that.userId);
     }
 
     @Override

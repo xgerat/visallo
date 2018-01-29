@@ -1,6 +1,5 @@
 package org.visallo.vertexium.model.user;
 
-import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.json.JSONObject;
@@ -38,7 +37,7 @@ public class InMemoryUserRepository extends UserRepository {
 
     @Override
     public User findByUsername(final String username) {
-        return Iterables.find(this.users, user -> user.getUsername().equals(username), null);
+        return this.users.stream().filter(user -> user.getUsername().equals(username)).findFirst().orElse(null);
     }
 
     @Override
@@ -48,7 +47,7 @@ public class InMemoryUserRepository extends UserRepository {
 
     @Override
     public User findById(final String userId) {
-        return Iterables.find(this.users, user -> user.getUserId().equals(userId), null);
+        return this.users.stream().filter(user -> user.getUserId().equals(userId)).findFirst().orElse(null);
     }
 
     @Override

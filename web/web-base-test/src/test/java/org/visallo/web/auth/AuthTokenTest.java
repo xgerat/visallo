@@ -30,9 +30,8 @@ public class AuthTokenTest {
     public void testValidTokenCreationAndValidation() throws Exception {
         SecretKey key = AuthToken.generateKey("password", "salt");
         String userid = "userid";
-        String username = "username";
         Date expiration = new Date(System.currentTimeMillis() + 10000);
-        AuthToken token = new AuthToken(userid, key, expiration);
+        AuthToken token = new AuthToken(userid, key, expiration, true, AuthTokenUse.WEB);
         String tokenText = token.serialize();
         AuthToken parsedToken = AuthToken.parse(tokenText, key);
         assertEquals(userid, parsedToken.getUserId());
@@ -44,33 +43,32 @@ public class AuthTokenTest {
     public void testTokenReportsExpirationCorrectly() throws Exception {
         SecretKey key = AuthToken.generateKey("password", "salt");
         Date expiration = new Date(System.currentTimeMillis() - 10);
-        AuthToken token = new AuthToken("userid", key, expiration);
+        AuthToken token = new AuthToken("userid", key, expiration, true, AuthTokenUse.WEB);
         String tokenText = token.serialize();
         AuthToken parsedToken = AuthToken.parse(tokenText, key);
-        assertFalse(parsedToken.isExpired(60));
-        assertTrue(parsedToken.isExpired(0));
+        assertTrue(parsedToken.isValid(60));
+        assertFalse(parsedToken.isValid(0));
     }
 
     @Test
     public void testTokenValidationFailure() throws Exception {
         SecretKey key = AuthToken.generateKey("password", "salt");
         Date expiration = new Date(System.currentTimeMillis() + 10000);
-        AuthToken token = new AuthToken("userid", key, expiration);
+        String userid = "userid";
+        AuthToken token = new AuthToken(userid, key, expiration, true, AuthTokenUse.WEB);
         String tokenText = token.serialize();
 
-        try {
-            AuthToken.parse(tokenText + "a", key);
-            fail("Token signature validation should have failed");
-        } catch (AuthTokenException e) {
-            // expected
-        }
+        AuthToken parsedToken = AuthToken.parse(tokenText + "a", key);
+        assertFalse(parsedToken.isVerified());
+        assertFalse(parsedToken.isValid(60));
+        assertEquals(userid, parsedToken.getUserId());
     }
 
     @Test
     public void testNewTokenContainsIdClaim() throws InvalidKeySpecException, NoSuchAlgorithmException {
         SecretKey key = AuthToken.generateKey("password", "salt");
         Date expiration = new Date(System.currentTimeMillis() + 10000);
-        AuthToken token = new AuthToken("userid", key, expiration);
+        AuthToken token = new AuthToken("userid", key, expiration, true, AuthTokenUse.WEB);
         assertNotNull(token.getTokenId());
     }
 }

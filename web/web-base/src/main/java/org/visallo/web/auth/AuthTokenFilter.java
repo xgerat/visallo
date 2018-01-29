@@ -16,6 +16,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Enumeration;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.visallo.core.config.Configuration.*;
@@ -24,6 +25,8 @@ public class AuthTokenFilter implements Filter {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(AuthTokenFilter.class);
     private static final int MIN_AUTH_TOKEN_EXPIRATION_MINS = 1;
     public static final String TOKEN_COOKIE_NAME = "JWT";
+    public static final String TOKEN_HTTP_HEADER_NAME = "Authorization";
+    public static final String TOKEN_HTTP_HEADER_TYPE = "Bearer";
 
     private SecretKey tokenSigningKey;
     private long tokenValidityDurationInMinutes;
@@ -37,8 +40,8 @@ public class AuthTokenFilter implements Filter {
         );
         if (tokenValidityDurationInMinutes < MIN_AUTH_TOKEN_EXPIRATION_MINS) {
             throw new VisalloException("Configuration: " +
-                "'" +  AUTH_TOKEN_EXPIRATION_IN_MINS + "' " +
-                "must be at least " + MIN_AUTH_TOKEN_EXPIRATION_MINS + " minute(s)"
+                    "'" + AUTH_TOKEN_EXPIRATION_IN_MINS + "' " +
+                    "must be at least " + MIN_AUTH_TOKEN_EXPIRATION_MINS + " minute(s)"
             );
         }
 
@@ -58,33 +61,33 @@ public class AuthTokenFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException {
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         doFilter((HttpServletRequest) servletRequest, (HttpServletResponse) servletResponse, filterChain);
     }
 
-    public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException {
-        try {
-            AuthToken token = getAuthToken(request);
-            AuthTokenHttpResponse authTokenResponse = new AuthTokenHttpResponse(token, request, response, tokenSigningKey, tokenValidityDurationInMinutes);
+    public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+        AuthToken token = getAuthToken(request);
+        AuthTokenHttpResponse authTokenResponse = new AuthTokenHttpResponse(token, request, response, tokenSigningKey, tokenValidityDurationInMinutes);
 
-            if (token != null) {
-                if (token.isExpired(tokenExpirationToleranceInSeconds)) {
-                    authTokenResponse.invalidateAuthentication();
+        CurrentUser.unset(request);
+        if (token != null) {
+            if (!token.isValid(tokenExpirationToleranceInSeconds)) {
+                authTokenResponse.invalidateAuthentication();
+                if (!token.isVerified()) {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                }
+            } else {
+                User user = userRepository.findById(token.getUserId());
+                if (user != null) {
+                    CurrentUser.set(request, user, token);
                 } else {
-                    User user = userRepository.findById(token.getUserId());
-                    if (user != null) {
-                        CurrentUser.set(request, user);
-                    } else {
-                        authTokenResponse.invalidateAuthentication();
-                    }
+                    authTokenResponse.invalidateAuthentication();
                 }
             }
-
-            chain.doFilter(request, authTokenResponse);
-        } catch (Exception ex) {
-            LOGGER.warn("Auth token signature verification failed", ex);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
         }
+
+        chain.doFilter(request, authTokenResponse);
     }
 
     @Override
@@ -92,9 +95,46 @@ public class AuthTokenFilter implements Filter {
 
     }
 
-    private AuthToken getAuthToken(HttpServletRequest request) throws AuthTokenException {
-        Cookie tokenCookie = getTokenCookie(request);
-        return tokenCookie != null ? AuthToken.parse(tokenCookie.getValue(), tokenSigningKey) : null;
+    private AuthToken getAuthToken(HttpServletRequest request) {
+        try {
+            Cookie tokenCookie = getTokenCookie(request);
+            if (tokenCookie != null) {
+                AuthToken authToken = AuthToken.parse(tokenCookie.getValue(), tokenSigningKey);
+                if (authToken.getUsage() == AuthTokenUse.WEB) {
+                    return authToken;
+                }
+            }
+
+            String authHeader = getTokenHeader(request);
+            if (authHeader != null) {
+                AuthToken authToken = AuthToken.parse(authHeader, tokenSigningKey);
+                if (authToken.getUsage() == AuthTokenUse.API) {
+                    return authToken;
+                } else {
+                    LOGGER.warn("Non API web token passed as request header.");
+                }
+            }
+        } catch (AuthTokenException ate) {
+            LOGGER.warn("Failed to parse auth token ", ate);
+        }
+        return null;
+    }
+
+    private String getTokenHeader(HttpServletRequest request) {
+        Enumeration<String> headers = request.getHeaders(TOKEN_HTTP_HEADER_NAME);
+        while (headers != null && headers.hasMoreElements()) {
+            String value = headers.nextElement();
+            if (value.toLowerCase().startsWith(TOKEN_HTTP_HEADER_TYPE.toLowerCase())) {
+                String authHeaderValue = value.substring(TOKEN_HTTP_HEADER_TYPE.length()).trim();
+                int commaIndex = authHeaderValue.indexOf(',');
+                if (commaIndex > 0) {
+                    authHeaderValue = authHeaderValue.substring(0, commaIndex);
+                }
+                return authHeaderValue;
+            }
+        }
+
+        return null;
     }
 
     private Cookie getTokenCookie(HttpServletRequest request) {
