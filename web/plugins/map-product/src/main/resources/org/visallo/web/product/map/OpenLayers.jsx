@@ -19,7 +19,8 @@ define([
         PREVIEW_WIDTH = 300,
         PREVIEW_HEIGHT = 300,
         PREVIEW_DEBOUNCE_SECONDS = 2,
-        LAYERS_EXTENDED_DATA_KEY = 'org-visallo-map-layers';
+        LAYERS_EXTENDED_DATA_KEY = 'org-visallo-map-layers',
+        BASE_LAYER_ID = 'base';
 
     const OpenLayers = createReactClass({
         propTypes: {
@@ -58,18 +59,34 @@ define([
                 sourcesByLayerId: nextSourcesByLayerId,
                 product: nextProduct,
                 registry,
-                baseSource,
-                baseSourceOptions,
-                generatePreview,
-                layerExtensions,
-                ...handlers } = nextProps;
+                layerExtensions } = nextProps;
             const { map, layersWithSources } = this.state;
-
             const nextLayerIds = Object.keys(nextProps.sourcesByLayerId);
-            if (layersWithSources && (nextLayerIds.length !== Object.keys(layersWithSources).length
-                || nextLayerIds.some(layerId => !layersWithSources[layerId]))) {
+
+            if (layersWithSources && (
+                    nextLayerIds.length !== Object.keys(layersWithSources).length
+                    || nextLayerIds.some(layerId => !layersWithSources[layerId])
+                )) {
                 const previous = Object.keys(prevSourcesByLayerId);
                 const newLayers = [];
+                const nextLayers = map.getLayerGroup().getLayers().getArray().slice(0);
+                const existingLayersById = _.indexBy(nextLayers, layer => layer.get('id'));
+                const newLayersWithSources = {};
+                const addLayer = (initializer, layerId, options, map) => {
+                    const layerWithSource = this.initializeLayer(initializer, layerId, options, map);
+                    const layers = layerWithSource.layers || [layerWithSource.layer];
+
+                    layers.forEach(layer => {
+                        const config = nextProps.layerConfig && nextProps.layerConfig[layer.get('id')];
+                        if (config) {
+                            layerHelpers.setLayerConfig(config, layer);
+                        }
+
+                        newLayersWithSources[layerId] = layerWithSource;
+                        nextLayers.push(layer);
+                    })
+
+                };
 
                 Object.keys(nextSourcesByLayerId).forEach((layerId) => {
                     if (!prevSourcesByLayerId[layerId]) {
@@ -78,18 +95,12 @@ define([
                         const layerIndex = previous.indexOf(layerId);
                         previous.splice(layerIndex, 1);
                     }
-                })
-
-                const layerGroup = map.getLayerGroup();
-                let nextLayers = layerGroup.getLayers().getArray().slice(0);
-                const existingLayersById = _.indexBy(nextLayers, layer => layer.get('id'));
+                });
 
                 previous.forEach(layerId => {
                     const layerIndex = nextLayers.findIndex(layer => layer.get('id') === layerId);
                     nextLayers.splice(layerIndex, 1);
                 });
-
-                const newLayersWithSources = {};
 
                 newLayers.forEach(layerId => {
                     if (!existingLayersById[layerId]) {
@@ -97,29 +108,22 @@ define([
                         const initializer = layerHelpers.byType[type] || registry['org.visallo.map.layer'].find(e => e.type === type);
 
                         if (initializer) {
-                            const layerWithSource = initializer.configure(layerId, options, map);
-
-                            if (_.isFunction(initializer.addEvents)) {
-                                this.olEvents.concat(initializer.addEvents(map, layerWithSource, handlers));
-                            }
-
-                            const layers = layerWithSource.layers || [layerWithSource.layer];
-                            layers.forEach(layer => {
-                                const config = nextProps.layerConfig && nextProps.layerConfig[layer.get('id')];
-                                if (config) {
-                                    layerHelpers.setLayerConfig(config, layer);
-                                }
-
-                                newLayersWithSources[layerId] = layerWithSource;
-                                nextLayers.push(layer);
-                            })
+                            addLayer(initializer, layerId, options, map)
                         } else {
                             console.warn('Sources present for layer: ' + layerId + ', but no layer type defined for: ' + type);
                         }
                     }
                 });
 
-                layerGroup.setLayers(new ol.Collection(nextLayers));
+                if (nextProduct.id !== prevProduct.id) {
+                    _.mapObject(layerExtensions, (e, layerId) => {
+                        if (!(layerId in newLayersWithSources) && !(layerId in nextSourcesByLayerId)) {
+                            addLayer(e, layerId, e.options, map);
+                        }
+                    })
+                }
+
+                map.getLayerGroup().setLayers(new ol.Collection(nextLayers));
 
                 if (previous.length || Object.keys(newLayersWithSources).length) {
                     this.setState({ layersWithSources: {
@@ -457,7 +461,19 @@ define([
         },
 
         configureMap() {
-            const { baseSource, baseSourceOptions = {}, sourcesByLayerId, generatePreview, layerExtensions, layerConfig, ...handlers } = this.props;
+            const { baseSource, baseSourceOptions = {}, sourcesByLayerId, layerExtensions } = this.props;
+            const layersWithSources = {};
+
+            const addLayer = (layerExtension, id, options, map) => {
+                if (layersWithSources[id]) return;
+
+                const layerWithSource = this.initializeLayer(layerExtension, id, options, map);
+                const layers = layerWithSource.layers || [layerWithSource.layer];
+
+                layers.forEach(l => { map.addLayer(l); });
+                layersWithSources[id] = layerWithSource;
+            };
+
             const map = new ol.Map({
                 loadTilesWhileInteracting: true,
                 keyboardEventTarget: document,
@@ -466,47 +482,19 @@ define([
                 target: this.refs.map
             });
 
-            const layersWithSources = {};
-
-            const base = layerHelpers.byType.tile.configure('base', { source: baseSource, sourceOptions: baseSourceOptions }, map);
-            this.olEvents.concat(layerHelpers.byType.tile.addEvents(map, base, handlers));
-            map.addLayer(base.layer);
-
-            const initializeLayer = (layerHelper, layerId, options) => {
-                const layerWithSource = layerHelper.configure(layerId, options, map);
-
-                if (_.isFunction(layerHelper.addEvents)) {
-                    this.olEvents.concat(layerHelper.addEvents(map, layerWithSource, handlers));
-                }
-
-                layersWithSources[layerId] = layerWithSource;
-                const layers = layerWithSource.layers || [layerWithSource.layer];
-                layers.forEach(layer => {
-                    map.addLayer(layer);
-                    const config = layerConfig && layerConfig[layer.get('id')];
-                    if (config) {
-                        layerHelpers.setLayerConfig(config, layer);
-                    }
-                })
-            };
-
-            _.mapObject(layerExtensions, (e, layerId) => {
-                const initializer = e.type && layerHelpers.byType[e.type] || e;
-                initializeLayer(initializer, e.id, e.options)
-            });
-
+            // add the base(tile) layer
+            addLayer(layerHelpers.byType.tile, BASE_LAYER_ID, { source: baseSource, sourceOptions: baseSourceOptions }, map);
+            // add layers from org.visallo.map.layer registered extensions
+            _.mapObject(layerExtensions, (extension, layerId) => { addLayer(extension, layerId, extension.options, map) });
+            // add layers from sources passed in props
             _.mapObject(sourcesByLayerId, ({ type, features, ...options }, layerId) => {
-                if (layersWithSources[layerId]) return;
-
                 const initializer = layerHelpers.byType[type];
-
                 if (initializer) {
-                    initializeLayer(initializer, layerId, options);
+                    addLayer(initializer, layerId, options, map);
                 } else {
                     console.warn('Sources present for layer: ' + layerId + ', but no layer type defined for: ' + type);
                 }
             });
-
             this.configureEvents(map);
 
             const view = new ol.View(this.getDefaultViewParameters());
@@ -514,8 +502,7 @@ define([
             this.olEvents.push(view.on('change:resolution', (event) => this.props.onZoom(event)));
 
             map.setView(view);
-
-            return { map, layersWithSources: { base, ...layersWithSources }}
+            return { map, layersWithSources}
         },
 
         configureEvents(map) {
@@ -555,6 +542,26 @@ define([
             });
         },
 
+        initializeLayer(layerExtension, layerId, options, map) {
+            const { baseSource, baseSourceOptions, sourcesByLayerId, generatePreview, layerExtensions, layerConfig, ...handlers } = this.props;
+            const layerHelper = layerExtension.type && layerHelpers.byType[layerExtension.type] || layerExtension;
+            const layerWithSource = layerHelper.configure(layerId, options, map);
+
+            if (_.isFunction(layerHelper.addEvents)) {
+                this.olEvents.concat(layerHelper.addEvents(map, layerWithSource, handlers));
+            }
+
+            const layers = layerWithSource.layers || [layerWithSource.layer];
+            layers.forEach(layer => {
+                const config = layerConfig && layerConfig[layer.get('id')];
+                if (config) {
+                    layerHelpers.setLayerConfig(config, layer);
+                }
+            });
+
+            return layerWithSource;
+        },
+
         applyLayerOrder() {
             const { map } = this.state;
             const { product, setLayerOrder } = this.props;
@@ -567,8 +574,8 @@ define([
             let orderedLayers = new ol.Collection();
             let newLayers = [];
 
-            orderedLayers.push(layersById['base']);
-            delete layersById['base'];
+            orderedLayers.push(layersById[BASE_LAYER_ID]);
+            delete layersById[BASE_LAYER_ID];
 
             if (layerOrder.length) {
                 layerOrder = layerOrder.reverse();
