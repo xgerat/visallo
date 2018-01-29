@@ -3,13 +3,17 @@ define([
     'create-react-class',
     'react-sortable-hoc',
     './MapLayersList',
+    './MapLayerDetail',
     '../util/layerHelpers'
 ], function(
     PropTypes,
     createReactClass,
     { arrayMove },
     MapLayersList,
+    MapLayerDetail,
     layerHelpers) {
+
+    const UPDATE_DEBOUNCE = 300;
 
     const MapLayers = createReactClass({
 
@@ -32,7 +36,11 @@ define([
         },
 
         getInitialState() {
-            return { futureIndex: null }
+            return { futureIndex: null, selected: null }
+        },
+
+        componentDidMount() {
+            this.onUpdateLayerConfig = _.debounce(this._onUpdateLayerConfig, UPDATE_DEBOUNCE)
         },
 
         componentWillReceiveProps(nextProps) {
@@ -42,7 +50,7 @@ define([
         },
 
         render() {
-            const { futureIndex } = this.state;
+            const { futureIndex, selected } = this.state;
             const { baseLayer, layers, layersConfig, editable, ol, map } = this.props;
             let layerList = futureIndex ? arrayMove(layers, futureIndex[0], futureIndex[1]) : layers;
             layerList = layerList.map(layer => ({
@@ -50,18 +58,40 @@ define([
                 layer
             }));
 
+            let selectedLayer;
+            if (selected) {
+                selectedLayer = selected === 'base' ? baseLayer : layers.find(layer => layer.get('id') === selected);
+            }
+
             return (
                 <div className="map-layers">
-                    <MapLayersList
-                        baseLayer={{ config: layersConfig['base'], layer: baseLayer }}
-                        layers={layerList}
-                        editable={editable}
-                        onToggleLayer={this.onToggleLayer}
-                        onSelectLayer={this.onSelectLayer}
-                        onOrderLayer={this.onOrderLayer}
-                    />
+                    {!selectedLayer ?
+                        <MapLayersList
+                            baseLayer={{ config: layersConfig['base'], layer: baseLayer }}
+                            layers={layerList}
+                            editable={editable}
+                            onConfigureLayer={this.onConfigureLayer}
+                            onToggleLayer={this.onToggleLayer}
+                            onSelectLayer={this.onSelectLayer}
+                            onOrderLayer={this.onOrderLayer}
+                        />
+                    :
+                        <MapLayerDetail
+                            layer={selectedLayer}
+                            config={layersConfig[selected]}
+                            onBack={this.onBack}
+                            onUpdateLayerConfig={this.onUpdateLayerConfig}
+                        />}
                 </div>
             );
+        },
+
+        onSelectLayer(layerId) {
+            this.setState({ selected: layerId });
+        },
+
+        onBack() {
+            this.setState({ selected: false });
         },
 
         onOrderLayer(oldSubsetIndex, newSubsetIndex) {
@@ -93,6 +123,11 @@ define([
 
             layerHelpers.setLayerConfig(config, layer);
             updateLayerConfig(config, layerId);
+        },
+
+        _onUpdateLayerConfig(config, layer) {
+            layerHelpers.setLayerConfig(config, layer);
+            this.props.updateLayerConfig(config, layer.get('id'));
         }
 
     });

@@ -3,6 +3,7 @@ var webpack = require('webpack');
 var VisalloAmdExternals = [
     'components/DroppableHOC',
     'product/toolbar/ProductToolbar',
+    'components/Attacher',
     'components/RegistryInjectorHOC',
     'configuration/plugins/registry',
     'data/web-worker/store/actions',

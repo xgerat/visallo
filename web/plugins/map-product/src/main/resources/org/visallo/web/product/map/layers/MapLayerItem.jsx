@@ -9,14 +9,18 @@ define([
     { SortableElement },
     F) {
 
-    const MapLayerItem = ({ layer, config, style, toggleable, onToggleLayer }) => {
+    const MapLayerItem = ({ layer, config, style, toggleable, onToggleLayer, onSelectLayer }) => {
         const layerStatus = layer.get('status');
         const statusMessage = (_.isObject(layerStatus) && layerStatus.message) || null;
         const hasError = _.isObject(layerStatus) && layerStatus.type === 'error';
         const visible = config && config.visible !== undefined ? config.visible : layer.getVisible();
 
         return (
-            <div className={classNames('layer-item', { 'error': hasError })} style={{ ...style, zIndex: 50 }}>
+            <div
+                className={classNames('layer-item', { 'error': hasError })}
+                style={{ ...style, zIndex: 50 }}
+                onClick={() => { onSelectLayer(layer.get('id'))}}
+            >
                 <input
                     type="checkbox"
                     checked={visible}
