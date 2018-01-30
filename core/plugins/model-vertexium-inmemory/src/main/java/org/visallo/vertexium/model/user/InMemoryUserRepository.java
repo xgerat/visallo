@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static org.visallo.core.user.User.DEFAULT_KEY;
+
 @Singleton
 public class InMemoryUserRepository extends UserRepository {
     private List<User> users = new ArrayList<>();
@@ -132,9 +134,22 @@ public class InMemoryUserRepository extends UserRepository {
 
     @Override
     public void setPropertyOnUser(User user, String propertyName, Object value) {
+        setPropertyOnUser(user, DEFAULT_KEY, propertyName, value);
+    }
+
+    @Override
+    public void setPropertyOnUser(User user, String key, String propertyName, Object value) {
         if (user instanceof SystemUser) {
             throw new VisalloException("Cannot set properties on system user");
         }
-        ((InMemoryUser) user).setProperty(propertyName, value);
+        ((InMemoryUser) user).setProperty(key, propertyName, value);
+    }
+
+    @Override
+    public void removePropertyFromUser(User user, String key, String propertyName) {
+        if (user instanceof SystemUser) {
+            throw new VisalloException("Cannot remove properties on system user");
+        }
+        ((InMemoryUser) user).removeProperty(key, propertyName);
     }
 }

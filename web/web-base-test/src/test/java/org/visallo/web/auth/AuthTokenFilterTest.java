@@ -1,5 +1,6 @@
 package org.visallo.web.auth;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Injector;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,12 +9,13 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.visallo.core.bootstrap.InjectHelper;
+import org.visallo.core.config.Configuration;
+import org.visallo.core.config.HashMapConfigurationLoader;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
 import org.visallo.vertexium.model.user.InMemoryUser;
 import org.visallo.web.CurrentUser;
 
-import javax.crypto.SecretKey;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
@@ -21,10 +23,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import java.util.function.BiFunction;
 
 import static org.junit.Assert.fail;
@@ -68,13 +69,19 @@ public class AuthTokenFilterTest {
 
     private User user = new InMemoryUser("user123");
 
+    private AuthTokenRepository authTokenRepository;
+
     @Before
-    public void before() throws ServletException {
-        when(filterConfig.getInitParameter(AUTH_TOKEN_PASSWORD)).thenReturn(PASSWORD);
-        when(filterConfig.getInitParameter(AUTH_TOKEN_SALT)).thenReturn(SALT);
+    public void before() {
+        Map config = ImmutableMap.of(AUTH_TOKEN_PASSWORD, PASSWORD, AUTH_TOKEN_SALT, SALT);
+        HashMapConfigurationLoader configLoader = new HashMapConfigurationLoader(config);
+
+        authTokenRepository = new AuthTokenRepository(new Configuration(configLoader, config), userRepository);
+
         when(filterConfig.getInitParameter(AUTH_TOKEN_EXPIRATION_IN_MINS)).thenReturn(EXPIRATION);
         when(filterConfig.getInitParameter(AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS)).thenReturn(EXPIRATION_TOLERANCE);
         when(injector.getInstance(UserRepository.class)).thenReturn(userRepository);
+        when(injector.getInstance(AuthTokenRepository.class)).thenReturn(authTokenRepository);
         InjectHelper.setInjector(injector);
         filter = new AuthTokenFilter();
         filter.init(filterConfig);
@@ -206,7 +213,7 @@ public class AuthTokenFilterTest {
     @Test
     public void testTokenSignatureFailureSendsError() throws Exception {
         AuthToken token = getToken(user.getUserId(), new Date(System.currentTimeMillis() + 10000), WEB);
-        Cookie cookie = getTokenCookie(token.serialize() + "a", token.getExpiration());
+        Cookie cookie = getTokenCookie(authTokenRepository.serialize(token) + "a", token.getExpiration());
         when(request.getCookies()).thenReturn(new Cookie[]{cookie});
         when(userRepository.findById(token.getUserId())).thenReturn(user);
         filter.doFilter(request, response, chain);
@@ -215,17 +222,16 @@ public class AuthTokenFilterTest {
         verify(chain, never()).doFilter(eq(request), any(HttpServletResponse.class));
     }
 
-    private AuthToken getToken(String userid, Date expiration, AuthTokenUse use) throws InvalidKeySpecException, NoSuchAlgorithmException {
-        SecretKey key = AuthToken.generateKey(PASSWORD, SALT);
-        return new AuthToken(userid, key, expiration, true, use);
+    private AuthToken getToken(String userid, Date expiration, AuthTokenUse use) {
+        return new AuthToken(userid, expiration, true, use);
     }
 
     private String getTokenHeader(AuthToken token) throws AuthTokenException {
-        return TOKEN_HTTP_HEADER_TYPE + " " + token.serialize();
+        return TOKEN_HTTP_HEADER_TYPE + " " + authTokenRepository.serialize(token);
     }
 
     private Cookie getTokenCookie(AuthToken token) throws AuthTokenException {
-        return getTokenCookie(token.serialize(), token.getExpiration());
+        return getTokenCookie(authTokenRepository.serialize(token), token.getExpiration());
     }
 
     private Cookie getTokenCookie(String value, Date expiration) {
@@ -242,8 +248,7 @@ public class AuthTokenFilterTest {
             public boolean matches(Object c) {
                 try {
                     Cookie cookie = (Cookie) c;
-                    SecretKey key = AuthToken.generateKey(PASSWORD, SALT);
-                    AuthToken token = cookie.getValue() == null ? null : AuthToken.parse(cookie.getValue(), key);
+                    AuthToken token = cookie.getValue() == null ? null : authTokenRepository.parse(cookie.getValue());
                     return matcher.apply(cookie, token);
                 } catch (Exception e) {
                     fail("token signing failed: " + e);

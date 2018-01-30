@@ -293,6 +293,10 @@ public abstract class UserRepository {
 
     public abstract void setPropertyOnUser(User user, String propertyName, Object value);
 
+    public abstract void setPropertyOnUser(User user, String key, String propertyName, Object value);
+
+    public abstract void removePropertyFromUser(User user, String key, String propertyName);
+
     protected AuthorizationRepository getAuthorizationRepository() {
         return authorizationRepository;
     }

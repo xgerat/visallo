@@ -18,7 +18,7 @@ public class InMemoryUser implements User {
     private final Date createDate;
     private final String currentWorkspaceId;
     private JSONObject preferences;
-    private Map<String, Object> properties = new HashMap<>();
+    private Map<String, Map<String, Object>> properties = new HashMap<>();
 
     public InMemoryUser(String userId) {
         this(userId, null, null, null, null);
@@ -125,18 +125,37 @@ public class InMemoryUser implements User {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <PROP_TYPE> PROP_TYPE getProperty(String propertyName) {
-        return (PROP_TYPE) properties.get(propertyName);
+        return getProperty(DEFAULT_KEY, propertyName);
     }
 
     @Override
-    public Map<String, Object> getCustomProperties() {
+    @SuppressWarnings("unchecked")
+    public <PROP_TYPE> PROP_TYPE getProperty(String key, String propertyName) {
+        if (properties.containsKey(propertyName)) {
+            return (PROP_TYPE) properties.get(propertyName).get(key);
+        }
+        return null;
+    }
+
+    @Override
+    public Map<String, Map<String, Object>> getCustomProperties() {
         return ImmutableMap.copyOf(properties);
     }
 
     public void setProperty(String propertyName, Object value) {
-        properties.put(propertyName, value);
+        setProperty(DEFAULT_KEY, propertyName, value);
+    }
+
+    public void setProperty(String key, String propertyName, Object value) {
+        Map<String, Object> propertyValues = properties.computeIfAbsent(propertyName, (missingKey) -> new HashMap<>());
+        propertyValues.put(key, value);
+    }
+
+    public void removeProperty(String key, String propertyName) {
+        if (this.properties.containsKey(propertyName)) {
+            this.properties.get(propertyName).remove(key);
+        }
     }
 
     @Override
