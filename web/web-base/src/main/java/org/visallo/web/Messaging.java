@@ -18,6 +18,8 @@ import org.visallo.core.model.user.UserSessionCounterRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.Workspace;
 import org.visallo.core.model.workspace.WorkspaceRepository;
+import org.visallo.core.model.workspace.product.GetExtendedDataParams;
+import org.visallo.core.model.workspace.product.Product;
 import org.visallo.core.security.AuditService;
 import org.visallo.core.status.JmxMetricsManager;
 import org.visallo.core.user.User;
@@ -198,7 +200,7 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
         // Handle posts form client
         if (type != null) {
             switch (type) {
-                case MessagingFilter.TYPE_SET_ACTIVE_WORKSPACE:
+                case MessagingFilter.TYPE_SET_ACTIVE_WORKSPACE: {
                     String authUserId = getCurrentUserId(resource);
                     JSONObject dataJson = messageJson.optJSONObject("data");
                     if (dataJson != null) {
@@ -206,6 +208,17 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
                         switchWorkspace(authUserId, workspaceId);
                     }
                     break;
+                }
+                case MessagingFilter.TYPE_SET_ACTIVE_PRODUCT: {
+                    String authUserId = getCurrentUserId(resource);
+                    JSONObject dataJson = messageJson.optJSONObject("data");
+                    if (dataJson != null) {
+                        String workspaceId = dataJson.getString("workspaceId");
+                        String productId = dataJson.getString("productId");
+                        switchProduct(authUserId, workspaceId, productId);
+                    }
+                    break;
+                }
             }
         }
     }
@@ -218,6 +231,21 @@ public class Messaging implements AtmosphereHandler { //extends AbstractReflecto
             workQueueRepository.pushUserCurrentWorkspaceChange(authUser, workspace.getWorkspaceId());
 
             LOGGER.debug("User %s switched current workspace to %s", authUserId, workspaceId);
+        }
+    }
+
+    private void switchProduct(String authUserId, String workspaceId, String productId) {
+        switchWorkspace(authUserId, workspaceId);
+        User authUser = userRepository.findById(authUserId);
+        String lastActiveProductId = workspaceRepository.getLastActiveProductId(workspaceId, authUser);
+        if (!productId.equals(lastActiveProductId)) {
+            GetExtendedDataParams params = new GetExtendedDataParams()
+                    .setIncludeVertices(false)
+                    .setIncludeEdges(false);
+            Product product = workspaceRepository.findProductById(workspaceId, productId, params, false, authUser);
+            workspaceRepository.setLastActiveProductId(workspaceId, product.getId(), authUser);
+
+            LOGGER.debug("User %s switched current product to %s", authUserId, productId);
         }
     }
 

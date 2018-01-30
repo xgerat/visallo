@@ -74,7 +74,7 @@
         <visallo:textIndexHints>EXACT_MATCH</visallo:textIndexHints>
         <visallo:userVisible>false</visallo:userVisible>
     </owl:DatatypeProperty>
-    
+
 
 
     <!-- http://visallo.org/user#displayName -->

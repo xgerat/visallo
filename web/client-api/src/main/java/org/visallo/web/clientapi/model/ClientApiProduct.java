@@ -4,6 +4,7 @@ import java.util.Map;
 
 public class ClientApiProduct implements ClientApiObject {
     public String id;
+    public boolean active;
     public String workspaceId;
     public String title;
     public String kind;

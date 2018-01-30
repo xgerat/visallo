@@ -31,34 +31,6 @@ define(['data/web-worker/store/user/actions'], function(userActions) {
 
             return dataRequestCompleted.call(this, request);
         });
-
-        this.findOrCreateWorkspace = function(userId, dataRequestCompleted, request) {
-            var self = this;
-
-            this.dataRequestPromise
-                .done(function(dataRequest) {
-                    dataRequest('workspace', 'all')
-                        .then(function(workspaces) {
-                            if (workspaces.length) {
-                                return Promise.resolve(workspaces[0]);
-                            }
-
-                            return dataRequest('workspace', 'create')
-                        })
-                        .done(function(workspace) {
-                            self.pushSocket({
-                                type: 'setActiveWorkspace',
-                                data: {
-                                    workspaceId: workspace.workspaceId,
-                                    userId: userId
-                                }
-                            });
-                            self.setPublicApi('currentWorkspaceId', workspace.workspaceId);
-                            dataRequestCompleted.call(this, request);
-                        });
-                })
-        };
-
     }
 
     function isUserPreferencesUpdate(request) {

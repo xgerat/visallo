@@ -6,6 +6,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -59,6 +60,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.visallo.core.util.StreamUtil.stream;
@@ -336,7 +338,7 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
     }
 
     @Override
-    public Iterable<Workspace> findAllForUser(final User user) {
+    public Iterable<Workspace> findAllForUser(User user) {
         checkNotNull(user, "User is required");
         Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
                 user,
@@ -1215,6 +1217,45 @@ public class VertexiumWorkspaceRepository extends WorkspaceRepository {
                 workspaceId
         );
         return getGraph().getVertex(productId, authorizations);
+    }
+
+    private Stream<Edge> getToUserEdges(Iterable<String> workspaceIds, User user) {
+        HashSet<String> workspaceIdsSet = Sets.newHashSet(workspaceIds);
+        checkNotNull(user, "User is required");
+        Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                UserRepository.VISIBILITY_STRING
+        );
+        Vertex userVertex = getGraph().getVertex(user.getUserId(), authorizations);
+        checkNotNull(userVertex, "Could not find user vertex with id " + user.getUserId());
+        List<String> edgeIds = stream(userVertex.getEdgeInfos(Direction.IN, WORKSPACE_TO_USER_RELATIONSHIP_IRI, authorizations))
+                .filter(ei -> workspaceIdsSet.contains(ei.getVertexId()))
+                .map(EdgeInfo::getEdgeId)
+                .collect(Collectors.toList());
+        return stream(getGraph().getEdges(edgeIds, authorizations));
+    }
+
+    @Override
+    public Map<String, String> getLastActiveProductIdsByWorkspaceId(Iterable<String> workspaceIds, User user) {
+        return getToUserEdges(workspaceIds, user)
+                .filter(wse -> WorkspaceProperties.LAST_ACTIVE_PRODUCT_ID.getPropertyValue(wse, null) != null)
+                .collect(Collectors.toMap(
+                        wse -> wse.getVertexId(Direction.OUT),
+                        wse -> WorkspaceProperties.LAST_ACTIVE_PRODUCT_ID.getPropertyValue(wse, null)
+                ));
+    }
+
+    @Override
+    public void setLastActiveProductId(String workspaceId, String productId, User user) {
+        Authorizations authorizations = getAuthorizationRepository().getGraphAuthorizations(
+                user,
+                VISIBILITY_STRING,
+                UserRepository.VISIBILITY_STRING
+        );
+        getToUserEdges(Lists.newArrayList(workspaceId), user)
+                .forEach(e -> WorkspaceProperties.LAST_ACTIVE_PRODUCT_ID.setProperty(e, productId, VISIBILITY.getVisibility(), authorizations));
+        getGraph().flush();
     }
 
     @Override

@@ -10,15 +10,17 @@ public class GetExtendedDataParams implements ClientApiObject {
         return includeVertices;
     }
 
-    public void setIncludeVertices(boolean includeVertices) {
+    public GetExtendedDataParams setIncludeVertices(boolean includeVertices) {
         this.includeVertices = includeVertices;
+        return this;
     }
 
     public boolean isIncludeEdges() {
         return includeEdges;
     }
 
-    public void setIncludeEdges(boolean includeEdges) {
+    public GetExtendedDataParams setIncludeEdges(boolean includeEdges) {
         this.includeEdges = includeEdges;
+        return this;
     }
 }

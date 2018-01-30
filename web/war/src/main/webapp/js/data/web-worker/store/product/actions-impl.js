@@ -296,7 +296,8 @@ define([
             dispatch({
                 type: 'PRODUCT_SELECT',
                 payload: { workspaceId, productId }
-            })
+            });
+            pushSocketMessage({ type: 'setActiveProduct', data: { workspaceId, productId } });
         }
 
     };

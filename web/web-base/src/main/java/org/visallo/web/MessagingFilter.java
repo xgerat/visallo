@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class MessagingFilter implements PerRequestBroadcastFilter {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(MessagingFilter.class);
     public static final String TYPE_SET_ACTIVE_WORKSPACE = "setActiveWorkspace";
+    public static final String TYPE_SET_ACTIVE_PRODUCT = "setActiveProduct";
     private UserRepository userRepository;
 
     @Override
@@ -50,7 +51,7 @@ public class MessagingFilter implements PerRequestBroadcastFilter {
 
     boolean shouldSendMessage(JSONObject json, HttpServletRequest request) {
         String type = json.optString("type", null);
-        if (TYPE_SET_ACTIVE_WORKSPACE.equals(type)) {
+        if (TYPE_SET_ACTIVE_WORKSPACE.equals(type) || TYPE_SET_ACTIVE_PRODUCT.equals(type)) {
             return false;
         }
 

@@ -25,6 +25,7 @@ public class WorkspaceProperties {
     public static final StringSingleValueVisalloProperty TITLE = new StringSingleValueVisalloProperty("http://visallo.org/workspace#workspace/title");
     public static final BooleanSingleValueVisalloProperty WORKSPACE_TO_USER_IS_CREATOR = new BooleanSingleValueVisalloProperty("http://visallo.org/workspace#toUser/creator");
     public static final StringSingleValueVisalloProperty WORKSPACE_TO_USER_ACCESS = new StringSingleValueVisalloProperty("http://visallo.org/workspace#toUser/access");
+    public static final StringSingleValueVisalloProperty LAST_ACTIVE_PRODUCT_ID = new StringSingleValueVisalloProperty("http://visallo.org/workspace#lastActiveProductId");
 
     public static final StringSingleValueVisalloProperty DASHBOARD_ITEM_EXTENSION_ID = new StringSingleValueVisalloProperty("http://visallo.org/workspace#extensionId");
     public static final StringSingleValueVisalloProperty DASHBOARD_ITEM_CONFIGURATION = new StringSingleValueVisalloProperty("http://visallo.org/workspace#configuration");
