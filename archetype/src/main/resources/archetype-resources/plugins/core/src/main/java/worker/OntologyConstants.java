@@ -1,7 +1,7 @@
 #set( $symbol_pound = '#' )
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
-package ${package};
+package ${package}.worker;
 
 import org.visallo.core.model.properties.types.StringSingleValueVisalloProperty;
 
