@@ -2,7 +2,6 @@ package org.visallo.web.auth;
 
 import org.apache.commons.lang.StringUtils;
 import org.visallo.core.bootstrap.InjectHelper;
-import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
@@ -28,7 +27,6 @@ public class AuthTokenFilter implements Filter {
     public static final String TOKEN_HTTP_HEADER_TYPE = "Bearer";
 
     private long tokenValidityDurationInMinutes;
-    private int tokenExpirationToleranceInSeconds;
     private UserRepository userRepository;
     private AuthTokenRepository authTokenRepository;
 
@@ -43,10 +41,6 @@ public class AuthTokenFilter implements Filter {
                     "must be at least " + MIN_AUTH_TOKEN_EXPIRATION_MINS + " minute(s)"
             );
         }
-
-        tokenExpirationToleranceInSeconds = Integer.parseInt(
-                getRequiredInitParameter(filterConfig, Configuration.AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS)
-        );
 
         userRepository = InjectHelper.getInstance(UserRepository.class);
         authTokenRepository = InjectHelper.getInstance(AuthTokenRepository.class);
@@ -63,18 +57,16 @@ public class AuthTokenFilter implements Filter {
 
         CurrentUser.unset(request);
         if (token != null) {
-            if (!token.isValid(tokenExpirationToleranceInSeconds)) {
+            checkNotNull(token.getUserId(), "Auth token must contain a valid userId");
+            User user = userRepository.findById(token.getUserId());
+            if (user != null && authTokenRepository.isValid(user, token)) {
+                CurrentUser.set(request, user, token);
+            } else {
+                LOGGER.debug("User %s presented an invalid auth token: %s", user == null ? null : user.getUserId(), token.getTokenId());
                 authTokenResponse.invalidateAuthentication();
                 if (!token.isVerified()) {
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
                     return;
-                }
-            } else {
-                User user = userRepository.findById(token.getUserId());
-                if (user != null) {
-                    CurrentUser.set(request, user, token);
-                } else {
-                    authTokenResponse.invalidateAuthentication();
                 }
             }
         }
@@ -94,6 +86,8 @@ public class AuthTokenFilter implements Filter {
                 AuthToken authToken = authTokenRepository.parse(tokenCookie.getValue());
                 if (authToken.getUsage() == AuthTokenUse.WEB) {
                     return authToken;
+                } else {
+                    LOGGER.warn("Non web token passed as a cookie.");
                 }
             }
 
@@ -103,7 +97,7 @@ public class AuthTokenFilter implements Filter {
                 if (authToken.getUsage() == AuthTokenUse.API) {
                     return authToken;
                 } else {
-                    LOGGER.warn("Non API web token passed as request header.");
+                    LOGGER.warn("Non API token passed as request header.");
                 }
             }
         } catch (AuthTokenException ate) {

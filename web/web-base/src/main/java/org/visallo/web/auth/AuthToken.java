@@ -57,10 +57,6 @@ public class AuthToken {
         return verified;
     }
 
-    public boolean isValid(int toleranceInSeconds) {
-        return verified && !isExpired(toleranceInSeconds);
-    }
-
     public boolean isExpired(int toleranceInSeconds) {
         Calendar expirationWithTolerance = Calendar.getInstance();
         expirationWithTolerance.setTime(expiration);

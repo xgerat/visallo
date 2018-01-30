@@ -27,10 +27,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 
 public class AuthTokenRepository {
@@ -39,6 +41,8 @@ public class AuthTokenRepository {
 
     private final SecretKey tokenSigningKey;
     private final UserRepository userRepository;
+
+    private final int tokenExpirationToleranceInSeconds;
 
     @Inject
     public AuthTokenRepository(
@@ -49,6 +53,8 @@ public class AuthTokenRepository {
         this.userRepository = userRepository;
 
         ensureApiTokenUserPropertyDefined(ontologyRepository);
+
+        tokenExpirationToleranceInSeconds = configuration.getInt(Configuration.AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS);
 
         String keyPassword = configuration.get(Configuration.AUTH_TOKEN_PASSWORD, null);
         String keySalt = configuration.get(Configuration.AUTH_TOKEN_SALT, null);
@@ -108,6 +114,22 @@ public class AuthTokenRepository {
         }
     }
 
+    public boolean isValid(AuthToken authToken) {
+        User user = userRepository.findById(authToken.getUserId());
+        return user != null && isValid(user, authToken);
+    }
+
+    public boolean isValid(User user, AuthToken authToken) {
+        checkNotNull(user, "Token validity cannot be checked without a user.");
+
+        boolean valid = authToken.isVerified() && !authToken.isExpired(tokenExpirationToleranceInSeconds);
+        if (valid && authToken.getUsage() == AuthTokenUse.API) {
+            valid = loadValidApiTokens(user).stream().anyMatch(userToken -> userToken.getTokenId().equals(authToken.getTokenId()));
+        }
+
+        return valid;
+    }
+
     public void saveApiToken(User user, AuthToken authToken) throws AuthTokenException {
         userRepository.setPropertyOnUser(user, authToken.getDescription(), API_TOKEN_PROPERTY.getPropertyName(), serialize(authToken));
     }
@@ -131,7 +153,7 @@ public class AuthTokenRepository {
                 }
             }).collect(Collectors.toList());
         }
-        return null;
+        return Collections.emptyList();
     }
 
     private void ensureApiTokenUserPropertyDefined(OntologyRepository ontologyRepository) {
