@@ -26,11 +26,21 @@ define([
         };
 
         this.setValue = function(value) {
+            if (_.isObject(value)) {
+                value = JSON.stringify(value);
+            }
+
             this.select('inputSelector').val(value);
         };
 
         this.getValue = function() {
-            return this.select('inputSelector').val().trim();
+            let value = this.select('inputSelector').val();
+
+            if (_.isObject(value)) {
+                value = JSON.stringify(value);
+            }
+
+            return value.trim();
         };
     }
 });

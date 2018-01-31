@@ -916,19 +916,27 @@ define([
 
                         if (options && _.isObject(options)) {
                             return _.reduce(options, function(val, transform, transformName) {
-                                if (transform &&
-                                    transformName in F.string &&
-                                    _.isFunction(F.string[transformName])) {
-                                        if (_.isArray(transform)) {
-                                            var args = [val].concat(transform);
-                                            return F.string[transformName].apply(this, args);
-                                        } else {
-                                            return F.string[transformName](val);
-                                        }
+                                if (transform && transformName in F.string && _.isFunction(F.string[transformName])) {
+                                    if (_.isObject(val)) {
+                                        val = JSON.stringify(val);
+                                    }
+
+                                    if (_.isArray(transform)) {
+                                        var args = [val].concat(transform);
+                                        return F.string[transformName].apply(this, args);
+                                    } else {
+                                        return F.string[transformName](val);
+                                    }
+                                } else if (_.isObject(val)) {
+                                    return JSON.stringify(val);
                                 }
+
                                 return val;
                             }, value)
+                        } else if (_.isObject(value)) {
+                            return JSON.stringify(value);
                         }
+
                         return value;
                 }
             },

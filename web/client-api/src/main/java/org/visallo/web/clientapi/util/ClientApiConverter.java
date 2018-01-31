@@ -27,6 +27,14 @@ public class ClientApiConverter {
         return value;
     }
 
+    public static Object toClientApiMetadataValue(Object value) {
+        if (value instanceof String) {
+            return toClientApiMetadataValue((String) value);
+        } else {
+            return toClientApiValue(value);
+        }
+    }
+
     private static List<Object> toClientApiValue(JSONArray json) {
         List<Object> result = new ArrayList<Object>();
         for (int i = 0; i < json.length(); i++) {
@@ -37,6 +45,10 @@ public class ClientApiConverter {
     }
 
     private static Object toClientApiValue(String value) {
+        return value.trim();
+    }
+
+    private static Object toClientApiMetadataValue(String value) {
         try {
             String valueString = value;
             valueString = valueString.trim();
@@ -44,7 +56,7 @@ public class ClientApiConverter {
                 return toClientApiValue((Object) new JSONObject(valueString));
             }
         } catch (Exception ex) {
-            // ignore this exception it just mean the string wasn't really json
+            // ignore this exception it just means the string wasn't really json
         }
         return value;
     }
