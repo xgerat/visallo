@@ -14,6 +14,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Enumeration;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -61,6 +62,10 @@ public class AuthTokenFilter implements Filter {
             User user = userRepository.findById(token.getUserId());
             if (user != null && authTokenRepository.isValid(user, token)) {
                 CurrentUser.set(request, user, token);
+                if (token.getUsage() != AuthTokenUse.WEB) {
+                    chain.doFilter(request, response);
+                    return;
+                }
             } else {
                 LOGGER.debug("User %s presented an invalid auth token: %s", user == null ? null : user.getUserId(), token.getTokenId());
                 authTokenResponse.invalidateAuthentication();
@@ -130,19 +135,10 @@ public class AuthTokenFilter implements Filter {
             return null;
         }
 
-        Cookie found = null;
-
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals(AuthTokenFilter.TOKEN_COOKIE_NAME)) {
-                if (StringUtils.isEmpty(cookie.getValue())) {
-                    return null;
-                } else {
-                    found = cookie;
-                }
-            }
-        }
-
-        return found;
+        return Arrays.stream(cookies)
+                .filter(cookie -> cookie.getName().equals(TOKEN_COOKIE_NAME) && !StringUtils.isEmpty(cookie.getValue()))
+                .findFirst()
+                .orElse(null);
     }
 
     private String getRequiredInitParameter(FilterConfig filterConfig, String parameterName) {

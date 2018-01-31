@@ -46,5 +46,7 @@ public class VertexiumUserTest {
         assertTrue(customProperties.containsKey("otherProp"));
         assertEquals(1, customProperties.get("otherProp").size());
         assertEquals("open", customProperties.get("otherProp").get(DEFAULT_KEY));
+
+        assertEquals("open", user.getProperties("otherProp").get(DEFAULT_KEY));
     }
 }

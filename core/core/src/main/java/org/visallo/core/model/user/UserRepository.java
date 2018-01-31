@@ -12,6 +12,7 @@ import org.visallo.core.user.SystemUser;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
 import org.visallo.core.util.JSONUtil;
+import org.visallo.web.clientapi.model.ClientApiProperty;
 import org.visallo.web.clientapi.model.ClientApiUser;
 import org.visallo.web.clientapi.model.ClientApiUsers;
 import org.visallo.web.clientapi.model.Privilege;
@@ -123,8 +124,6 @@ public abstract class UserRepository {
 
         u.setUiPreferences(JSONUtil.toJsonNode(user.getUiPreferences()));
 
-        u.getProperties().putAll(user.getCustomProperties());
-
         Set<String> privileges = privilegeRepository.getPrivileges(user);
         u.getPrivileges().addAll(privileges);
 
@@ -156,7 +155,15 @@ public abstract class UserRepository {
         u.setCurrentLoginDate(user.getCurrentLoginDate());
         u.setPreviousLoginDate(user.getPreviousLoginDate());
         u.setCurrentWorkspaceId(user.getCurrentWorkspaceId());
-        u.getProperties().putAll(user.getCustomProperties());
+        user.getCustomProperties().forEach((propName, properties) -> {
+            properties.forEach((key, value) -> {
+                ClientApiProperty apiProperty = new ClientApiProperty();
+                apiProperty.setKey(key);
+                apiProperty.setName(propName);
+                apiProperty.setValue(value);
+                u.getProperties().add(apiProperty);
+            });
+        });
         if (workspaceNames != null) {
             String workspaceName = workspaceNames.get(user.getCurrentWorkspaceId());
             u.setCurrentWorkspaceName(workspaceName);

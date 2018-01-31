@@ -9,16 +9,10 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import org.vertexium.TextIndexHint;
 import org.visallo.core.config.Configuration;
 import org.visallo.core.exception.VisalloException;
-import org.visallo.core.model.ontology.Concept;
-import org.visallo.core.model.ontology.OntologyPropertyDefinition;
-import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.properties.types.StringVisalloProperty;
 import org.visallo.core.model.user.UserRepository;
 import org.visallo.core.user.User;
-import org.visallo.web.clientapi.model.PropertyType;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -26,17 +20,15 @@ import javax.crypto.spec.PBEKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
+import static org.visallo.core.model.user.UserVisalloProperties.API_TOKEN;
 
 public class AuthTokenRepository {
-    private static final StringVisalloProperty API_TOKEN_PROPERTY = new StringVisalloProperty("http://visallo.org/user#apiToken");
     private static final String DESCRIPTION_CLAIM = "description";
 
     private final SecretKey tokenSigningKey;
@@ -47,12 +39,9 @@ public class AuthTokenRepository {
     @Inject
     public AuthTokenRepository(
             Configuration configuration,
-            UserRepository userRepository,
-            OntologyRepository ontologyRepository
+            UserRepository userRepository
     ) {
         this.userRepository = userRepository;
-
-        ensureApiTokenUserPropertyDefined(ontologyRepository);
 
         tokenExpirationToleranceInSeconds = configuration.getInt(Configuration.AUTH_TOKEN_EXPIRATION_TOLERANCE_IN_SECS);
 
@@ -131,42 +120,28 @@ public class AuthTokenRepository {
     }
 
     public void saveApiToken(User user, AuthToken authToken) throws AuthTokenException {
-        userRepository.setPropertyOnUser(user, authToken.getDescription(), API_TOKEN_PROPERTY.getPropertyName(), serialize(authToken));
+        userRepository.setPropertyOnUser(user, authToken.getDescription(), API_TOKEN.getPropertyName(), serialize(authToken));
     }
 
     public void deleteApiToken(User user, String apiTokenId) {
         loadValidApiTokens(user).forEach(apiToken -> {
             if (apiToken.getTokenId().equals(apiTokenId)) {
-                userRepository.removePropertyFromUser(user, apiToken.getDescription(), API_TOKEN_PROPERTY.getPropertyName());
+                userRepository.removePropertyFromUser(user, apiToken.getDescription(), API_TOKEN.getPropertyName());
             }
         });
     }
 
     public List<AuthToken> loadValidApiTokens(User user) {
-        Map<String, Object> tokens = user.getCustomProperties().get(API_TOKEN_PROPERTY.getPropertyName());
+        Map<String, String> tokens = user.getProperties(API_TOKEN.getPropertyName());
         if (tokens != null) {
             return tokens.values().stream().map(serializedToken -> {
                 try {
-                    return parse((String) serializedToken);
+                    return parse(serializedToken);
                 } catch (AuthTokenException e) {
                     throw new VisalloException("Unable to parse token " + serializedToken + " for user " + user.getUserId());
                 }
             }).collect(Collectors.toList());
         }
         return Collections.emptyList();
-    }
-
-    private void ensureApiTokenUserPropertyDefined(OntologyRepository ontologyRepository) {
-        List<Concept> concepts = new ArrayList<>();
-        concepts.add(ontologyRepository.getConceptByIRI(UserRepository.USER_CONCEPT_IRI, PUBLIC));
-        OntologyPropertyDefinition propertyDefinition = new OntologyPropertyDefinition(
-                concepts,
-                API_TOKEN_PROPERTY.getPropertyName(),
-                "API Token",
-                PropertyType.STRING
-        );
-        propertyDefinition.setUserVisible(false);
-        propertyDefinition.setTextIndexHints(TextIndexHint.NONE);
-        ontologyRepository.getOrCreateProperty(propertyDefinition, userRepository.getSystemUser(), PUBLIC);
     }
 }

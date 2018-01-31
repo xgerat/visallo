@@ -139,6 +139,12 @@ public class InMemoryUser implements User {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <PROP_TYPE> Map<String, PROP_TYPE> getProperties(String propertyName) {
+        return (Map<String, PROP_TYPE>) properties.get(propertyName);
+    }
+
+    @Override
     public Map<String, Map<String, Object>> getCustomProperties() {
         return ImmutableMap.copyOf(properties);
     }

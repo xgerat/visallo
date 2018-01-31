@@ -47,5 +47,7 @@ public interface User extends Serializable {
 
     <PROP_TYPE> PROP_TYPE getProperty(String key, String propertyName);
 
+    <PROP_TYPE> Map<String, PROP_TYPE> getProperties(String propertyName);
+
     Map<String, Map<String, Object>> getCustomProperties();
 }

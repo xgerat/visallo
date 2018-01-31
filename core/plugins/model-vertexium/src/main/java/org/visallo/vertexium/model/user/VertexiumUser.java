@@ -129,6 +129,12 @@ public class VertexiumUser implements User, Serializable {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <PROP_TYPE> Map<String, PROP_TYPE> getProperties(String propertyName) {
+        return (Map<String, PROP_TYPE>) this.properties.get(propertyName);
+    }
+
+    @Override
     public Map<String, Map<String, Object>> getCustomProperties() {
         Map<String, Map<String, Object>> results = new HashMap<>();
         for (Map.Entry<String, Map<String, Object>> property : properties.entrySet()) {

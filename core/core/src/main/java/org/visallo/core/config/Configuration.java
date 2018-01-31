@@ -154,7 +154,7 @@ public class Configuration {
     }
 
     public String get(String propertyKey, String defaultValue) {
-        return config.containsKey(propertyKey) ? config.get(propertyKey) : defaultValue;
+        return config.getOrDefault(propertyKey, defaultValue);
     }
 
     public boolean getBoolean(String propertyKey, boolean defaultValue) {
