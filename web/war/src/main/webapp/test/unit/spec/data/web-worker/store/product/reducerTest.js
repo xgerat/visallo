@@ -10,7 +10,7 @@ define([
         loaded = false,
         products = []
     }) => ({
-        workspaces: {[wId]: {loaded, loading, products}}
+        workspaces: {[wId]: {loaded, loading, products }}
     });
 
     describe('productReducer', () => {
@@ -31,7 +31,59 @@ define([
                     }
                 }
             });
-        });
+        })
+
+        it('should remove active and set selected for list', () => {
+            const products = [
+                {id: 'p1', previewMD5: 'h1', active: false },
+                {id: 'p2', previewMD5: 'h2', active: true },
+                {id: 'p3', previewMD5: 'h3', active: false }
+            ];
+            const nextState = reducer(genState({}), {
+                type: 'PRODUCT_LIST',
+                payload: {loading: false, loaded: true, products, workspaceId}
+            });
+
+            nextState.should.deep.equal({
+                workspaces: {
+                    [workspaceId]: {
+                        loading: false,
+                        loaded: true,
+                        products: {p1: {id: 'p1'}, p2: {id: 'p2'}, p3: {id: 'p3'}},
+                        previewHashes: { p1: 'h1', p2: 'h2', p3: 'h3' },
+                        selected: 'p2'
+                    }
+                }
+            })
+        })
+
+        it('should remove active and set selected for update', () => {
+            const products = [
+                { id: 'p1', previewMD5: 'h1', active: false },
+                { id: 'p2', previewMD5: 'h2', active: true },
+                { id: 'p3', previewMD5: 'h3', active: false }
+            ];
+            const initialState = reducer(genState({}), {
+                type: 'PRODUCT_LIST',
+                payload: { loading: false, loaded: true, products, workspaceId }
+            })
+            const nextState = reducer(initialState, {
+                type: 'PRODUCT_UPDATE',
+                payload: { product: { id: 'p1', workspaceId, previewMD5: 'h1a', active: true } }
+            })
+
+            nextState.should.deep.equal({
+                workspaces: {
+                    [workspaceId]: {
+                        loading: false,
+                        loaded: true,
+                        products: {p1: {id: 'p1', workspaceId}, p2: {id: 'p2'}, p3: {id: 'p3'}},
+                        previewHashes: { p1: 'h1a', p2: 'h2', p3: 'h3' },
+                        selected: 'p1'
+                    }
+                }
+            })
+        })
 
         it('should update data with a new key/value', () => {
             const nextState = reducer(genState({

@@ -3,7 +3,7 @@
 #set( $symbol_escape = '\' )
 package ${package}.worker;
 
-import ${package}.Contact;
+import ${package}.worker.Contact;
 import org.vertexium.*;
 import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.exception.VisalloException;
@@ -29,7 +29,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static ${package}.OntologyConstants.*;
+import static ${package}.worker.OntologyConstants.*;
 import static org.visallo.core.model.properties.VisalloProperties.*;
 
 @Name("Example Visallo Graph Property Worker")

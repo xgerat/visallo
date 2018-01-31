@@ -1,6 +1,7 @@
 package org.visallo.core.model.workspace;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -191,6 +192,15 @@ public abstract class WorkspaceRepository {
     );
 
     public abstract Vertex getProductVertex(String workspaceId, String productId, User user);
+
+    public abstract Map<String, String> getLastActiveProductIdsByWorkspaceId(Iterable<String> workspaceIds, User user);
+
+    public String getLastActiveProductId(String workspaceId, User user) {
+        Map<String, String> l = getLastActiveProductIdsByWorkspaceId(Lists.newArrayList(workspaceId), user);
+        return l.get(workspaceId);
+    }
+
+    public abstract void setLastActiveProductId(String workspaceId, String productId, User user);
 
     public enum UpdateUserOnWorkspaceResult {
         ADD, UPDATE
@@ -404,7 +414,7 @@ public abstract class WorkspaceRepository {
         CloseableUtils.closeQuietly(verticesToPublish);
 
         vertexIdToPublishData.forEach((vertexId, data) ->
-                                              data.setErrorMessage("Unable to load vertex with id " + vertexId));
+                data.setErrorMessage("Unable to load vertex with id " + vertexId));
 
         LOGGER.debug("END publishVertices");
         graph.flush();
@@ -558,7 +568,7 @@ public abstract class WorkspaceRepository {
                     OntologyProperty property = ontologyRepository.getPropertyByIRI(iri, workspaceId);
                     if (property == null) {
                         publishDataByPropertyIri.get(iri).forEach(data ->
-                                                                          data.setErrorMessage("Unable to locate property with IRI " + iri)
+                                data.setErrorMessage("Unable to locate property with IRI " + iri)
                         );
                     }
                     return property;
@@ -571,7 +581,7 @@ public abstract class WorkspaceRepository {
                     } catch (Exception ex) {
                         LOGGER.error("Error publishing property %s", property.getIri(), ex);
                         publishDataByPropertyIri.get(property.getIri()).forEach(data ->
-                                                                                        data.setErrorMessage("Unable to publish relationship " + property.getDisplayName())
+                                data.setErrorMessage("Unable to publish relationship " + property.getDisplayName())
                         );
                     }
                     return property.getId();

@@ -1,6 +1,7 @@
 package org.visallo.web.clientapi.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ClientApiWorkspace implements ClientApiObject {
@@ -11,6 +12,8 @@ public class ClientApiWorkspace implements ClientApiObject {
     private boolean isEditable;
     private boolean isCommentable;
     private List<User> users = new ArrayList<User>();
+    private Collection<ClientApiProduct> products;
+    private Boolean active;
 
     public String getWorkspaceId() {
         return workspaceId;
@@ -66,6 +69,22 @@ public class ClientApiWorkspace implements ClientApiObject {
 
     public void addUser(User user) {
         this.users.add(user);
+    }
+
+    public void setProducts(Collection<ClientApiProduct> products) {
+        this.products = products;
+    }
+
+    public Collection<ClientApiProduct> getProducts() {
+        return products;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public Boolean isActive() {
+        return active;
     }
 
     @Override

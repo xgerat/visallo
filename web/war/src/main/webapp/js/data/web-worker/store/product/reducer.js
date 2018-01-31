@@ -73,27 +73,35 @@ define(['updeep'], function(u) {
         }, state);
     }
 
-    function extractPreviews(products = []) {
+    function extractPreviewsAndActive(products = []) {
         return (products || []).reduce((result, product) => {
             const { products, previewHashes } = result;
-            const { previewMD5, ...rest } = product;
+            const { previewMD5, active, ...rest } = product;
 
             products[product.id] = rest;
             previewHashes[product.id] = previewMD5;
+            if (active && !result.selected) {
+                result.selected = product.id
+            }
 
             return result;
         }, { products: {}, previewHashes: {} });
     }
 
     function updateList(state, { loading, loaded, workspaceId, products }) {
-        const { products: productsNoHash, previewHashes } = extractPreviews(products);
+        const { products: productsNoHash, previewHashes, selected } = extractPreviewsAndActive(products);
+        const extra = {};
+        if (selected) {
+            extra.selected = selected;
+        }
         return u({
             workspaces: {
                 [workspaceId]: {
                     products: u.constant(productsNoHash),
                     previewHashes: u.constant(previewHashes),
                     loading,
-                    loaded
+                    loaded,
+                    ...extra
                 }
             }
         }, state);
@@ -110,21 +118,27 @@ define(['updeep'], function(u) {
     }
 
     function updateProduct(state, { product }) {
-        const { previewMD5, ...productNoPreview } = product;
-        const { id, workspaceId } = productNoPreview;
+        const { previewMD5, active, ...productNoPreviewOrActive } = product;
+        const { id, workspaceId } = productNoPreviewOrActive;
         const existing = state.workspaces[workspaceId].products[id];
         const localData = existing && existing.localData || {};
+        const extra = {};
         product.localData = localData;
+
+        if (active) {
+            extra.selected = id;
+        }
 
         return u({
             workspaces: {
                 [workspaceId]: {
                     products: {
-                        [id]: u.constant(productNoPreview)
+                        [id]: u.constant(productNoPreviewOrActive)
                     },
                     previewHashes: {
                         [id]: previewMD5
-                    }
+                    },
+                    ...extra
                 }
             }
         }, state);

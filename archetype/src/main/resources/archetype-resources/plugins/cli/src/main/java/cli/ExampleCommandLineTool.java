@@ -5,7 +5,7 @@ package ${package}.cli;
 
 import com.beust.jcommander.Parameters;
 import com.google.inject.Inject;
-import ${package}.OntologyConstants;
+import ${package}.worker.OntologyConstants;
 import org.vertexium.EdgeBuilderByVertexId;
 import org.vertexium.Visibility;
 import org.visallo.core.cmdline.CommandLineTool;

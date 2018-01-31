@@ -102,7 +102,18 @@
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
 
-    
+
+
+
+    <!-- http://visallo.org/workspace#lastActiveProductId -->
+
+    <owl:DatatypeProperty rdf:about="http://visallo.org/workspace#lastActiveProductId">
+        <visallo:objectPropertyDomain>http://visallo.org/workspace#toUser</visallo:objectPropertyDomain>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <visallo:textIndexHints>EXACT_MATCH</visallo:textIndexHints>
+        <visallo:userVisible>false</visallo:userVisible>
+    </owl:DatatypeProperty>
+
 
 
     <!-- http://visallo.org/product#data -->
