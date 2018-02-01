@@ -168,7 +168,7 @@ define([
             const authorizedVertices = _.pick(updateVertices, (productVertex, vertexId) => vertices[vertexId]);
 
             if (Object.keys(authorizedVertices).length) {
-                return api.updatePositions({ productId, authorizedVertices })
+                dispatch(api.updatePositions({ productId, updateVertices: authorizedVertices }));
             }
         },
 
