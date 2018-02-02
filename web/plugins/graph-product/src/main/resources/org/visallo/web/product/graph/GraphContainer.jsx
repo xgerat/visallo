@@ -286,6 +286,8 @@ define([
         'http://docs.visallo.org/extension-points/front-end/graphNode/transformer.html'
     );
 
+    registry.markUndocumentedExtensionPoint('org.visallo.graph.ancillary');
+
     /**
      * Allows extensions to adjust the `data` attribute of cytoscape edges.
      * @param {org.visallo.graph.edge.transformer~transformerFn} config
