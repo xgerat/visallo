@@ -3,6 +3,7 @@ package org.visallo.web.routes.security;
 import com.google.common.base.Charsets;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.util.VisalloLogger;
@@ -23,12 +24,15 @@ public class ContentSecurityPolicyReport implements ParameterizedHandler {
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
         try {
             String json = IOUtils.toString(request.getInputStream(), Charsets.UTF_8);
-            JSONObject report = new JSONObject(json);
+            JSONObject input = new JSONObject(json);
+            JSONObject report = input.getJSONObject("csp-report");
             LOGGER.error(
-                "Content-Security-Policy violation: '%s' Violated rule: '%s'",
-                report.getString("blocked-uri"),
-                report.getString("violated-directive")
+                    "Content-Security-Policy violation: '%s' Violated rule: '%s'",
+                    report.getString("blocked-uri"),
+                    report.getString("violated-directive")
             );
+        } catch (JSONException jse) {
+            throw new VisalloException("Unable to process Content-Security-Policy report", jse);
         } catch (IOException e) {
             throw new VisalloException("Unable to process Content-Security-Policy report", e);
         }
