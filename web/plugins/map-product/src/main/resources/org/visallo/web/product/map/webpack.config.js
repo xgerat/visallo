@@ -97,7 +97,8 @@ module.exports = [
         entry: {
             Map: './MapContainer.jsx',
             MapLayersContainer: './layers/MapLayersContainer.jsx',
-            geoShapePreview: './detail/geoShapePreview'
+            geoShapePreview: './detail/geoShapePreview.js',
+            BaseLayerConfig: './layers/BaseLayerConfig.jsx'
         },
         target: 'web'
     })

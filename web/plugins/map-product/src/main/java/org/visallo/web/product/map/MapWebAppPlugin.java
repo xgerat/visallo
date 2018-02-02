@@ -29,6 +29,7 @@ public class MapWebAppPlugin implements WebAppPlugin {
         app.registerCompiledJavaScript("/org/visallo/web/product/map/dist/MapLayersContainer.js");
         app.registerCompiledJavaScript("/org/visallo/web/product/map/dist/Map.js");
         app.registerCompiledJavaScript("/org/visallo/web/product/map/dist/actions-impl.js");
+        app.registerCompiledJavaScript("/org/visallo/web/product/map/dist/BaseLayerConfig.js");
 
         app.registerCompiledWebWorkerJavaScript("/org/visallo/web/product/map/dist/plugin-worker.js");
 

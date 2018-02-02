@@ -130,7 +130,14 @@ define([
 
                 if (baseSourceChanged) {
                     const index = nextLayers.findIndex(layer => layer.get('id') === BASE_LAYER_ID);
-                    const layerWithSource = layerHelpers.byType.tile.configure(BASE_LAYER_ID, { source: nextBaseSource, sourceOptions: nextBaseSourceOptions });
+                    const layerWithSource = layerHelpers.byType.tile.configure(BASE_LAYER_ID, {
+                        source: nextBaseSource,
+                        sourceOptions: nextBaseSourceOptions,
+                        config: {
+                            height: 40,
+                                componentPath: 'org/visallo/web/product/map/dist/BaseLayerConfig'
+                        }
+                    });
 
                     newLayersWithSources[BASE_LAYER_ID] = layerWithSource;
                     nextLayers[index] = layerWithSource.layer;
@@ -496,7 +503,14 @@ define([
             });
 
             // add the base(tile) layer
-            addLayer(layerHelpers.byType.tile, BASE_LAYER_ID, { source: baseSource, sourceOptions: baseSourceOptions }, map);
+            addLayer(layerHelpers.byType.tile, BASE_LAYER_ID, {
+                source: baseSource,
+                sourceOptions: baseSourceOptions,
+                config: {
+                    height: 40,
+                    componentPath: 'org/visallo/web/product/map/dist/BaseLayerConfig'
+                }
+            }, map);
             // add layers from org.visallo.map.layer registered extensions
             _.mapObject(layerExtensions, (extension, layerId) => { addLayer(extension, layerId, extension.options, map) });
             // add layers from sources passed in props

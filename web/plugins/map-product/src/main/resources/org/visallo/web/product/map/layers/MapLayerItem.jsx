@@ -2,40 +2,55 @@ define([
     'prop-types',
     'classnames',
     'react-sortable-hoc',
+    'components/Attacher',
     'util/vertex/formatters'
 ], function(
     PropTypes,
     classNames,
     { SortableElement },
+    Attacher,
     F) {
 
-    const MapLayerItem = ({ layer, config, style, toggleable, onToggleLayer, onSelectLayer }) => {
+    const MapLayerItem = ({ layer, config, style, selected, toggleable, onToggleLayer, onSelectLayer, onUpdateLayerConfig }) => {
         const layerStatus = layer.get('status');
         const statusMessage = (_.isObject(layerStatus) && layerStatus.message) || null;
         const hasError = _.isObject(layerStatus) && layerStatus.type === 'error';
         const visible = config && config.visible !== undefined ? config.visible : layer.getVisible();
+        const configComponent = layer.get('config');
 
         return (
-            <div
-                className={classNames('layer-item', { 'error': hasError })}
-                style={{ ...style, zIndex: 50 }}
-                onClick={() => { onSelectLayer(layer.get('id'))}}
-            >
-                <input
-                    type="checkbox"
-                    checked={visible}
-                    disabled={!toggleable || hasError}
-                    onChange={(e) => { onToggleLayer(layer)}}
-                    onClick={(e) => { e.stopPropagation() }}
-                />
-                <div className="layer-title">
-                    <div className="title">{ titleRenderer(layer) }</div>
-                    <span className="subtitle" title={statusMessage}>{ statusMessage }</span>
-                </div>
+            <div className={'layer-item'} style={{ ...style, zIndex: 50 }}>
                 <div
-                    className="layer-icon drag-handle"
-                    title={i18n('org.visallo.web.product.map.MapWorkProduct.layers.sort.help')}
-                ></div>
+                    className={classNames('layer-header', { 'error': hasError })}
+                    onClick={() => { onSelectLayer(layer.get('id'))}}
+                >
+                    <input
+                        type="checkbox"
+                        checked={visible}
+                        disabled={!toggleable || hasError}
+                        onChange={(e) => { onToggleLayer(layer)}}
+                        onClick={(e) => { e.stopPropagation() }}
+                    />
+                    <div className="layer-title">
+                        <div className="title">{ titleRenderer(layer) }</div>
+                        <span className="subtitle" title={statusMessage}>{ statusMessage }</span>
+                    </div>
+                    <div
+                        className="layer-icon drag-handle"
+                        title={i18n('org.visallo.web.product.map.MapWorkProduct.layers.sort.help')}
+                    ></div>
+                </div>
+                {selected && configComponent ?
+                    <div className={'layer-dropdown'} style={{'height': layer.get('config').height}}>
+                        <Attacher
+                            componentPath={layer.get('config').componentPath}
+                            layer={layer}
+                            config={config}
+                            onUpdateLayerConfig={onUpdateLayerConfig}
+                        />
+                    </div>
+                : null}
+
             </div>
         )
     };

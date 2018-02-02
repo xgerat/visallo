@@ -15,7 +15,7 @@ const VirtualList = createReactClass({
         items: PropTypes.array.isRequired,
         rowRenderer: PropTypes.func,
         className: PropTypes.string,
-        rowHeight: PropTypes.number,
+        rowHeight: PropTypes.func,
         width: PropTypes.number,
         height: PropTypes.number
     },

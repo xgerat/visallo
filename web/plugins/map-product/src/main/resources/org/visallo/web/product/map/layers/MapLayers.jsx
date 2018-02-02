@@ -3,14 +3,12 @@ define([
     'create-react-class',
     'react-sortable-hoc',
     './MapLayersList',
-    './MapLayerDetail',
     '../util/layerHelpers'
 ], function(
     PropTypes,
     createReactClass,
     { arrayMove },
     MapLayersList,
-    MapLayerDetail,
     layerHelpers) {
 
     const UPDATE_DEBOUNCE = 300;
@@ -58,40 +56,25 @@ define([
                 layer
             }));
 
-            let selectedLayer;
-            if (selected) {
-                selectedLayer = selected === 'base' ? baseLayer : layers.find(layer => layer.get('id') === selected);
-            }
-
             return (
                 <div className="map-layers">
-                    {!selectedLayer ?
-                        <MapLayersList
-                            baseLayer={{ config: layersConfig['base'], layer: baseLayer }}
-                            layers={layerList}
-                            editable={editable}
-                            onConfigureLayer={this.onConfigureLayer}
-                            onToggleLayer={this.onToggleLayer}
-                            onSelectLayer={this.onSelectLayer}
-                            onOrderLayer={this.onOrderLayer}
-                        />
-                    :
-                        <MapLayerDetail
-                            layer={selectedLayer}
-                            config={layersConfig[selected]}
-                            onBack={this.onBack}
-                            onUpdateLayerConfig={this.onUpdateLayerConfig}
-                        />}
+                    <MapLayersList
+                        baseLayer={{ config: layersConfig['base'], layer: baseLayer }}
+                        layers={layerList}
+                        editable={editable}
+                        selected={selected}
+                        onUpdateLayerConfig={this.onUpdateLayerConfig}
+                        onSelectLayer={this.onSelectLayer}
+                        onToggleLayer={this.onToggleLayer}
+                        onOrderLayer={this.onOrderLayer}
+                    />
                 </div>
             );
         },
 
         onSelectLayer(layerId) {
-            this.setState({ selected: layerId });
-        },
-
-        onBack() {
-            this.setState({ selected: false });
+            const selected = this.state.selected && this.state.selected === layerId ? null : layerId;
+            this.setState({ selected });
         },
 
         onOrderLayer(oldSubsetIndex, newSubsetIndex) {
@@ -116,7 +99,7 @@ define([
         },
 
         onToggleLayer(layer) {
-            const { product, layersConfig, updateLayerConfig } = this.props;
+            const { layersConfig, updateLayerConfig } = this.props;
 
             const layerId = layer.get('id');
             const config = { ...(layersConfig[layerId] || {}), visible: !layer.getVisible() };
