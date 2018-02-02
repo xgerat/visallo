@@ -314,6 +314,9 @@ define([
         event: 'addRelatedItems',
         shortcut: 'alt+r',
         shouldDisable: function(selection, vertexId, target) {
+            if (!visalloData.currentWorkspaceEditable) {
+                return true;
+            }
             var graph = document.querySelector('.org-visallo-graph');
             if (graph) {
                 return !graph.contains(target)
