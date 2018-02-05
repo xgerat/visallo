@@ -2,11 +2,11 @@ define(['util/requirejs/promise!./service/propertiesPromise'], function(config) 
     'use strict';
 
     return (layerConfig) => {
-        const provider = layerConfig && layerConfig.base && layerConfig.base.provider;
-        return getTilePropsFromConfiguration(provider);
+        const baseConfig = layerConfig && layerConfig.base;
+        return getTilePropsFromConfiguration(baseConfig);
     };
 
-    function getTilePropsFromConfiguration(provider) {
+    function getTilePropsFromConfiguration(baseConfig = {}) {
         const getOptions = function(providerName) {
             try {
                 var obj,
@@ -34,12 +34,18 @@ define(['util/requirejs/promise!./service/propertiesPromise'], function(config) 
             }
         };
 
-        var source = provider || config['map.provider'] || 'osm';
-        var sourceOptions;
+        let { providerSource, providerName } = baseConfig;
+
+        let source = providerSource || providerName || config['map.provider'] || 'osm';
+        let phonyProvider = providerName !== source;
+        let sourceOptions = getOptions(providerName);
 
         if (source === 'google') {
             console.warn('google map.provider is no longer supported, switching to OpenStreetMap provider');
             source = 'osm';
+            providerName = 'osm';
+            phonyProvider = false;
+            sourceOptions = getOptions(providerName);
         }
 
         if (source === 'osm') {
@@ -50,19 +56,18 @@ define(['util/requirejs/promise!./service/propertiesPromise'], function(config) 
                 console.warn('For Example: https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png');
                 config['map.provider.osm.url'] = osmURL.split(',')[0].trim().replace(/[$][{]/g, '{');
             }
-            sourceOptions = getOptions('osm');
             source = 'OSM';
-        } else if (source === 'ArcGIS93Rest') {
+        } else if (!phonyProvider && source === 'ArcGIS93Rest') {
             var urlKey = 'map.provider.ArcGIS93Rest.url';
             // New OL3 ArcGIS Source will throw an error if url doesn't end
             // with [Map|Image]Server
             if (config[urlKey]) {
                 config[urlKey] = config[urlKey].replace(/\/export(Image)?\/?\s*$/, '');
             }
-            sourceOptions = { params: { layers: 'show:0,1,2' }, ...getOptions(source) };
+            sourceOptions = { params: { layers: 'show:0,1,2' }, ...sourceOptions };
             source = 'TileArcGISRest'
         } else {
-            sourceOptions = getOptions(source)
+            sourceOptions = getOptions(providerName)
         }
 
         return { source, sourceOptions };

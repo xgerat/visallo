@@ -22,18 +22,26 @@ define([
                     <span className={'map-providers-label'}>{ i18n('org.visallo.web.product.map.MapWorkProduct.layers.base.provider') }</span>
                     <select
                         className={'map-providers'}
-                        value={config.provider || defaultProvider}
+                        value={config.providerName || defaultProvider}
                         onChange={this.onSelectProvider}
                     >
-                        {mapProviders.map(({ name, label }) => <option key={name} value={name}>{ label }</option>)}
+                        {mapProviders.map(({ providerName, label }) => <option key={providerName} value={providerName}>{ label }</option>)}
                     </select>
                 </div>
             )
         },
 
         onSelectProvider(event) {
-            const { layer, config = {}, onUpdateLayerConfig } = this.props;
-            onUpdateLayerConfig({ ...config, provider: event.target.value }, layer);
+            const { layer, config = {}, mapProviders, onUpdateLayerConfig } = this.props;
+            const { providerName, providerSource: nextProviderSource } = mapProviders.find(p => p.providerName === event.target.value);
+            const { providerSource, ...prevConfig } = config;
+            const nextConfig = { ...prevConfig, providerName };
+
+            if (nextProviderSource) {
+                nextConfig.providerSource = nextProviderSource;
+            }
+
+            onUpdateLayerConfig(nextConfig, layer);
         }
     });
 
@@ -47,14 +55,17 @@ define([
                     const [ str, provider ] = key.match(/^map\.provider\.(.+)\..*$/);
 
                     if (provider && !providers[provider]) {
-                        providers[provider] = { name: provider, label: provider };
+                        providers[provider] = { providerName: provider, label: provider };
                     }
-                    if (key.endsWith('label')) {
+                    if (key.endsWith('.label')) {
                         providers[provider].label = value;
+                    }
+                    if (key.endsWith('.source')) {
+                        providers[provider].providerSource = value;
                     }
 
                     return providers;
-                }, { [defaultProvider]: { name: defaultProvider, label: defaultProvider }})
+                }, { [defaultProvider]: { providerName: defaultProvider, label: defaultProvider }})
                 .values()
                 .value();
 
