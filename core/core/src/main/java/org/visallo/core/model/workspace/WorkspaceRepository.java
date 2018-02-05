@@ -660,7 +660,8 @@ public abstract class WorkspaceRepository {
 
                 OntologyProperty ontologyProperty = ontologyRepository.getPropertyByIRI(propertyName, workspaceId);
                 checkNotNull(ontologyProperty, "Could not find ontology property: " + propertyName);
-                if (!ontologyProperty.getUserVisible() || propertyName.equals(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName())) {
+                if (!ontologyProperty.getUserVisible() && !propertyName.equals(VisalloProperties.COMMENT.getPropertyName())
+                        || propertyName.equals(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName())) {
                     continue;
                 }
 
@@ -1010,6 +1011,10 @@ public abstract class WorkspaceRepository {
 
         String propertyName = property.getName();
         if (propertyName.equals(VisalloProperties.ENTITY_IMAGE_VERTEX_ID.getPropertyName())) {
+            return false;
+        }
+
+        if (propertyName.equals(VisalloProperties.COMMENT.getPropertyName())) {
             return false;
         }
 

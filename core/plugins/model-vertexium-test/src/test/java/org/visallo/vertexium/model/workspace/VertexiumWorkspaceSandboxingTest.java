@@ -798,6 +798,36 @@ public class VertexiumWorkspaceSandboxingTest extends VisalloInMemoryTestBase {
     }
 
     @Test
+    public void publishCommentOnPublishedVertexSucceeds() {
+        Vertex v = newVertexOnWorkspace();
+        publishAllWorkspaceDiffs();
+        VisalloProperties.COMMENT.addPropertyValue(v, "", "This is a test comment", initialMetadata, initialVisibility, workspaceAuthorizations);
+        List<ClientApiWorkspaceDiff.Item> diffs = getDiffsFromWorkspace();
+        assertEquals(1, diffs.size());
+        publishAllWorkspaceDiffs();
+        diffs = getDiffsFromWorkspace();
+        assertEquals(0, diffs.size());
+    }
+
+    @Test
+    public void publishCommentOnSandboxVertexSucceeds() {
+        Vertex v = newVertexOnWorkspace();
+        VisalloProperties.COMMENT.addPropertyValue(v, "", "This is a test comment", initialMetadata, initialVisibility, workspaceAuthorizations);
+        publishAllWorkspaceDiffs();
+        List<ClientApiWorkspaceDiff.Item> diffs = getDiffsFromWorkspace();
+        assertEquals(0, diffs.size());
+    }
+
+    @Test
+    public void publishSandboxVertexAndNotCommentSucceeds() {
+        Vertex v = newVertexOnWorkspace();
+        publishAllWorkspaceDiffs();
+        VisalloProperties.COMMENT.addPropertyValue(v, "", "This is a test comment", initialMetadata, initialVisibility, workspaceAuthorizations);
+        List<ClientApiWorkspaceDiff.Item> diffs = getDiffsFromWorkspace();
+        assertEquals(1, diffs.size());
+    }
+
+    @Test
     public void sandboxedPublicEdgeDeletionUndoShouldPushUnhiddenStatus() {
         Edge edge = newEdgeOnWorkspace();
         publishAllWorkspaceDiffs();
