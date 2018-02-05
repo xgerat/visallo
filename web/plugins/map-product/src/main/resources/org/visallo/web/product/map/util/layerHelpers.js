@@ -91,6 +91,7 @@ define([
                     id: 'heatmap_cluster',
                     label: 'Heatmap',
                     type: 'cluster_heatmap',
+                    defaultVisibility: false,
                     source
                 })
 
@@ -524,7 +525,11 @@ define([
     }
 
     function setLayerConfig(config = {}, layer) {
-        const { visible = true, opacity = 1, zIndex = 0, ...properties } = config;
+        let defaultVisibility = layer.get('defaultVisibility')
+        if (!_.isBoolean(defaultVisibility)) {
+            defaultVisibility = true;
+        }
+        const { visible = defaultVisibility, opacity = 1, zIndex = 0, ...properties } = config;
 
         _.mapObject(properties, (value, key) => {
             if (value === null) {
