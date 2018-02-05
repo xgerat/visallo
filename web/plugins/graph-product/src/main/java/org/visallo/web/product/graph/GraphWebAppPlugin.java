@@ -55,12 +55,7 @@ public class GraphWebAppPlugin implements WebAppPlugin {
 
         app.registerJavaScript("/org/visallo/web/product/graph/plugin.js");
 
-        app.registerCompiledJavaScript("/org/visallo/web/product/graph/dist/Graph.js");
-        app.registerCompiledJavaScript("/org/visallo/web/product/graph/dist/EdgeLabel.js");
-        app.registerCompiledJavaScript("/org/visallo/web/product/graph/dist/SnapToGrid.js");
-        app.registerCompiledJavaScript("/org/visallo/web/product/graph/dist/FindPathPopoverContainer.js");
-        app.registerCompiledJavaScript("/org/visallo/web/product/graph/dist/CollapsedNodePopoverConfig.js");
-        app.registerCompiledJavaScript("/org/visallo/web/product/graph/dist/actions-impl.js");
+        app.registerCompiledJavaScripts("/org/visallo/web/product/graph/dist");
 
         app.registerCompiledWebWorkerJavaScript("/org/visallo/web/product/graph/dist/plugin-worker.js");
         app.registerCompiledWebWorkerJavaScript("/org/visallo/web/product/graph/dist/store-changes.js");

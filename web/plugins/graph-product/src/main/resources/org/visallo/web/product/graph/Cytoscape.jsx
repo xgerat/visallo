@@ -3,12 +3,10 @@ define([
     'prop-types',
     'underscore',
     'cytoscape',
-    'cytoscape-dagre',
-    'dagre',
+    './layouts/index',
     'fast-json-patch',
     'product/toolbar/ProductToolbar',
     'colorjs',
-    './betterGrid',
     './Menu',
     'util/formatters'
 ], function(
@@ -16,12 +14,10 @@ define([
     PropTypes,
     _,
     cytoscape,
-    cytoscapeDagre,
-    dagre,
+    registerLayouts,
     jsonpatch,
     ProductToolbar,
     colorjs,
-    betterGrid,
     Menu,
     F) {
     const ANIMATION = { duration: 400, easing: 'spring(250, 20)' };
@@ -34,18 +30,6 @@ define([
         maxWidth: 300,
         maxHeight: 300
     });
-    const LAYOUT_OPTIONS = {
-        // Customize layout options
-        concentric: {},
-        circle: {},
-        bettergrid: {},
-        dagre: {
-            spacingFactor: 1.3
-        },
-        cose: {
-            edgeElasticity: 10
-        }
-    };
     const PREVIEW_DEBOUNCE_SECONDS = 3;
     const EVENTS = {
         drag: 'onDrag',
@@ -120,8 +104,8 @@ define([
             this.previousConfig = this.prepareConfig();
             const cy = cytoscape(this.previousConfig);
             const updateControlDragSelection = (nodeId = null) => this.setState({ controlDragSelection: nodeId });
-            cytoscape('layout', 'bettergrid', betterGrid);
-            cytoscapeDagre(cytoscape, dagre);
+
+            registerLayouts(cytoscape);
 
             this.clientRect = this.refs.cytoscape.getBoundingClientRect();
             this.setState({ cy })
@@ -398,14 +382,6 @@ define([
             const elements = cy.collection(
                 cy.$(onlySelected ? '.v:selected,.c:selected,.e' : '.v,.c,.e')
             );
-            if (layout === 'concentric') {
-                // Concentric uses degree so default to regular
-                // circle if no edges on these nodes
-                if (elements.maxDegree() === 0) {
-                    layout = 'circle'
-                }
-            }
-            const defaultOptions = {...LAYOUT_OPTIONS[layout] };
 
             var opts = {
                 name: layout,
@@ -422,37 +398,14 @@ define([
                         this.fit();
                     }
                 },
-                ...defaultOptions,
                 ...options
             };
 
             const ids = _.map(elements, node => node.id())
             this.layoutDone = false;
             this.moving = _.indexBy([...Object.keys(this.moving), ...ids]);
-            const forceDirected = layout === 'cose';
-
-            // Force directed has issues if we don't pass the decoration
-            // parents (because we don't want those to layout, so just hack
-            // them to not show parents.
-            if (forceDirected) {
-                elements.forEach(({_private: el }) => {
-                    el._restoreParent = el.parent;
-                    el._restoreDataParent = el.data.parent;
-                    el.parent = null;
-                    el.data.parent = null;
-                })
-            }
 
             elements.layout(opts).run();
-
-            if (forceDirected) {
-                elements.forEach(({ _private: el }) => {
-                    el.parent = el._restoreParent;
-                    el.data.parent = el._restoreDataParent;
-                    el._restoreParent = null;
-                    el._restoreDataParent = null;
-                })
-            }
         },
 
         onControlsZoom(dir) {

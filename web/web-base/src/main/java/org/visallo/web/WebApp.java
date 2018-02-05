@@ -24,9 +24,12 @@ import org.visallo.web.util.js.SourceMapType;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -199,6 +202,49 @@ public class WebApp extends App {
      */
     public void registerCompiledJavaScript(String scriptResourceName) {
         registerCompiledJavaScript(scriptResourceName, false, true);
+    }
+
+    /**
+     * Add all JS files in a directory
+     *
+     * @param scriptResourceName
+     */
+    public void registerCompiledJavaScripts(String scriptResourceName) {
+        registerCompiledJavaScripts(scriptResourceName, true);
+    }
+
+    /**
+     * Add all JS files in a directory and subdirectories if recursive
+     *
+     * @param scriptResourceName
+     * @param recursive
+     */
+    public void registerCompiledJavaScripts(String scriptResourceName, boolean recursive) {
+        String dirName = scriptResourceName.replaceAll("/?$", "/");
+
+        try {
+            URL dirUrl = getClass().getResource(dirName);
+            if (dirUrl == null) {
+                throw new VisalloException("Directory does not exist: " + dirName);
+            }
+            File dir = new File(dirUrl.toURI());
+            if (dir.isDirectory()) {
+                for (File file : dir.listFiles()) {
+                    String name = file.getName();
+                    if (file.isFile()) {
+                        if (name.endsWith(".js")) {
+                            registerCompiledJavaScript(dirName + name, false, true);
+                        }
+                    } else if (recursive && file.isDirectory()) {
+                        registerCompiledJavaScripts(dirName + name, recursive);
+                    }
+                }
+            } else {
+                throw new VisalloException("registerCompiledJavaScripts must be a dir");
+            }
+        } catch (URISyntaxException e) {
+            throw new VisalloException("Unable to open directory", e);
+        }
     }
 
     public void registerCompiledJavaScript(String scriptResourceName, boolean includeInPage) {

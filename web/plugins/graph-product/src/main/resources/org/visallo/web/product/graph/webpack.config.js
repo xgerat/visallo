@@ -56,8 +56,9 @@ var VisalloAmdExternals = [
 var baseConfig = {
   output: {
     path: path.resolve(__dirname, 'dist'),
+    publicPath: '/jsc/org/visallo/web/product/graph/dist/',
     filename: '[name].js',
-    library: '[name]',
+    library: 'org-visallo-graph-[name]',
     libraryTarget: 'umd',
   },
   externals: VisalloAmdExternals,
