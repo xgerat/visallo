@@ -149,7 +149,7 @@ public abstract class RouteTestBase {
     }
 
     protected ResourceBundle createResourceBundle() {
-        return new VisalloResourceBundleManager().getBundle();
+        return new VisalloResourceBundleManager(configuration).getBundle();
     }
 
     protected InMemoryGraph createGraph() {

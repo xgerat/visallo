@@ -92,7 +92,7 @@ public abstract class WorkspaceRepository {
         this.ontologyRepository = ontologyRepository;
         this.workQueueRepository = workQueueRepository;
 
-        visalloResourceBundleManager = new VisalloResourceBundleManager();
+        visalloResourceBundleManager = new VisalloResourceBundleManager(configuration);
         visalloResourceBundle = visalloResourceBundleManager.getBundle();
         this.entityHasImageIri = ontologyRepository.getRelationshipIRIByIntent("entityHasImage", PUBLIC);
         this.authorizationRepository = authorizationRepository;

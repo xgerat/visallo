@@ -119,7 +119,7 @@ public class Configuration {
 
     public Configuration(final ConfigurationLoader configurationLoader, final Map<?, ?> config) {
         this.configurationLoader = configurationLoader;
-        this.visalloResourceBundleManager = new VisalloResourceBundleManager();
+        this.visalloResourceBundleManager = new VisalloResourceBundleManager(this);
         addConfigMapEntries(config);
         addSystemProperties();
         resolvePropertyReferences();
