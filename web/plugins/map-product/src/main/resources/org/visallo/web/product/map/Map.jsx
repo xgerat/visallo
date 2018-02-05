@@ -61,21 +61,7 @@ define([
         },
 
         getInitialState() {
-            return { viewport: this.props.viewport, generatePreview: true }
-        },
-
-        shouldComponentUpdate(nextProps) {
-            const onlyViewportChanged = Object.keys(nextProps).every(key => {
-                if (key === 'viewport') {
-                    return true;
-                }
-                return this.props[key] === nextProps[key];
-            })
-
-            if (onlyViewportChanged) {
-                return false;
-            }
-            return true;
+            return { generatePreview: true }
         },
 
         componentWillMount() {
@@ -127,16 +113,16 @@ define([
         },
 
         componentWillReceiveProps(nextProps) {
-            if (nextProps.product.id === this.props.product.id) {
-                this.setState({ viewport: {}, generatePreview: false })
-            } else {
-                this.saveViewport(this.props)
-                this.setState({ viewport: nextProps.viewport || {}, generatePreview: true })
+            const { generatePreview } = this.state;
+            const changed = nextProps.product.id !== this.props.product.id;
+
+            if (changed !== generatePreview) {
+                this.setState({ generatePreview: changed })
             }
         },
 
         render() {
-            const { viewport, generatePreview } = this.state;
+            const { generatePreview } = this.state;
             const { product, registry, panelPadding, focused, layerConfig, setLayerOrder, onAddSelection, onSelectElements } = this.props;
             const { source: baseSource, sourceOptions: baseSourceOptions, ...config } = mapConfig(layerConfig);
             const layerExtensions = _.indexBy(registry['org.visallo.map.layer'], 'id');
@@ -152,7 +138,6 @@ define([
                         sourcesByLayerId={this.mapElementsToSources()}
                         layerExtensions={layerExtensions}
                         layerConfig={layerConfig}
-                        viewport={viewport}
                         generatePreview={generatePreview}
                         panelPadding={panelPadding}
                         clearCaches={this.requestUpdateDebounce}
@@ -227,10 +212,10 @@ define([
             }
         },
 
-        onUpdatePreview() {
+        onUpdatePreview(dataUrl) {
             const { onUpdatePreview, product } = this.props;
 
-            onUpdatePreview(product.id);
+            onUpdatePreview(product.id, dataUrl);
         },
 
         onViewport(event) {

@@ -3,22 +3,30 @@ define([
     'prop-types',
     'openlayers',
     './util/layerHelpers',
+    './util/previewTask',
     'product/toolbar/ProductToolbar'
 ], function(
     createReactClass,
     PropTypes,
     ol,
     layerHelpers,
+    previewTask,
     ProductToolbar) {
 
     const noop = function() {};
 
+    const {
+        BaseLayerLoaded,
+        BaseLayerStarted,
+        calculateExtent,
+        listenForTileLoading
+    } = layerHelpers;
+
     const ANIMATION_DURATION = 200,
         MIN_FIT_ZOOM_RESOLUTION = 30,
         MAX_FIT_ZOOM_RESOLUTION = 20000,
-        PREVIEW_WIDTH = 300,
-        PREVIEW_HEIGHT = 300,
         PREVIEW_DEBOUNCE_SECONDS = 2,
+        MAP_FIRST_RENDER = 'mapFirstRender',
         LAYERS_EXTENDED_DATA_KEY = 'org-visallo-map-layers',
         BASE_LAYER_ID = 'base';
 
@@ -156,7 +164,7 @@ define([
 
         componentDidUpdate(prevProps, prevState) {
             const { map, layersWithSources } = this.state;
-            const { product, sourcesByLayerId, layerExtensions, layerConfig, focused, viewport, generatePreview } = this.props;
+            const { product, sourcesByLayerId, layerExtensions, layerConfig, focused, generatePreview } = this.props;
 
             let changed = false;
             let fit = [];
@@ -197,96 +205,57 @@ define([
                 this.applyLayerOrder();
             }
 
-            if (fit.length) {
-                this.fit({ limitToFeatures: fit });
-            }
-
-            if (viewport && !_.isEmpty(viewport)) {
-                map.getView().setCenter(viewport.pan);
-                map.getView().setResolution(viewport.zoom);
-            }
 
             if (map && (!prevState.map || prevProps.layerConfig !== layerConfig)) {
                 this.applyLayerConfig();
             }
 
             if (generatePreview) {
-                this._updatePreview({ fit: !viewport });
-            } else if (changed) {
+                this.setLoadingNewProduct();
+                this.fit({ animate: false });
+            } else if (fit.length) {
+                this.fit({
+                    limitToFeatures: fit,
+                    animate: !this.isLoadingNewProduct
+                });
+            }
+
+            if (generatePreview || changed) {
                 this.updatePreview();
             }
         },
 
-        _updatePreview(options = {}) {
-            const { fit = false } = options;
+        setLoadingNewProduct() {
+            // Assume we are still loading the product for a while
+            this.isLoadingNewProduct = true;
+            _.delay(() => {
+                this.isLoadingNewProduct = false;
+            }, 1000);
+        },
+
+        _updatePreview() {
+            var task = this.updatingPreviewTask;
+
+            if (task) {
+                task.cancel();
+            }
+
+            const { onUpdatePreview } = this.props;
             const { map, layersWithSources } = this.state;
-            const { base } = layersWithSources;
-            const doFit = () => {
-                if (fit) this.fit({ animate: false });
-            };
 
-            // Since this is delayed, make sure component not unmounted
-            if (!this._canvasPreviewBuffer) return;
-
-            doFit();
-            map.once('postcompose', (event) => {
-                if (!this._canvasPreviewBuffer) return;
-                var loading = 0, loaded = 0, events, captureTimer;
-
-                doFit();
-
-                const mapCanvas = event.context.canvas;
-                const capture = _.debounce(() => {
-                    if (!this._canvasPreviewBuffer) return;
-
-                    doFit();
-
-                    map.once('postrender', () => {
-                        if (!this._canvasPreviewBuffer) return;
-                        var newCanvas = this._canvasPreviewBuffer;
-                        var context = newCanvas.getContext('2d');
-                        var hRatio = PREVIEW_WIDTH / mapCanvas.width;
-                        var vRatio = PREVIEW_HEIGHT / mapCanvas.height;
-                        var ratio = Math.min(hRatio, vRatio);
-                        newCanvas.width = Math.trunc(mapCanvas.width * ratio);
-                        newCanvas.height = Math.trunc(mapCanvas.height * ratio);
-                        context.drawImage(mapCanvas,
-                            0, 0, mapCanvas.width, mapCanvas.height,
-                            0, 0, newCanvas.width, newCanvas.height
-                        );
-                        if (events) {
-                            events.forEach(key => ol.Observable.unByKey(key));
-                        }
-                        this.props.onUpdatePreview(newCanvas.toDataURL('image/png'));
-                    });
-                    map.renderSync();
-                }, 100)
-
-                const tileLoadStart = () => {
-                    clearTimeout(captureTimer);
-                    ++loading;
-                };
-                const tileLoadEnd = (event) => {
-                    clearTimeout(captureTimer);
-                    if (loading === ++loaded) {
-                        captureTimer = capture();
-                    }
-                };
-
-                events = [
-                    base.source.on('tileloadstart', tileLoadStart),
-                    base.source.on('tileloadend', tileLoadEnd),
-                    base.source.on('tileloaderror', tileLoadEnd)
-                ];
+            task = previewTask({
+                map,
+                layersWithSources,
+                minResolution: MIN_FIT_ZOOM_RESOLUTION,
+                maxResolution: MAX_FIT_ZOOM_RESOLUTION
             });
-            map.renderSync();
+            task.then(img => {
+                onUpdatePreview(img)
+            })
+            this.updatingPreviewTask = task;
         },
 
         componentDidMount() {
-            this._canvasPreviewBuffer = document.createElement('canvas');
-            this._canvasPreviewBuffer.width = PREVIEW_WIDTH;
-            this._canvasPreviewBuffer.height = PREVIEW_HEIGHT;
-
             this.olEvents = [];
             this.domEvents = [];
             this.updatePreview = _.debounce(this._updatePreview, PREVIEW_DEBOUNCE_SECONDS * 1000);
@@ -297,6 +266,9 @@ define([
 
         componentWillUnmount() {
             this._canvasPreviewBuffer = null;
+            if (this.updatingPreviewTask) {
+                this.updatingPreviewTask.teardown();
+            }
             clearTimeout(this._handleMouseMoveTimeout);
             if (this.domEvents) {
                 this.domEvents.forEach(fn => fn());
@@ -358,58 +330,36 @@ define([
             }
         },
 
-        onControlsPan({ x, y }, { state }) {
-            if (state === 'panningStart') {
-                this.setState({ panning: true })
-            } else if (state === 'panningEnd') {
-                this.setState({ panning: false })
+        fit(options) {
+            const { map } = this.state;
+
+            if (this._fitDelayed) {
+                clearTimeout(this._fitDelayed);
+            }
+
+            // Wait for map to load completely
+            // (after first render)
+            if (map.get(MAP_FIRST_RENDER)) {
+                this.fitInternal(options)
             } else {
-                const { map } = this.state;
-                const view = map.getView();
-
-                var currentCenter = view.getCenter(),
-                    resolution = view.getResolution(),
-                    center = view.constrainCenter([
-                        currentCenter[0] - x * resolution,
-                        currentCenter[1] + y * resolution
-                    ]);
-
-                view.setCenter(center);
+                this._fitDelayed = _.delay(() => {
+                    this.fitInternal(options)
+                }, 100)
             }
         },
 
-        extentFromFeatures(features) {
-            const extent = ol.extent.createEmpty();
-            features.forEach(feature => {
-                const fExtent = feature.getGeometry().getExtent();
-                if (!ol.extent.isEmpty(fExtent)) {
-                    ol.extent.extend(extent, fExtent);
-                }
-            });
-            return extent;
-        },
-
-        fit(options = {}) {
+        fitInternal(options = {}) {
             const { animate = true, limitToFeatures = [] } = options;
             const { map, layersWithSources } = this.state;
             const view = map.getView();
-            const changeZoom = limitToFeatures.length !== 1;
+            const initialLoading = this.isLoadingNewProduct;
+            const changeZoom = initialLoading || limitToFeatures.length !== 1;
             let extent;
 
             if (limitToFeatures.length) {
-                extent = this.extentFromFeatures(limitToFeatures)
+                extent = calculateExtent(map, layersWithSources, limitToFeatures)
             } else {
-                extent = ol.extent.createEmpty();
-                map.getLayers().forEach(layer => {
-                    const source = layersWithSources.cluster.layers.includes(layer) ?
-                        layersWithSources.cluster.source : layer.getSource();
-
-                    if (layer.getVisible()) {
-                        if (_.isFunction(source.getExtent)) {
-                            ol.extent.extend(extent, source.getExtent());
-                        }
-                    }
-                })
+                extent = calculateExtent(map, layersWithSources);
             }
 
             if (!ol.extent.isEmpty(extent)) {
@@ -430,7 +380,7 @@ define([
                     );
 
 
-                if (limitToFeatures.length) {
+                if (!initialLoading && limitToFeatures.length) {
                     const horizontalSync = ((left + padding) / 2 - (right + padding) / 2) * resolution;
                     const verticalSync = ((top + padding) / 2 - (bottom + padding) / 2) * resolution;
                     currentExtent[0] += horizontalSync;
@@ -460,11 +410,13 @@ define([
                     options.resolution = newResolution;
                 }
 
+                view.cancelAnimations();
                 view.animate({
                     ...options,
                     duration: animate ? ANIMATION_DURATION : 0
                 })
             } else {
+                view.cancelAnimations();
                 view.animate({
                     ...this.getDefaultViewParameters(),
                     duration: animate ? ANIMATION_DURATION : 0
@@ -501,6 +453,10 @@ define([
                 layers: [],
                 target: this.refs.map
             });
+
+            map.once('postrender', () => {
+                map.set(MAP_FIRST_RENDER, true);
+            })
 
             // add the base(tile) layer
             addLayer(layerHelpers.byType.tile, BASE_LAYER_ID, {
