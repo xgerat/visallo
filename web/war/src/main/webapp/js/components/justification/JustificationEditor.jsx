@@ -3,15 +3,22 @@ define([
     'prop-types',
     'react-redux',
     'react-transition-group',
+    '../Tooltip',
     'util/vertex/formatters',
     'data/web-worker/store/element/selectors',
     'data/web-worker/store/element/actions'
-], function(createReactClass, PropTypes, redux, ReactTransitionGroup, F, elementSelectors, elementActions) {
+], function(
+    createReactClass,
+    PropTypes,
+    redux,
+    ReactTransitionGroup,
+    Tooltip,
+    F,
+    elementSelectors,
+    elementActions) {
 
     const { Transition, TransitionGroup } = ReactTransitionGroup;
-    const getHeight = elem => {
-        return elem.offsetHeight;
-    }
+    const getHeight = elem => elem.offsetHeight;
     const forceLayout = node => {
         node.offsetHeight; // eslint-disable-line no-unused-expressions
     }
@@ -136,21 +143,30 @@ define([
         renderJustificationInput(justificationText) {
             const { validation } = this.props;
             return (
-                <input
-                    ref={r => {this._justificationTextInput = r;}}
-                    data-title={`<strong>${i18n('justification.field.tooltip.title')}</strong><br>${i18n('justification.field.tooltip.subtitle')}`}
-                    data-placement="left"
-                    data-trigger="focus"
-                    data-html="true"
-                    className="editing"
-                    onChange={this.onChange}
-                    onPaste={this.onPaste}
-                    placeholder={validation === 'OPTIONAL' ?
-                        i18n('justification.field.placeholder.optional') :
-                        i18n('justification.field.placeholder.required')
-                    }
-                    type="text"
-                    value={justificationText || ''} />
+                <React.Fragment>
+                    <input
+                        ref={r => { this._justificationTextInput = r; }}
+                        className="editing"
+                        onChange={this.onChange}
+                        onPaste={this.onPaste}
+                        placeholder={validation === 'OPTIONAL' ?
+                            i18n('justification.field.placeholder.optional') :
+                            i18n('justification.field.placeholder.required')
+                        }
+                        type="text"
+                        value={justificationText || ''} />
+
+                    <Tooltip
+                        placement="left"
+                        offset="0,5"
+                        allowOverflow={['left']}
+                        trigger="focus"
+                        className="field-tooltip"
+                        node={this._justificationTextInput}
+                        message={i18n('justification.field.tooltip.title')}
+                        subtitle={i18n('justification.field.tooltip.subtitle')} />
+
+                </React.Fragment>
             )
         },
         onPaste(event) {
