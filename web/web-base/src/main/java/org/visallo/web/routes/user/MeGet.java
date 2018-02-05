@@ -16,9 +16,7 @@ import org.visallo.webster.handlers.CSRFHandler;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 @Singleton
@@ -60,14 +58,16 @@ public class MeGet implements ParameterizedHandler {
             Iterable<Workspace> allWorkspaces = workspaceRepository.findAllForUser(user);
             Workspace workspace = null;
             if (allWorkspaces != null) {
-                Map<Boolean, List<Workspace>> userWorkspaces = StreamSupport.stream(allWorkspaces.spliterator(), false)
+                Optional<Workspace> first = StreamSupport.stream(allWorkspaces.spliterator(), false)
+                        .filter(workspace1 -> {
+                            String creator = workspaceRepository.getCreatorUserId(workspace1.getWorkspaceId(), user);
+                            return creator.equals(user.getUserId());
+                        })
                         .sorted(Comparator.comparing(w -> w.getDisplayTitle().toLowerCase()))
-                        .collect(Collectors.partitioningBy(userWorkspace ->
-                                workspaceRepository.getCreatorUserId(userWorkspace.getWorkspaceId(), user).equals(user.getUserId())));
+                        .findFirst();
 
-                List<Workspace> workspaces = userWorkspaces.get(true).isEmpty() ? userWorkspaces.get(false) : userWorkspaces.get(true);
-                if (!workspaces.isEmpty()) {
-                    workspace = workspaces.get(0);
+                if (first.isPresent()) {
+                    workspace = first.get();
                 }
             }
 
