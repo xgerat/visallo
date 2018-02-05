@@ -20,25 +20,27 @@ define([
 
         return (
             <div className={'layer-item'} style={{ ...style, zIndex: 50 }}>
-                <div
-                    className={classNames('layer-header', { 'error': hasError })}
-                    onClick={() => { onSelectLayer(layer.get('id'))}}
-                >
-                    <input
-                        type="checkbox"
-                        checked={visible}
-                        disabled={!toggleable || hasError}
-                        onChange={(e) => { onToggleLayer(layer)}}
-                        onClick={(e) => { e.stopPropagation() }}
-                    />
-                    <div className="layer-title">
-                        <div className="title">{ titleRenderer(layer) }</div>
-                        <span className="subtitle" title={statusMessage}>{ statusMessage }</span>
-                    </div>
+                <div className={'list-item'} style={{ 'height': '40px'}}>
                     <div
-                        className="layer-icon drag-handle"
-                        title={i18n('org.visallo.web.product.map.MapWorkProduct.layers.sort.help')}
-                    ></div>
+                        className={classNames('layer-header', { 'error': hasError })}
+                        onClick={() => { onSelectLayer(layer.get('id'))}}
+                    >
+                        <input
+                            type="checkbox"
+                            checked={visible}
+                            disabled={!toggleable || hasError}
+                            onChange={(e) => { onToggleLayer(layer)}}
+                            onClick={(e) => { e.stopPropagation() }}
+                        />
+                        <div className="layer-title">
+                            <div className="title">{ titleRenderer(layer) }</div>
+                            <span className="subtitle" title={statusMessage}>{ statusMessage }</span>
+                        </div>
+                        <div
+                            className="layer-icon drag-handle"
+                            title={i18n('org.visallo.web.product.map.MapWorkProduct.layers.sort.help')}
+                        ></div>
+                    </div>
                 </div>
                 {selected && configComponent ?
                     <div className={'layer-dropdown'} style={{'height': layer.get('config').height}}>
