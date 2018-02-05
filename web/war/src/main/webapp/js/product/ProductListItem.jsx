@@ -1,13 +1,15 @@
 define([
     'create-react-class',
     'prop-types',
+    'react-pure-render-mixin',
     'components/DroppableHOC',
     'util/dnd'
-], function(createReactClass, PropTypes, DroppableHOC, dnd) {
+], function(createReactClass, PropTypes, PureRenderMixin, DroppableHOC, dnd) {
     'use strict';
 
     const MaxTitleLength = 128;
     const ProductListItem = createReactClass({
+        mixins: [PureRenderMixin],
         propTypes: {
             selected: PropTypes.string,
             editable: PropTypes.bool.isRequired,

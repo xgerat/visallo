@@ -94,6 +94,7 @@
             'rangy-serializer': '../libs/rangy/lib/rangy-serializer',
             'react': '../libs/react/umd/react.production.min',
             'react-dom': '../libs/react-dom/umd/react-dom.production.min',
+            'react-pure-render-mixin': '../libs/react-addons-pure-render-mixin/react-addons-pure-render-mixin.min',
             'create-react-class': '../libs/create-react-class/create-react-class.min',
             'react-proptypes-dev': '../libs/prop-types/prop-types.min',
             'react-redux': '../libs/react-redux/dist/react-redux.min',
