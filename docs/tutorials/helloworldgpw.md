@@ -180,6 +180,6 @@ We need to test out that the graph property worker actually makes the changes th
 1. In the concept type text box, type Person and hit enter
 1. Click on Create
 
-You will see a person get added to the graph, and their name quickly change from "No Title Available" to "Hello World".
+You will see a person get added to the graph, and their name quickly change from "Untitled" to "Hello World".
 
 [Next Steps: Making a Web Plugin](webplugin.md)
