@@ -422,11 +422,11 @@ define([
                                 value: self.attr.attemptToCoerceValue || previousValue,
                                 tooltip: (!self.attr.sourceInfo && !self.attr.justificationText) ? {
                                     html: true,
-                                    title:
-                                        '<strong>' +
-                                        i18n('justification.field.tooltip.title') +
-                                        '</strong><br>' +
-                                        i18n('justification.field.tooltip.subtitle'),
+                                    title: `
+                                        <div class="message">${i18n('justification.field.value.tooltip.title')}</div>
+                                        <div class="subtitle">${i18n('justification.field.value.tooltip.subtitle')}</div>
+                                        <div class="footer">${i18n('justification.field.value.tooltip.footer')}</div>
+                                    `,
                                     placement: 'left',
                                     trigger: 'focus'
                                 } : null

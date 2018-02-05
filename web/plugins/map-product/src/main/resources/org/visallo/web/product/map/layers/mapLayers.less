@@ -139,6 +139,15 @@
       input {
         flex: 0 0 auto;
         margin: 0.5em;
+        position: relative;
+        &:before {
+          content: '';
+          position: absolute;
+          top:-0.8em;
+          bottom:-0.8em;
+          left:-0.5em;
+          right:-0.5em;
+        }
       }
 
       .layer-title {

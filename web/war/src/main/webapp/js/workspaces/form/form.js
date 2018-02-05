@@ -35,6 +35,8 @@ define([
             permissionsRadioSelector: '.popover input',
             permissionsRadioLabelSelector: '.popover label',
             deleteSelector: '.delete',
+            confirmDeleteSelector: '.delete-confirm .btn-danger',
+            confirmDeleteCancelSelector: '.delete-confirm .btn-link',
             removeAccessSelector: '.remove-access'
         });
 
@@ -80,6 +82,8 @@ define([
                 this.on('shareWorkspaceWithUser', this.onShareWorkspaceWithUser);
                 this.on('click', {
                     deleteSelector: this.onDelete,
+                    confirmDeleteSelector: this.onDeleteConfirm,
+                    confirmDeleteCancelSelector: this.onDeleteCancel,
                     removeAccessSelector: this.onRevokeAccess,
                     permissionsRadioLabelSelector: function(e) {
                         e.stopPropagation();
@@ -275,10 +279,24 @@ define([
         };
 
         this.onDelete = function(event) {
+            const $buttons = $(event.target).closest('.buttons').addClass('confirm')
+            const $confirm = this.select('confirmDeleteSelector').prop('disabled', true)
+            _.delay(() => {
+                $confirm.prop('disabled', false)
+            }, 1000)
+        };
+
+        this.onDeleteCancel = function(event) {
+            $(event.target).closest('.buttons').removeClass('confirm')
+        };
+
+        this.onDeleteConfirm = function(event) {
             var self = this,
                 workspaceId = this.attr.data.workspaceId,
-                $target = $(event.target),
+                $target = this.select('deleteSelector'),
                 previousText = $target.text();
+
+            $target.closest('.buttons').removeClass('confirm')
 
             this.trigger('workspaceDeleting', this.attr.data);
 
@@ -286,7 +304,7 @@ define([
 
             this.dataRequest('workspace', 'delete', workspaceId)
                 .then(function() {
-                    //self.trigger('workspaceDeleted', { workspaceId: workspaceId });
+                    self.trigger('workspaceDeleted', { workspaceId: workspaceId });
                 })
                 .catch(function() {
                     $target.text(previousText).prop('disabled', false);

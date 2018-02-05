@@ -48,7 +48,7 @@ public class WebApp extends App {
 
     private final StyleAppendableHandler pluginsCssResourceHandler = new StyleAppendableHandler();
     private final List<String> pluginsCssResources = new ArrayList<>();
-    private VisalloResourceBundleManager visalloResourceBundleManager = new VisalloResourceBundleManager();
+    private final VisalloResourceBundleManager visalloResourceBundleManager;
     private VisalloDefaultResultWriterFactory visalloDefaultResultWriterFactory;
 
     public WebApp(final ServletContext servletContext, final Injector injector) {
@@ -81,6 +81,8 @@ public class WebApp extends App {
         Configuration config = injector.getInstance(Configuration.class);
         this.devMode = config.getBoolean(Configuration.DEV_MODE, Configuration.DEV_MODE_DEFAULT);
 
+        visalloResourceBundleManager = new VisalloResourceBundleManager(config);
+        
         if (!isDevModeEnabled()) {
             String pluginsCssRoute = "plugins.css";
             this.get("/" + pluginsCssRoute, pluginsCssResourceHandler);

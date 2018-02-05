@@ -85,6 +85,7 @@
             'normalize': '../libs/@visallo/requirejs-less/normalize',
             'openlayers': '../libs/openlayers/dist/ol-debug',
             'pathfinding': '../libs/pathfinding/lib/pathfinding-browser.min',
+            'popper': '../libs/popper.js/dist/umd/popper.min',
             'propertyParser': '../libs/requirejs-plugins/src/propertyParser',
             'urlPolyfill': '../libs/js-polyfills/url',
             'rangy-core': '../libs/rangy/lib/rangy-core',
