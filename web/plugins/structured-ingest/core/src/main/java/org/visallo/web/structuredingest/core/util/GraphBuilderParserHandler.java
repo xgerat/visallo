@@ -423,7 +423,7 @@ public class GraphBuilderParserHandler extends BaseStructuredFileParserHandler {
                     .stream()
                     .sorted(String::compareToIgnoreCase)
                     .forEach(s -> {
-                        hasher.putString(row.get(s).toString(), Charsets.UTF_8).putString("|");
+                        hasher.putString(prepareValueForHash(row.get(s)), Charsets.UTF_8).putString("|");
                     });
 
             for (PropertyMapping mapping : vertexMapping.propertyMappings) {
@@ -447,6 +447,10 @@ public class GraphBuilderParserHandler extends BaseStructuredFileParserHandler {
         }
 
         return vertexId;
+    }
+
+    private String prepareValueForHash(Object obj) {
+        return String.valueOf(obj).trim().toLowerCase();
     }
 
     /**
@@ -483,8 +487,7 @@ public class GraphBuilderParserHandler extends BaseStructuredFileParserHandler {
         Object propertyValue = propertyMapping.decodeValue(row);
         if (propertyValue != null) {
             Hasher hasher = Hashing.sha1().newHasher();
-            hasher.putString(String.valueOf(propertyValue), Charsets.UTF_8);
-
+            hasher.putString(prepareValueForHash(propertyValue), Charsets.UTF_8);
             String keySuffix = hasher.hash().toString();
             m.addPropertyValue(MULTI_KEY + keySuffix, propertyMapping.name, propertyValue, metadata, propertyVisibility);
         }
