@@ -39,13 +39,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.visallo.core.model.properties.VisalloProperties.VISIBILITY_JSON_METADATA;
 
 public class GraphBuilderParserHandler extends BaseStructuredFileParserHandler {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(GraphBuilderParserHandler.class);
     public static final Long MAX_DRY_RUN_ROWS = 50000L;
-    private static final String MULTI_KEY = "SFIMPORT";
+    private static final String MULTI_KEY = "SFIMPORT:";
     private static final String SKIPPED_VERTEX_ID = "SKIPPED_VERTEX";
 
     private final Graph graph;
@@ -483,7 +482,11 @@ public class GraphBuilderParserHandler extends BaseStructuredFileParserHandler {
 
         Object propertyValue = propertyMapping.decodeValue(row);
         if (propertyValue != null) {
-            m.addPropertyValue(MULTI_KEY, propertyMapping.name, propertyValue, metadata, propertyVisibility);
+            Hasher hasher = Hashing.sha1().newHasher();
+            hasher.putString(String.valueOf(propertyValue), Charsets.UTF_8);
+
+            String keySuffix = hasher.hash().toString();
+            m.addPropertyValue(MULTI_KEY + keySuffix, propertyMapping.name, propertyValue, metadata, propertyVisibility);
         }
     }
 }
