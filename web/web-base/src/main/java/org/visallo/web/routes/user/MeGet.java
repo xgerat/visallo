@@ -17,7 +17,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Comparator;
 import java.util.Optional;
-import java.util.stream.StreamSupport;
+
+import static org.visallo.core.util.StreamUtil.stream;
 
 @Singleton
 public class MeGet implements ParameterizedHandler {
@@ -58,17 +59,14 @@ public class MeGet implements ParameterizedHandler {
             Iterable<Workspace> allWorkspaces = workspaceRepository.findAllForUser(user);
             Workspace workspace = null;
             if (allWorkspaces != null) {
-                Optional<Workspace> first = StreamSupport.stream(allWorkspaces.spliterator(), false)
-                        .filter(workspace1 -> {
-                            String creator = workspaceRepository.getCreatorUserId(workspace1.getWorkspaceId(), user);
-                            return creator.equals(user.getUserId());
+                Optional<Workspace> first = stream(allWorkspaces).filter(w -> {
+                            String creator = workspaceRepository.getCreatorUserId(w.getWorkspaceId(), user);
+                            return user.getUserId().equals(creator);
                         })
                         .sorted(Comparator.comparing(w -> w.getDisplayTitle().toLowerCase()))
                         .findFirst();
 
-                if (first.isPresent()) {
-                    workspace = first.get();
-                }
+                workspace = first.orElse(null);
             }
 
             if (workspace == null) {
