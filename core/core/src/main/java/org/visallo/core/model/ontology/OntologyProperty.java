@@ -250,14 +250,14 @@ public abstract class OntologyProperty {
                 }
                 if (values.get(index) instanceof JSONObject) {
                     JSONObject json = values.getJSONObject(index);
-                    String id = json.optString("id");
+                    String id = json.optString("id", null);
                     checkNotNull(id, "id is a required field for directory entity json");
                     return id;
                 } else {
                     String valueStr = values.getString(index);
                     try {
                         JSONObject json = new JSONObject(valueStr);
-                        String id = json.optString("id");
+                        String id = json.optString("id", null);
                         checkNotNull(id, "id is a required field for directory entity json");
                         return id;
                     } catch (JSONException ex) {
