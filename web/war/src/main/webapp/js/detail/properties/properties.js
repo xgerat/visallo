@@ -21,7 +21,6 @@ define([
         HIDE_PROPERTIES = ['http://visallo.org/comment#entry'],
         VISIBILITY_NAME = 'http://visallo.org#visibilityJson',
         SANDBOX_STATUS_NAME = 'http://visallo.org#sandboxStatus',
-        RELATIONSHIP_LABEL = 'http://visallo.org#relationshipLabel',
         NO_GROUP = '${NO_GROUP}',
 
         // Property td types
@@ -82,10 +81,6 @@ define([
 
     function isSandboxStatus(property) {
         return property.name === SANDBOX_STATUS_NAME;
-    }
-
-    function isRelationshipLabel(property) {
-        return property.name === RELATIONSHIP_LABEL;
     }
 
     function isJustification(property) {
@@ -235,11 +230,8 @@ define([
                             return '1';
                         }
 
-                        if (isEdge) {
-                            return property.name === RELATIONSHIP_LABEL ?
-                                '2' :
-                                isJustification(property) ?
-                                '3' : '4';
+                        if (isEdge && isJustification(property)) {
+                            return '3';
                         }
 
                         var ontologyProperty = self.ontologyProperties.byTitle[property.name];
@@ -801,7 +793,7 @@ define([
                                 $(valueSpan).teardownAllComponents();
                                 JustificationViewer.attachTo(valueSpan, property.justificationData);
                             });
-                        } else if (isSandboxStatus(property) || isRelationshipLabel(property)) {
+                        } else if (isSandboxStatus(property)) {
                             valueSpan.textContent = property.value;
                         } else {
                             const { full, truncated, expanded, toggleable } = getOrUpdateValue(vertex, property.name, property.key);
