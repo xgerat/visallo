@@ -18,11 +18,13 @@ define('data/web-worker/services/org-visallo-structuredingest', ['data/web-worke
         mimeTypes: _.memoize(function() {
             return ajax('GET', '/structured-ingest/mimeTypes')
         }),
+
         analyze: function(vertexId) {
             return ajax('GET', '/structured-ingest/analyze', {
                 graphVertexId: vertexId
             })
         },
+
         ingest: function(mapping, vertexId, options, isPreview, shouldPublish) {
             return ajax('POST', '/structured-ingest/ingest', _.tap({
                 mapping: JSON.stringify(mapping),
@@ -34,6 +36,14 @@ define('data/web-worker/services/org-visallo-structuredingest', ['data/web-worke
                     params.parseOptions = options;
                 }
             }));
+        },
+
+        updateMapping: function(mapping, parseOptions, vertexId) {
+            return ajax('POST', '/structured-ingest/mapping', {
+                mapping: JSON.stringify(mapping),
+                parseOptions: JSON.stringify(parseOptions),
+                graphVertexId: vertexId
+            })
         }
     }
 })

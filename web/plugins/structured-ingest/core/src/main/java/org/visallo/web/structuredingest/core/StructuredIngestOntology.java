@@ -11,4 +11,5 @@ public class StructuredIngestOntology {
     public static final StringVisalloProperty RAW_CELL_VALUE_PROPERTY = new StringVisalloProperty(IRI + "#rawCellValue");
     public static final StringVisalloProperty SHEET_PROPERTY = new StringVisalloProperty(IRI + "#sheet");
     public static final StringVisalloProperty ROW_PROPERTY = new StringVisalloProperty(IRI + "#row");
+    public static final StringVisalloProperty MAPPING = new StringVisalloProperty(IRI + "#mapping");
 }

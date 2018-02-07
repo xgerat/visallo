@@ -28,8 +28,11 @@ define([
     require) {
     'use strict';
 
-    var ANIMATION_DURATION = 200;
-    var CreatedObjectPopover;
+    const ANIMATION_DURATION = 200;
+    const MAPPING_PROPERTY_KEY = 'SFMAPPING';
+    const MAPPING_PROPERTY_IRI = 'http://visallo.org/structured-file#mapping';
+
+    let CreatedObjectPopover;
 
     return defineComponent(StructuredMappingForm, withDataRequest, withElementScrollingUpdates);
 
@@ -53,70 +56,116 @@ define([
 
             this.$node.addClass('mode-header');
 
-            this.mappedObjects = {
-                vertices: [],
-                edges: []
-            };
-            this.parseOptions = {
-                hasHeaderRow: true,
-                startRowIndex: 0,
-                sheetIndex: 0
-            }
-            this.$modal = this.$node.html(template({
-                title: F.vertex.title(this.attr.vertex)
-            }));
-            var windowWidth = Math.round($(window).width() * 0.9);
-            this.$modal.find('.modal-resizable').resizable({
-                minWidth: Math.min(windowWidth, 375),
-                maxWidth: windowWidth,
-                handles: 'e, w',
-                resize: function(event, ui) {
-                    ui.position.left = 0;
-                }
-            });
-            this.$modal.modal();
+            this.loadMapping()
+                .then(this.transformMappingToProps.bind(this))
+                .then(({ mappedObjects, parseOptions }) => {
+                    this.mappedObjects = mappedObjects;
+                    this.parseOptions = parseOptions;
 
-            this.on('click', {
-                cancelSelector: this.onCancel,
-                importSelector: this.onImport,
-                publishSelector: this.onSetPublish,
-                segmentedControlSelector: this.onSegmentedControl,
-                cellSelector: this.onCellClick,
-                errorBadge: this.onErrorBadgeClick,
-                createdObjectsSelector: this.onCreatedObjectsClick,
-                noHeaderSelector: this.onNoHeaderClick
-            });
-            this.on('mouseover', {
-                cellSelector: this.onCellMouse
-            })
-            this.on('mouseout', {
-                cellSelector: this.onCellMouse
-            })
-            this.on('mousedown', {
-                createdEntitiesSelector: this.onEntityMouseDown
-            })
-            this.on('mouseup', {
-                createdEntitiesSelector: this.onEntityUp
-            })
-            this.on('hidden', function() {
-                this.$modal.remove();
-            });
-            this.on('change', {
-                changeSheetSelector: this.onChangeSheet
-            });
-            this.on('updateMappedObject', this.onUpdateMappedObject);
-            this.on('removeMappedObject', this.onRemoveMappedObject);
-            this.on('removeMappedObjectProperty', this.onRemoveMappedObjectProperty);
-            this.on('errorHandlingUpdated', this.onUpdateErrorHandling);
+                    this.$modal = this.$node.html(template({
+                        title: F.vertex.title(this.attr.vertex)
+                    }));
+                    var windowWidth = Math.round($(window).width() * 0.9);
+                    this.$modal.find('.modal-resizable').resizable({
+                        minWidth: Math.min(windowWidth, 375),
+                        maxWidth: windowWidth,
+                        handles: 'e, w',
+                        resize: function (event, ui) {
+                            ui.position.left = 0;
+                        }
+                    });
+                    this.$modal.modal();
 
-            this.flashOnce = _.once(this.flashPlaceholder.bind(this));
+                    this.on('click', {
+                        cancelSelector: this.onCancel,
+                        importSelector: this.onImport,
+                        publishSelector: this.onSetPublish,
+                        segmentedControlSelector: this.onSegmentedControl,
+                        cellSelector: this.onCellClick,
+                        errorBadge: this.onErrorBadgeClick,
+                        createdObjectsSelector: this.onCreatedObjectsClick,
+                        noHeaderSelector: this.onNoHeaderClick
+                    });
+                    this.on('mouseover', {
+                        cellSelector: this.onCellMouse
+                    })
+                    this.on('mouseout', {
+                        cellSelector: this.onCellMouse
+                    })
+                    this.on('mousedown', {
+                        createdEntitiesSelector: this.onEntityMouseDown
+                    })
+                    this.on('mouseup', {
+                        createdEntitiesSelector: this.onEntityUp
+                    })
+                    this.on('hidden', function () {
+                        this.$modal.remove();
+                    });
+                    this.on('change', {
+                        changeSheetSelector: this.onChangeSheet
+                    });
+                    this.on('updateMappedObject', this.onUpdateMappedObject);
+                    this.on('removeMappedObject', this.onRemoveMappedObject);
+                    this.on('removeMappedObjectProperty', this.onRemoveMappedObjectProperty);
+                    this.on('errorHandlingUpdated', this.onUpdateErrorHandling);
 
-            _.defer(this.loadInfo.bind(this));
+                    this.flashOnce = _.once(this.flashPlaceholder.bind(this));
 
-            this.dataRequest('config', 'properties').done(function(properties) {
-                self.runningUserGuide = properties['userGuide.enabled'] !== 'false';
-            });
+                    const args = this.isMapped ? [ this, parseOptions.sheetIndex, parseOptions.startRowIndex ] : [this];
+                    _.defer(this.loadInfo.bind(...args));
+
+                    if (this.isMapped) {
+                        this.enableFooterButtons(true);
+                    }
+
+                    this.dataRequest('config', 'properties').done(function (properties) {
+                        self.runningUserGuide = properties['userGuide.enabled'] !== 'false';
+                    });
+                });
         });
+
+        this.loadMapping = function() {
+            return this.dataRequest('vertex', 'propertyValue',
+                this.attr.vertex.id,
+                MAPPING_PROPERTY_IRI,
+                MAPPING_PROPERTY_KEY
+            );
+        };
+
+        this.saveMapping = function() {
+            const { mappedObjects, parseOptions } = this;
+
+            return this.dataRequest('org-visallo-structuredingest', 'updateMapping',
+                mappedObjects,
+                parseOptions,
+                this.attr.vertex.id
+            )
+        };
+
+        this.transformMappingToProps = function(rawMapping) {
+            if (rawMapping) {
+                this.isMapped = true;
+            }
+
+            const mapping = JSON.parse(rawMapping);
+            let { mappedObjects, parseOptions } = (mapping || {});
+
+            if (!mappedObjects) {
+                mappedObjects = {
+                    vertices: [],
+                    edges: []
+                };
+            }
+            if (!parseOptions) {
+                parseOptions = {
+                    hasHeaderRow: true,
+                    startRowIndex: 0,
+                    sheetIndex: 0
+                };
+            }
+
+            return { mappedObjects, parseOptions }
+        };
 
         this.onChangeSheet = function(event) {
             var sheet = this.select('changeSheetSelector').val();
@@ -1093,8 +1142,10 @@ define([
                     $message.empty().removeClass('info');
 
                     if (result.success) {
-                        self.$modal.modal('hide');
-                        self.trigger('showActivityDisplay');
+                        return self.saveMapping.call(self).then(() => {
+                            self.$modal.modal('hide');
+                            self.trigger('showActivityDisplay');
+                        });
                     } else if (result.errors || result.mappingErrors) {
                         self.handleErrors(result);
                     } else if (result.vertices) {
