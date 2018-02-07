@@ -41,6 +41,7 @@ define([
         this.defaultAttrs({
             cellSelector: '.tableview table td, .tableview table th',
             cancelSelector: '.cancel',
+            resetSelector: '.reset',
             importSelector: '.import',
             publishSelector: '.shouldPublish',
             segmentedControlSelector: '.segmented-control button',
@@ -63,7 +64,8 @@ define([
                     this.parseOptions = parseOptions;
 
                     this.$modal = this.$node.html(template({
-                        title: F.vertex.title(this.attr.vertex)
+                        title: F.vertex.title(this.attr.vertex),
+                        hasMapping: this.hasMapping
                     }));
                     var windowWidth = Math.round($(window).width() * 0.9);
                     this.$modal.find('.modal-resizable').resizable({
@@ -78,6 +80,7 @@ define([
 
                     this.on('click', {
                         cancelSelector: this.onCancel,
+                        resetSelector: this.onReset,
                         importSelector: this.onImport,
                         publishSelector: this.onSetPublish,
                         segmentedControlSelector: this.onSegmentedControl,
@@ -111,10 +114,10 @@ define([
 
                     this.flashOnce = _.once(this.flashPlaceholder.bind(this));
 
-                    const args = this.isMapped ? [ this, parseOptions.sheetIndex, parseOptions.startRowIndex ] : [this];
+                    const args = this.hasMapping ? [ this, parseOptions.sheetIndex, parseOptions.startRowIndex ] : [this];
                     _.defer(this.loadInfo.bind(...args));
 
-                    if (this.isMapped) {
+                    if (this.hasMapping) {
                         this.enableFooterButtons(true);
                     }
 
@@ -123,14 +126,6 @@ define([
                     });
                 });
         });
-
-        this.loadMapping = function() {
-            return this.dataRequest('vertex', 'propertyValue',
-                this.attr.vertex.id,
-                MAPPING_PROPERTY_IRI,
-                MAPPING_PROPERTY_KEY
-            );
-        };
 
         this.saveMapping = function() {
             const { mappedObjects, parseOptions } = this;
@@ -142,9 +137,31 @@ define([
             )
         };
 
+        this.clearMapping = function() {
+            this.mappedObjects = { vertices: [], edges: [] };
+            this.parseOptions = {
+                hasHeaderRow: true,
+                startRowIndex: 0,
+                sheetIndex: 0
+            };
+            this.hasMapping = false;
+        };
+
+        this.loadMapping = function() {
+            return this.dataRequest('vertex', 'propertyValue',
+                this.attr.vertex.id,
+                MAPPING_PROPERTY_IRI,
+                MAPPING_PROPERTY_KEY
+            ).catch(e => {
+                console.warn(e);
+                // if there is no existing mapping just use empty defaults
+                return null;
+            });
+        };
+
         this.transformMappingToProps = function(rawMapping) {
             if (rawMapping) {
-                this.isMapped = true;
+                this.hasMapping = true;
             }
 
             const mapping = JSON.parse(rawMapping);
@@ -1085,6 +1102,15 @@ define([
         this.onCancel = function(event) {
             this.$modal.modal('hide');
         };
+
+        this.onReset = function(event) {
+            this.clearMapping();
+            this.$node.find('.preview').hide();
+            this.$node.find('.entities').show();
+            this.select('importSelector').prop('disabled', true);
+            this.setImportButtonToPreview(true);
+            this.loadInfo().bind(this);
+        }
 
         this.onImport = function(event) {
             var $message = this.$node.find('.importMessage').empty(),
