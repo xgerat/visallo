@@ -62,11 +62,15 @@ define([
 
         this.addValue = function(value) {
             if (this.values.indexOf(value) === -1) {
-                this.values.push(value);
-                return true;
-            } else {
-                return false;
+                const isPossibleValue = _.values(this.attr.property.possibleValues || {}).some(v => v === value);
+
+                if (isPossibleValue) {
+                    this.values.push(value);
+                    return true;
+                }
             }
+
+            return false;
         };
 
         this.removeValue = function(value) {
