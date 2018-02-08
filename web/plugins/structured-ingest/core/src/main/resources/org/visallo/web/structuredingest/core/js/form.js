@@ -57,79 +57,80 @@ define([
 
             this.$node.addClass('mode-header');
 
-            this.loadMapping()
-                .then(this.transformMappingToProps.bind(this))
-                .then(({ mappedObjects, parseOptions }) => {
-                    this.mappedObjects = mappedObjects;
-                    this.parseOptions = parseOptions;
-
-                    this.$modal = this.$node.html(template({
-                        title: F.vertex.title(this.attr.vertex),
-                        hasMapping: this.hasMapping
-                    }));
-                    var windowWidth = Math.round($(window).width() * 0.9);
-                    this.$modal.find('.modal-resizable').resizable({
-                        minWidth: Math.min(windowWidth, 375),
-                        maxWidth: windowWidth,
-                        handles: 'e, w',
-                        resize: function (event, ui) {
-                            ui.position.left = 0;
-                        }
-                    });
-                    this.$modal.modal();
-
-                    this.on('click', {
-                        cancelSelector: this.onCancel,
-                        resetSelector: this.onReset,
-                        importSelector: this.onImport,
-                        publishSelector: this.onSetPublish,
-                        segmentedControlSelector: this.onSegmentedControl,
-                        cellSelector: this.onCellClick,
-                        errorBadge: this.onErrorBadgeClick,
-                        createdObjectsSelector: this.onCreatedObjectsClick,
-                        noHeaderSelector: this.onNoHeaderClick
-                    });
-                    this.on('mouseover', {
-                        cellSelector: this.onCellMouse
-                    })
-                    this.on('mouseout', {
-                        cellSelector: this.onCellMouse
-                    })
-                    this.on('mousedown', {
-                        createdEntitiesSelector: this.onEntityMouseDown
-                    })
-                    this.on('mouseup', {
-                        createdEntitiesSelector: this.onEntityUp
-                    })
-                    this.on('hidden', function () {
-                        this.$modal.remove();
-                    });
-                    this.on('change', {
-                        changeSheetSelector: this.onChangeSheet
-                    });
-                    this.on('updateMappedObject', this.onUpdateMappedObject);
-                    this.on('removeMappedObject', this.onRemoveMappedObject);
-                    this.on('removeMappedObjectProperty', this.onRemoveMappedObjectProperty);
-                    this.on('errorHandlingUpdated', this.onUpdateErrorHandling);
-
-                    this.flashOnce = _.once(this.flashPlaceholder.bind(this));
-
-                    const args = this.hasMapping ? [ this, parseOptions.sheetIndex, parseOptions.startRowIndex ] : [this];
-                    _.defer(this.loadInfo.bind(...args));
-
-                    if (this.hasMapping) {
-                        this.enableFooterButtons(true);
+            this.setSheetMapping().then(() => {
+                this.$modal = this.$node.html(template({
+                    title: F.vertex.title(this.attr.vertex)
+                }));
+                var windowWidth = Math.round($(window).width() * 0.9);
+                this.$modal.find('.modal-resizable').resizable({
+                    minWidth: Math.min(windowWidth, 375),
+                    maxWidth: windowWidth,
+                    handles: 'e, w',
+                    resize: function (event, ui) {
+                        ui.position.left = 0;
                     }
-
-                    this.dataRequest('config', 'properties').done(function (properties) {
-                        self.runningUserGuide = properties['userGuide.enabled'] !== 'false';
-                    });
                 });
+                this.$modal.modal();
+
+                this.on('click', {
+                    cancelSelector: this.onCancel,
+                    resetSelector: this.onReset,
+                    importSelector: this.onImport,
+                    publishSelector: this.onSetPublish,
+                    segmentedControlSelector: this.onSegmentedControl,
+                    cellSelector: this.onCellClick,
+                    errorBadge: this.onErrorBadgeClick,
+                    createdObjectsSelector: this.onCreatedObjectsClick,
+                    noHeaderSelector: this.onNoHeaderClick
+                });
+                this.on('mouseover', {
+                    cellSelector: this.onCellMouse
+                })
+                this.on('mouseout', {
+                    cellSelector: this.onCellMouse
+                })
+                this.on('mousedown', {
+                    createdEntitiesSelector: this.onEntityMouseDown
+                })
+                this.on('mouseup', {
+                    createdEntitiesSelector: this.onEntityUp
+                })
+                this.on('hidden', function () {
+                    this.$modal.remove();
+                });
+                this.on('change', {
+                    changeSheetSelector: this.onChangeSheet
+                });
+                this.on('updateMappedObject', this.onUpdateMappedObject);
+                this.on('removeMappedObject', this.onRemoveMappedObject);
+                this.on('removeMappedObjectProperty', this.onRemoveMappedObjectProperty);
+                this.on('errorHandlingUpdated', this.onUpdateErrorHandling);
+
+                this.flashOnce = _.once(this.flashPlaceholder.bind(this));
+
+                const args = this.hasMapping ? [ this, this.parseOptions.sheetIndex, this.parseOptions.startRowIndex ] : [this];
+                _.defer(this.loadInfo.bind(...args));
+
+                if (this.hasMapping) {
+                    this.enableFooterButtons(true);
+                }
+
+                this.dataRequest('config', 'properties').done(function (properties) {
+                    self.runningUserGuide = properties['userGuide.enabled'] !== 'false';
+                });
+            });
         });
 
         this.saveMapping = function() {
-            const { mappedObjects, parseOptions } = this;
-            return this.dataRequest('org-visallo-structuredingest', 'updateMapping', { mappedObjects, parseOptions }, this.attr.vertex.id)
+            const sheetIndex = this.parseOptions.sheetIndex;
+            const mapping = _.extend({}, this.rawMapping, {
+                [sheetIndex]: {
+                    mappedObjects: this.mappedObjects,
+                    parseOptions: this.parseOptions
+                }
+            });
+
+            return this.dataRequest('org-visallo-structuredingest', 'updateMapping', mapping, this.attr.vertex.id)
         };
 
         this.clearMapping = function() {
@@ -142,24 +143,43 @@ define([
             this.hasMapping = false;
         };
 
-        this.loadMapping = function() {
-            return this.dataRequest('vertex', 'propertyValue',
-                this.attr.vertex.id,
-                MAPPING_PROPERTY_IRI,
-                MAPPING_PROPERTY_KEY
-            ).catch(e => {
-                // if there is no existing mapping just use empty defaults
-                return null;
-            });
+        this.loadMapping = function(sheetIndex = 0) {
+            if (this.rawMapping && this.rawMapping[sheetIndex]) {
+                return Promise.resolve(this.rawMapping[sheetIndex]);
+            } else if (this.rawMapping === undefined) {
+                return this.dataRequest('vertex', 'propertyValue',
+                    this.attr.vertex.id,
+                    MAPPING_PROPERTY_IRI,
+                    MAPPING_PROPERTY_KEY
+                ).then(rawMapping => {
+                    this.rawMapping = JSON.parse(rawMapping);
+                    return this.rawMapping[sheetIndex];
+                }).catch(e => {
+                    // if there is no existing mapping just use empty defaults
+                    this.rawMapping = false;
+                    return null;
+                });
+            } else {
+                return Promise.resolve();
+            }
         };
 
-        this.transformMappingToProps = function(rawMapping) {
-            if (rawMapping) {
-                this.hasMapping = true;
-            }
+        this.setSheetMapping = function(sheetIndex = 0) {
+            return this.loadMapping(sheetIndex)
+                .then(mapping => {
+                    if (mapping) {
+                        this.hasMapping = true;
+                    }
+                    return this.transformMappingToProps(mapping);
+                })
+                .then(({ mappedObjects, parseOptions }) => {
+                    this.mappedObjects = mappedObjects;
+                    this.parseOptions = parseOptions;
+                });
+        };
 
-            const mapping = JSON.parse(rawMapping);
-            let { mappedObjects, parseOptions } = (mapping || {});
+        this.transformMappingToProps = function(sheetMapping) {
+            let { mappedObjects, parseOptions } = (sheetMapping || {});
 
             if (!mappedObjects) {
                 mappedObjects = {
@@ -179,8 +199,17 @@ define([
         };
 
         this.onChangeSheet = function(event) {
-            var sheet = this.select('changeSheetSelector').val();
-            this.loadInfo(parseInt(sheet, 10));
+            const sheetIndex = parseInt(this.select('changeSheetSelector').val(), 10);
+
+            return this.setSheetMapping(sheetIndex).then(() => {
+                const args = [this, sheetIndex];
+                if (this.hasMapping) {
+                    args.push(this.parseOptions.startRowIndex);
+                }
+
+                this.loadInfo.call(...args);
+                this.enableFooterButtons(true);
+            })
         };
 
         this.onSetPublish = function(event) {
