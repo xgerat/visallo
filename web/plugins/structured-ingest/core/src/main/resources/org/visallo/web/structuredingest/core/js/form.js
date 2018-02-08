@@ -133,12 +133,12 @@ define([
             return this.dataRequest('org-visallo-structuredingest', 'updateMapping', mapping, this.attr.vertex.id)
         };
 
-        this.clearMapping = function() {
+        this.clearMapping = function(sheetIndex = 0) {
             this.mappedObjects = { vertices: [], edges: [] };
             this.parseOptions = {
                 hasHeaderRow: true,
                 startRowIndex: 0,
-                sheetIndex: 0
+                sheetIndex
             };
             this.hasMapping = false;
         };
@@ -1131,7 +1131,7 @@ define([
         };
 
         this.onReset = function(event) {
-            this.clearMapping();
+            this.clearMapping(this.parseOptions.sheetIndex);
 
             this.$node.find('.segmented-control > .preview').prop('disabled', true)
             this.switchPanel('entities');
@@ -1139,7 +1139,7 @@ define([
             this.select('importSelector').prop('disabled', true);
             this.setImportButtonToPreview(true);
 
-            this.loadInfo().bind(this);
+            this.loadInfo(this.parseOptions.sheetIndex).bind(this);
         }
 
         this.onImport = function(event) {
