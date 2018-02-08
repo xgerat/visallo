@@ -21,7 +21,6 @@ define([
 
             return (
                 <div className={'base-layer-dropdown'}>
-                    <span className={'map-providers-label'}>{ i18n('org.visallo.web.product.map.MapWorkProduct.layers.base.provider') }</span>
                     <select
                         className={'map-providers'}
                         value={config.providerName || defaultProvider}
