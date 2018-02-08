@@ -27,7 +27,7 @@ var VisalloAmdExternals = [
     'util/withContextMenu',
     'util/withDataRequest',
     'util/mapConfig',
-     'openlayers',
+    'openlayers',
     'fast-json-patch',
     'updeep',
     'classnames',

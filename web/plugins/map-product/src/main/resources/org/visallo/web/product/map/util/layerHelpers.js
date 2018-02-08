@@ -11,6 +11,7 @@ define([
 ) {
     'use strict';
 
+    const BaseLayerLoaded = 'baseLayerLoaded';
     const FEATURE_CLUSTER_RADIUS = 12;
     const FEATURE_CLUSTER_RADIUS_MAX = 20;
     const VECTOR_FEATURE_SELECTION_OVERLAY = 'org-visallo-map-vector-selected-overlay';
@@ -51,6 +52,7 @@ define([
 
             addEvents(map, { source }, handlers) {
                 return [
+                    ...listenForTileLoading(map, source),
                     source.on('tileloaderror', function(event) {
                         const MaxRetry = 3;
                         const { tile } = event;
@@ -89,6 +91,7 @@ define([
                     id: 'heatmap_cluster',
                     label: 'Heatmap',
                     type: 'cluster_heatmap',
+                    defaultVisibility: false,
                     source
                 })
 
@@ -241,13 +244,12 @@ define([
                 });
                 if (options.getExtent) {
                     const _superExtent = source.getExtent;
-                    source.getExtent = function() {
-                        const extent = _superExtent && _superExtent.apply(this, arguments);
-                        const customExtent = options.getExtent(map, source, extent);
+                    source.getCustomExtent = function(limit) {
+                        const customExtent = options.getExtent(map, source, limit);
                         if (ol.extent.isEmpty(customExtent)) {
-                            return extent || ol.extent.createEmpty();
+                            return ol.extent.createEmpty();
                         }
-                        return customExtent || extent || ol.extent.createEmpty();
+                        return customExtent || ol.extent.createEmpty();
                     };
                 }
                 const layer = new ol.layer.Vector({
@@ -523,7 +525,11 @@ define([
     }
 
     function setLayerConfig(config = {}, layer) {
-        const { visible = true, opacity = 1, zIndex = 0, ...properties } = config;
+        let defaultVisibility = layer.get('defaultVisibility')
+        if (!_.isBoolean(defaultVisibility)) {
+            defaultVisibility = true;
+        }
+        const { visible = defaultVisibility, opacity = 1, zIndex = 0, ...properties } = config;
 
         _.mapObject(properties, (value, key) => {
             if (value === null) {
@@ -679,9 +685,81 @@ define([
         }
     }
 
+    function listenForTileLoading(map, source) {
+        const events = [];
+        if (source instanceof ol.source.TileImage) {
+            var numInFlightTiles = 0;
+            events.push(
+                source.on('tileloadstart', () => { ++numInFlightTiles; }),
+                source.on('tileloadend', () => { --numInFlightTiles; }),
+                source.on('tileloaderror', () => { --numInFlightTiles; }),
+                map.on('postrender', event => {
+                    const { frameState } = event;
+
+                    if (!frameState) return;
+
+                    const wanted = frameState.wantedTiles;
+                    var numHeldTiles = 0;
+
+                    for (let layer in wanted) {
+                        if (wanted.hasOwnProperty(layer)) {
+                            numHeldTiles += Object.keys(wanted[layer]).length;
+                        }
+                    }
+
+                    const ready = (
+                        numInFlightTiles === 0 &&
+                        numHeldTiles === 0
+                    );
+                    if (map.get(BaseLayerLoaded) !== ready) {
+                        map.set(BaseLayerLoaded, ready);
+                    }
+                })
+            );
+            map.set(BaseLayerLoaded, false);
+        } else {
+            map.set(BaseLayerLoaded, true)
+        }
+        return events;
+    }
+
+    // Calculate extent of map, optionally limited to features,
+    // also uses custom extent function from layer extensions.
+    function calculateExtent(map, layersWithSources, { limitToFeatures } = {}) {
+        const extent = ol.extent.createEmpty();
+        _.each(layersWithSources, ({ layer, layers, source }) => {
+            (layers ? layers : [layer]).forEach(layer => {
+                if (source && source.getExtent && source.getFeatureById && layer.getVisible()) {
+                    const hasCustomFn = _.isFunction(source.getCustomExtent);
+                    const limit = limitToFeatures && limitToFeatures.reduce((list, feature) => {
+                        if (source.getFeatureById(feature.getId())) {
+                            list.push(feature)
+                            if (!hasCustomFn) {
+                                const featureExtent = feature.getGeometry().getExtent();
+                                if (!ol.extent.isEmpty(featureExtent)) {
+                                    ol.extent.extend(extent, featureExtent);
+                                }
+                            }
+                        }
+                        return list;
+                    }, [])
+                    if (hasCustomFn) {
+                        ol.extent.extend(extent, source.getCustomExtent(limit));
+                    } else if (!limitToFeatures && _.isFunction(source.getExtent)) {
+                        ol.extent.extend(extent, source.getExtent());
+                    }
+                }
+            })
+        })
+        return extent;
+    }
+
     return {
         byType: layers,
         styles,
-        setLayerConfig
+        setLayerConfig,
+        listenForTileLoading,
+        calculateExtent,
+        BaseLayerLoaded
     }
 })

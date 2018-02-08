@@ -29,6 +29,7 @@ define([
             columns: PropTypes.array.isRequired,
             selected: PropTypes.array,
             sort: PropTypes.object,
+            scrollToTop: PropTypes.bool,
             showRowNumbers: PropTypes.bool,
             loadMoreRows: PropTypes.func,
             onHeaderClick: PropTypes.func,
@@ -36,6 +37,23 @@ define([
             onContextMenu: PropTypes.func,
             onColumnResize: PropTypes.func,
             onConfigureClick: PropTypes.func
+        },
+
+        getInitialState() {
+            return { scrollToTop: false }
+        },
+
+        componentWillReceiveProps(nextProps) {
+            if (nextProps.scrollToTop && !this.state.scrollToTop) {
+                this.setState({ scrollToTop: true });
+            }
+        },
+
+        shouldComponentUpdate(nextProps, nextState) {
+            if (this.props === nextProps && this.state.scrollToTop && !nextState.scrollToTop) {
+                return false
+            }
+            return true;
         },
 
         componentWillUpdate(nextProps) {
@@ -46,6 +64,12 @@ define([
             }
         },
 
+        componentDidUpdate(prevProps, prevState) {
+            if (this.state.scrollToTop) {
+                this._VirtualizedTable.scrollToRow(0);
+            }
+        },
+
         render() {
             const {
                 data,
@@ -53,7 +77,6 @@ define([
                 selected,
                 sort,
                 showRowNumbers,
-                scrollToIndex,
                 onRowsRendered,
                 onHeaderClick,
                 onRowClick,
@@ -89,7 +112,7 @@ define([
                                          rowCount={rowCount}
                                          rowGetter={({ index }) => data[index] || {}}
                                          rowRenderer={(args) => SelectableRowRenderer({ ...args, selected, onContextMenu, onRowClick })}
-                                         scrollToIndex={scrollToIndex}
+                                         onScroll={this.onScroll}
                                          onRowsRendered={onRowsRendered}
                                          ref={(ref) => {
                                             this._VirtualizedTable = ref;
@@ -147,6 +170,16 @@ define([
                     </InfiniteLoader>
                 </div>
             );
+        },
+
+        onScroll(data) {
+            if (this.state.scrollToTop
+                && this._VirtualizedTable
+                && this._VirtualizedTable.Grid
+                && this._VirtualizedTable.Grid.state
+                && this._VirtualizedTable.Grid.state.scrollPositionChangeReason === 'observed') {
+                this.setState({ scrollToTop: false });
+            }
         }
     });
 

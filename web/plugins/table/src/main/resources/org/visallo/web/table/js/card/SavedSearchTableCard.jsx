@@ -159,13 +159,13 @@ define([
                 tabs: searchData.buckets,
                 activeTab: activeTab,
                 sort: { property: sortColumn, direction: direction },
-                data: searchData[activeTab],
-                columns: tableView[activeTab].columns,
-                selected: selected
+                data: [ ...searchData[activeTab] ],
+                columns: [ ...tableView[activeTab].columns ],
+                selected: selected,
+                scrollToTop: this.scrollToTop
             };
 
             if (this.scrollToTop) {
-                data.scrollToIndex = 0;
                 this.scrollToTop = false;
             }
 

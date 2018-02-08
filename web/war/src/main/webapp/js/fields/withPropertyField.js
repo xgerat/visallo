@@ -117,10 +117,17 @@ define([
                     })
                 }
 
-                Promise.resolve(self.setValue(self.attr.value))
-                    .then(function() {
-                        self.triggerFieldUpdated();
-                    });
+                const isEmpty = self.attr.value === null
+                    || self.attr.value === ''
+                    || self.attr.value === undefined
+                    || (self.attr.value instanceof Object && _.isEmpty(self.attr.value));
+
+                if (!isEmpty) {
+                    Promise.resolve(self.setValue(self.attr.value))
+                        .then(function () {
+                            self.triggerFieldUpdated();
+                        });
+                }
             }
         });
 

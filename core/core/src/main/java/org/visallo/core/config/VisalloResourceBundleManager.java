@@ -1,5 +1,8 @@
 package org.visallo.core.config;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import org.visallo.core.bootstrap.InjectHelper;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -10,15 +13,19 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
 
+@Singleton
 public class VisalloResourceBundleManager {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(VisalloResourceBundleManager.class);
     public static final String RESOURCE_BUNDLE_BASE_NAME = "MessageBundle";
     private Properties unlocalizedProperties;
     private Map<Locale, Properties> localizedProperties;
+    private final boolean devMode;
 
-    public VisalloResourceBundleManager() {
+    @Inject
+    public VisalloResourceBundleManager(Configuration configuration) {
         unlocalizedProperties = new Properties();
         localizedProperties = new HashMap<>();
+        this.devMode = configuration.getBoolean(Configuration.DEV_MODE, Configuration.DEV_MODE_DEFAULT);
     }
 
     public void register(InputStream inputStream) throws IOException {
@@ -74,13 +81,24 @@ public class VisalloResourceBundleManager {
     }
 
     private ResourceBundle getRootBundle(Locale locale) {
-        return ResourceBundle.getBundle(RESOURCE_BUNDLE_BASE_NAME, locale, new UTF8PropertiesControl());
+        return ResourceBundle.getBundle(RESOURCE_BUNDLE_BASE_NAME, locale, new UTF8PropertiesControl(devMode));
     }
 
     /**
      * use an InputStreamReader to allow for UTF-8 values in property file bundles, otherwise use the base class implementation
      */
     private class UTF8PropertiesControl extends ResourceBundle.Control {
+        private final boolean disableCache;
+
+        public UTF8PropertiesControl(boolean disableCache) {
+            this.disableCache = disableCache;
+        }
+
+        @Override
+        public long getTimeToLive(String baseName, Locale locale) {
+            return disableCache ? TTL_DONT_CACHE : TTL_NO_EXPIRATION_CONTROL;
+        }
+
         public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader, boolean reload)
                 throws IllegalAccessException, InstantiationException, IOException {
             if (format.equals("java.properties")) {

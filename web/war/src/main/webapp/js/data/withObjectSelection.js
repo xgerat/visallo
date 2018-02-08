@@ -363,7 +363,14 @@ Support will be removed in future versions, use:
         this.onAddRelatedItems = function(event, data) {
             var self = this;
 
-            if ($(event.target).closest('.org-visallo-graph').length === 0) return;
+            const outsideGraph = $(event.target).closest('.org-visallo-graph').length === 0;
+            if (outsideGraph) {
+                return;
+            }
+            if (!visalloData.currentWorkspaceEditable) {
+                this.displayInfo('graph.workspace.readonly')
+                return;
+            }
 
             Promise.require('util/vertex/formatters')
                 .then(function(F) {

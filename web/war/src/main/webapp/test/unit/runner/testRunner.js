@@ -30,6 +30,7 @@ requirejs(['/base/jsc/require.config.js'], function(cfg) {
         unminifyForTest(
             'react',
             'react-dom',
+            'react-pure-render-mixin',
             'create-react-class',
             'react-proptypes-dev',
             'react-redux',

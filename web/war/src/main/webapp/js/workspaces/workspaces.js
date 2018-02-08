@@ -136,7 +136,7 @@ define([
             var container = this.select('formSelector'),
                 form = container.resizable({
                         handles: 'e',
-                        minWidth: 120,
+                        minWidth: 170,
                         maxWidth: 250,
                         resize: function() {
                             self.trigger(document, 'paneResized');

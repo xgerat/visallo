@@ -30,6 +30,9 @@ define([
 
         this.after('teardown', function() {
             this.$node.remove();
+            if (this._attacher) {
+                this._attacher.teardown();
+            }
         });
 
         this.after('initialize', function() {

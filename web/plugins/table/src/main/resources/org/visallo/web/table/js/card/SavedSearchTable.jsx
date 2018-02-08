@@ -30,6 +30,7 @@ define([
         tabs: PropTypes.object.isRequired,
         activeTab: PropTypes.string,
         sort: PropTypes.object,
+        scrollToTop: PropTypes.bool,
         selected: PropTypes.array,
         showRowNumbers: PropTypes.bool,
         onRowsRendered: PropTypes.func,

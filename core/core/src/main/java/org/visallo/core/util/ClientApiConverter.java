@@ -241,7 +241,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         }
 
         for (Metadata.Entry entry : property.getMetadata().entrySet()) {
-            clientApiProperty.getMetadata().put(entry.getKey(), toClientApiValue(entry.getValue()));
+            clientApiProperty.getMetadata().put(entry.getKey(), toClientApiMetadataValue(entry.getValue()));
         }
 
         return clientApiProperty;
@@ -264,7 +264,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
             clientApiProperty.setName(MediaVisalloProperties.VIDEO_TRANSCRIPT.getPropertyName());
             clientApiProperty.setSandboxStatus(sandboxStatus);
             for (Metadata.Entry entry : metadata.entrySet()) {
-                clientApiProperty.getMetadata().put(entry.getKey(), toClientApiValue(entry.getValue()));
+                clientApiProperty.getMetadata().put(entry.getKey(), toClientApiMetadataValue(entry.getValue()));
             }
             clientApiProperty.setStreamingPropertyValue(true);
             clientApiProperties.add(clientApiProperty);
@@ -365,7 +365,7 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         event.propertyKey = hpv.getPropertyKey();
         event.propertyName = hpv.getPropertyName();
         Metadata.Entry modifiedByEntry = (hpv.getMetadata() != null) ? hpv.getMetadata().getEntry(VisalloProperties.MODIFIED_BY.getPropertyName()) : null;
-        event.modifiedBy = ((modifiedByEntry != null) ? toClientApiValue(modifiedByEntry.getValue()).toString() : null);
+        event.modifiedBy = ((modifiedByEntry != null) ? toClientApiMetadataValue(modifiedByEntry.getValue()).toString() : null);
         return event;
     }
 

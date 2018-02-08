@@ -10,8 +10,14 @@ define([], function() {
                 if ('localStorage' in window) {
                     if (enable === true || typeof enable === 'undefined') {
                         console.debug('Enabling LiveReload...')
-                        require([`//${location.host.replace(/:.*$/, '')}:35729/livereload.js`], function() {
+                        const host = location.host.replace(/:.*$/, '');
+                        require([`//${host}:35729/livereload.js`], function() {
                             console.debug('LiveReload successfully enabled');
+                        }, function() {
+                            console.warn(`Failed to enable LiveReload, check that grunt is running and you may also need to update the content security policy:
+                            web.response.header.Content-Security-Policy.script-src.append=https://${host}:35729
+                            web.response.header.Content-Security-Policy.connect-src.append=wss://${host}:35729
+                            `);
                         });
                         localStorage.setItem('liveReloadEnabled', true);
                     } else {

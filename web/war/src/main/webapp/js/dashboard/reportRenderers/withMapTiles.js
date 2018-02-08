@@ -35,7 +35,9 @@ define([
                     this.map.setTarget(null)
                     _.defer(() => {
                         this.map.setTarget(node)
+                        this.viewportListeners();
                         this.vectorSource.addFeatures(this.getFeatures(geoJson));
+                        this.fit();
                     })
                 }
                 return;
@@ -58,19 +60,18 @@ define([
                 })
             });
 
-            map.getView().fit(vectorSource.getExtent());
-
             this.updateSize = _.throttle(this.updateSize.bind(this), 500);
             this.map = map;
             this.vectorSource = vectorSource;
             this.vectorLayer = vectorLayer;
 
+            this.fit();
+
             const viewport = map.getViewport();
             viewport.setAttribute('tabindex', '-1');
             viewport.setAttribute('data-allow-focus', true);
+            this.viewportListeners();
 
-            this.on(viewport, 'focus', () => { this.setInteractions(true); });
-            this.on(viewport, 'blur', () => { this.setInteractions(false); });
             this.on(window, 'keyup', event => {
                 if (event.keyCode === Escape) {
                     viewport.blur();
@@ -102,6 +103,16 @@ define([
                 }
             })
             this.setInteractions(false);
+        };
+
+        this.fit = function() {
+            this.map.getView().fit(this.vectorSource.getExtent());
+        };
+
+        this.viewportListeners = function() {
+            const viewport = this.map.getViewport();
+            this.on(viewport, 'focus', () => { this.setInteractions(true); });
+            this.on(viewport, 'blur', () => { this.setInteractions(false); });
         };
 
         this.setInteractions = function(activate) {
