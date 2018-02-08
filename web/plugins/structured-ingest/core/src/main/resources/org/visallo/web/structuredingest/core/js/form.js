@@ -1193,15 +1193,17 @@ define([
                     .text(i18n('csv.file_import.checking.percent', F.number.percent(data.row / data.total)));
             });
 
+            if (!this.currentImportActionIsPreview) {
+                this.saveMapping();
+            }
+
             this.dataRequest('org-visallo-structuredingest', 'ingest', mapping, self.attr.vertex.id, this.parseOptions, this.currentImportActionIsPreview, this.shouldPublish)
                 .then(function(result) {
                     $message.empty().removeClass('info');
 
                     if (result.success) {
-                        return self.saveMapping.call(self).then(() => {
-                            self.$modal.modal('hide');
-                            self.trigger('showActivityDisplay');
-                        });
+                        self.$modal.modal('hide');
+                        self.trigger('showActivityDisplay');
                     } else if (result.errors || result.mappingErrors) {
                         self.handleErrors(result);
                     } else if (result.vertices) {
