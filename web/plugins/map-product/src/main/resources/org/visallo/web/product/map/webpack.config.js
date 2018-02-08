@@ -10,6 +10,7 @@ var VisalloAmdExternals = [
     'data/web-worker/store/product/actions',
     'data/web-worker/store/product/actions-impl',
     'data/web-worker/store/product/selectors',
+    'data/web-worker/store/configuration/selectors',
     'data/web-worker/store/element/selectors',
     'data/web-worker/store/element/actions-impl',
     'data/web-worker/store/ontology/selectors',
@@ -39,6 +40,7 @@ var VisalloAmdExternals = [
     'react-dom',
     'redux',
     'react-redux',
+    'reselect',
     'jscache'
 ].map(path => ({ [path]: { amd: path, commonjs2: false, commonjs: false }}));
 

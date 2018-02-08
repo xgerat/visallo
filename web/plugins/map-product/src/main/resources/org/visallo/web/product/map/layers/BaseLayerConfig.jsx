@@ -1,11 +1,13 @@
 define([
     'prop-types',
     'create-react-class',
-    'react-redux'
+    'react-redux',
+    '../worker/selectors'
 ], function(
     PropTypes,
     createReactClass,
-    redux) {
+    redux,
+    mapSelectors) {
 
     const BaseLayerConfig = createReactClass({
         propTypes: {
@@ -46,34 +48,9 @@ define([
     });
 
     return redux.connect(
-        (state, props) => {
-            const properties = state.configuration.properties;
-            const defaultProvider = properties['map.provider'] || 'osm';
-            const mapProviders = _.chain(properties)
-                .pick((value, property) => property.startsWith('map.provider.'))
-                .reduce((providers, value, key) => {
-                    const [ str, provider ] = key.match(/^map\.provider\.(.+)\..*$/);
-
-                    if (provider && !providers[provider]) {
-                        providers[provider] = { providerName: provider, label: provider };
-                    }
-                    if (key.endsWith('.label')) {
-                        providers[provider].label = value;
-                    }
-                    if (key.endsWith('.source')) {
-                        providers[provider].providerSource = value;
-                    }
-
-                    return providers;
-                }, { [defaultProvider]: { providerName: defaultProvider, label: defaultProvider }})
-                .values()
-                .value();
-
-            return {
-                defaultProvider,
-                mapProviders
-            }
-
-        }
+        (state, props) => ({
+            defaultProvider: mapSelectors.getDefaultProvider(state),
+            mapProviders: mapSelectors.getProviders(state)
+        })
     )(BaseLayerConfig);
 });
