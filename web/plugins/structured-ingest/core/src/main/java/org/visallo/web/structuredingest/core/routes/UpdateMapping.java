@@ -88,13 +88,9 @@ public class UpdateMapping implements ParameterizedHandler {
     @Handle
     public ClientApiSuccess handle(
             @Required(name = "graphVertexId") String graphVertexId,
-            @Required(name = "mapping") String mappingStr,
-            @Optional(name = "parseOptions") String parseOptionsStr,
-            @ActiveWorkspaceId String workspaceId,
-            User user,
+            @Required(name = "mapping") String mapping,
             Authorizations authorizations
     ) throws Exception {
-//        Authorizations structuredFileAuthorizations = graph.createAuthorizations(authorizations, )
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
         if (vertex == null) {
             throw new VisalloResourceNotFoundException("Could not find vertex:" + graphVertexId);
@@ -103,12 +99,7 @@ public class UpdateMapping implements ParameterizedHandler {
         ElementMutation<Vertex> m = vertex.prepareMutation();
         Visibility visibility = visibilityTranslator.getDefaultVisibility();
 
-        JSONObject mapping = new JSONObject();
-        mapping.put("mappedObjects", new JSONObject(mappingStr));
-        mapping.put("parseOptions", new JSONObject(parseOptionsStr));
-
-
-        StructuredIngestOntology.MAPPING.addPropertyValue(m, PROPERTY_KEY, mapping.toString(), visibility);
+        StructuredIngestOntology.MAPPING.addPropertyValue(m, PROPERTY_KEY, mapping, visibility);
 
         m.save(authorizations);
         graph.flush();

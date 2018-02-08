@@ -38,10 +38,9 @@ define('data/web-worker/services/org-visallo-structuredingest', ['data/web-worke
             }));
         },
 
-        updateMapping: function(mapping, parseOptions, vertexId) {
+        updateMapping: function(mapping, vertexId) {
             return ajax('POST', '/structured-ingest/mapping', {
                 mapping: JSON.stringify(mapping),
-                parseOptions: JSON.stringify(parseOptions),
                 graphVertexId: vertexId
             })
         }

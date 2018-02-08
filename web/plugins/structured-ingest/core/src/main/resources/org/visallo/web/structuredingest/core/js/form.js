@@ -129,12 +129,7 @@ define([
 
         this.saveMapping = function() {
             const { mappedObjects, parseOptions } = this;
-
-            return this.dataRequest('org-visallo-structuredingest', 'updateMapping',
-                mappedObjects,
-                parseOptions,
-                this.attr.vertex.id
-            )
+            return this.dataRequest('org-visallo-structuredingest', 'updateMapping', { mappedObjects, parseOptions }, this.attr.vertex.id)
         };
 
         this.clearMapping = function() {
@@ -153,7 +148,6 @@ define([
                 MAPPING_PROPERTY_IRI,
                 MAPPING_PROPERTY_KEY
             ).catch(e => {
-                console.warn(e);
                 // if there is no existing mapping just use empty defaults
                 return null;
             });
@@ -228,12 +222,16 @@ define([
                         .find('.tableview')
                         .html(tableTemplate(result))
                     self.trigger('updateMappedObject');
+                    self.select('resetSelector').prop('disabled', Boolean(chooseHeader));
+
+                    if (!chooseHeader) {
+                        self.hasMapping = true;
+                    }
                 });
         };
 
         this.onCellMouse = function(event) {
-            var self = this,
-                oldItems = this.$node.find('.hover-highlight'),
+            var oldItems = this.$node.find('.hover-highlight'),
                 modeIsChoosingHeader = this.$node.hasClass('mode-header'),
                 $target = $(event.target);
 
@@ -579,7 +577,6 @@ define([
             if (data) {
                 var type = data.type === 'vertex' ? 'vertices' : 'edges',
                     list = this.mappedObjects[type],
-                    finished = !!data.finished,
                     shouldCreateNew = true;
 
                 this.mappedObjects[type] = list = list.map(function(o) {
@@ -885,6 +882,7 @@ define([
         this.enableFooterButtons = function(enable) {
             if (enable) {
                 this.select('importSelector').prop('disabled', this.mappedObjects.vertices.length === 0);
+                this.select('resetSelector').prop('disabled', !this.hasMapping);
                 this.$node.find('.modal-footer button.cancel').prop('disabled', false);
             } else {
                 this.$node.find('.modal-footer button').prop('disabled', true);
@@ -1105,10 +1103,13 @@ define([
 
         this.onReset = function(event) {
             this.clearMapping();
-            this.$node.find('.preview').hide();
-            this.$node.find('.entities').show();
+
+            this.$node.find('.segmented-control > .preview').prop('disabled', true)
+            this.switchPanel('entities');
+
             this.select('importSelector').prop('disabled', true);
             this.setImportButtonToPreview(true);
+
             this.loadInfo().bind(this);
         }
 
