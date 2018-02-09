@@ -56,46 +56,43 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
     public String enqueue(JSONObject longRunningProcessQueueItem, User user, Authorizations authorizations) {
         authorizations = getAuthorizations(user);
 
-        Vertex userVertex;
+        String longRunningProcessId;
         if (user instanceof SystemUser) {
-            userVertex = null;
+            longRunningProcessId = null;
         } else {
-            userVertex = graph.getVertex(user.getUserId(), authorizations);
+            Vertex userVertex = graph.getVertex(user.getUserId(), authorizations);
             checkNotNull(userVertex, "Could not find user with id: " + user.getUserId());
-        }
-        Visibility visibility = getVisibility();
+            Visibility visibility = getVisibility();
 
-        String longRunningProcessVertexId;
-        try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.LOW, user, authorizations)) {
-            ctx.setPushOnQueue(false);
-            longRunningProcessVertexId = ctx.update(this.graph.prepareVertex(visibility), elemCtx -> {
-                PropertyMetadata metadata = new PropertyMetadata(user, new VisibilityJson(), visibility);
-                elemCtx.updateBuiltInProperties(metadata);
-                elemCtx.setConceptType(LongRunningProcessProperties.LONG_RUNNING_PROCESS_CONCEPT_IRI);
-                longRunningProcessQueueItem.put("enqueueTime", System.currentTimeMillis());
-                longRunningProcessQueueItem.put("userId", user.getUserId());
-                LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.updateProperty(elemCtx, longRunningProcessQueueItem, metadata);
-            }).get().getId();
+            try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.LOW, user, authorizations)) {
+                ctx.setPushOnQueue(false);
+                longRunningProcessId = ctx.update(this.graph.prepareVertex(visibility), elemCtx -> {
+                    PropertyMetadata metadata = new PropertyMetadata(user, new VisibilityJson(), visibility);
+                    elemCtx.updateBuiltInProperties(metadata);
+                    elemCtx.setConceptType(LongRunningProcessProperties.LONG_RUNNING_PROCESS_CONCEPT_IRI);
+                    longRunningProcessQueueItem.put("enqueueTime", System.currentTimeMillis());
+                    longRunningProcessQueueItem.put("userId", user.getUserId());
+                    LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.updateProperty(elemCtx, longRunningProcessQueueItem, metadata);
+                }).get().getId();
 
-            if (userVertex != null) {
                 ctx.getOrCreateEdgeAndUpdate(
                         null,
                         userVertex.getId(),
-                        longRunningProcessVertexId,
+                        longRunningProcessId,
                         LongRunningProcessProperties.LONG_RUNNING_PROCESS_TO_USER_EDGE_IRI,
                         visibility,
                         elemCtx -> {
                         }
                 );
+            } catch (Exception ex) {
+                throw new VisalloException("Could not create long running process vertex", ex);
             }
-        } catch (Exception ex) {
-            throw new VisalloException("Could not create long running process vertex", ex);
-        }
 
-        longRunningProcessQueueItem.put("id", longRunningProcessVertexId);
+            longRunningProcessQueueItem.put("id", longRunningProcessId);
+        }
         this.workQueueRepository.pushLongRunningProcessQueue(longRunningProcessQueueItem);
 
-        return longRunningProcessVertexId;
+        return longRunningProcessId;
     }
 
     public Authorizations getAuthorizations(User user) {
@@ -125,7 +122,10 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
     }
 
     public void updateVertexWithJson(JSONObject longRunningProcessQueueItem) {
-        String longRunningProcessGraphVertexId = longRunningProcessQueueItem.getString("id");
+        String longRunningProcessGraphVertexId = longRunningProcessQueueItem.optString("id", null);
+        if (longRunningProcessGraphVertexId == null) {
+            return;
+        }
         Authorizations authorizations = getAuthorizations(userRepository.getSystemUser());
         try (GraphUpdateContext ctx = graphRepository.beginGraphUpdate(Priority.LOW, userRepository.getSystemUser(), authorizations)) {
             ctx.setPushOnQueue(false);
@@ -165,6 +165,9 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
 
     @Override
     public JSONObject findById(String longRunningProcessId, User user) {
+        if (longRunningProcessId == null) {
+            return null;
+        }
         Authorizations authorizations = getAuthorizations(user);
         Vertex vertex = this.graph.getVertex(longRunningProcessId, authorizations);
         if (vertex == null) {
@@ -175,6 +178,9 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
 
     @Override
     public void cancel(String longRunningProcessId, User user) {
+        if (longRunningProcessId == null) {
+            return;
+        }
         Authorizations authorizations = getAuthorizations(userRepository.getSystemUser());
         Vertex vertex = this.graph.getVertex(longRunningProcessId, authorizations);
         checkNotNull(vertex, "Could not find long running process vertex: " + longRunningProcessId);
@@ -199,10 +205,13 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
     }
 
     @Override
-    public void reportProgress(String longRunningProcessGraphVertexId, double progressPercent, String message) {
+    public void reportProgress(String longRunningProcessId, double progressPercent, String message) {
+        if (longRunningProcessId == null) {
+            return;
+        }
         Authorizations authorizations = getAuthorizations(userRepository.getSystemUser());
-        Vertex vertex = this.graph.getVertex(longRunningProcessGraphVertexId, authorizations);
-        checkNotNull(vertex, "Could not find long running process vertex: " + longRunningProcessGraphVertexId);
+        Vertex vertex = this.graph.getVertex(longRunningProcessId, authorizations);
+        checkNotNull(vertex, "Could not find long running process vertex: " + longRunningProcessId);
 
         JSONObject object = LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.getPropertyValue(vertex);
         if (object.optBoolean("canceled", false)) {
@@ -212,9 +221,9 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
         JSONObject json = LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.getPropertyValue(vertex);
         json.put("progress", progressPercent);
         json.put("progressMessage", message);
-        json.put("id", longRunningProcessGraphVertexId);
+        json.put("id", longRunningProcessId);
 
-        VertexBuilder vb = graph.prepareVertex(longRunningProcessGraphVertexId, vertex.getVisibility());
+        VertexBuilder vb = graph.prepareVertex(longRunningProcessId, vertex.getVisibility());
         LongRunningProcessProperties.QUEUE_ITEM_JSON_PROPERTY.setProperty(
                 vb,
                 json,
@@ -228,6 +237,9 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
 
     @Override
     public void delete(String longRunningProcessId, User authUser) {
+        if (longRunningProcessId == null) {
+            return;
+        }
         Authorizations authorizations = getAuthorizations(authUser);
         Vertex vertex = this.graph.getVertex(longRunningProcessId, authorizations);
         JSONObject json = null;
