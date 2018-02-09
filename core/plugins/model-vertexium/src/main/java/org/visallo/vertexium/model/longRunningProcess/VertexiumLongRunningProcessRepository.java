@@ -53,8 +53,17 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
     }
 
     @Override
+    public String enqueueDeadLetter(JSONObject longRunningProcessQueueItem, User user, Authorizations authorizations) {
+        return enqueue(longRunningProcessQueueItem, true, user);
+    }
+
+    @Override
     public String enqueue(JSONObject longRunningProcessQueueItem, User user, Authorizations authorizations) {
-        authorizations = getAuthorizations(user);
+        return enqueue(longRunningProcessQueueItem, false, user);
+    }
+
+    private String enqueue(JSONObject longRunningProcessQueueItem, boolean deadLetter, User user) {
+        Authorizations authorizations = getAuthorizations(user);
 
         String longRunningProcessId;
         if (user instanceof SystemUser) {
@@ -87,10 +96,14 @@ public class VertexiumLongRunningProcessRepository extends LongRunningProcessRep
             } catch (Exception ex) {
                 throw new VisalloException("Could not create long running process vertex", ex);
             }
-
             longRunningProcessQueueItem.put("id", longRunningProcessId);
         }
-        this.workQueueRepository.pushLongRunningProcessQueue(longRunningProcessQueueItem);
+
+        if (deadLetter) {
+            this.workQueueRepository.pushLongRunningProcessDeadLetterQueue(longRunningProcessQueueItem);
+        } else {
+            this.workQueueRepository.pushLongRunningProcessQueue(longRunningProcessQueueItem);
+        }
 
         return longRunningProcessId;
     }

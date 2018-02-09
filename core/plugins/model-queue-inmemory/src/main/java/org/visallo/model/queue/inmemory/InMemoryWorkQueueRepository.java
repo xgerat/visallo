@@ -40,6 +40,12 @@ public class InMemoryWorkQueueRepository extends WorkQueueRepository {
         addToQueue(queueName, data, priority);
     }
 
+    @Override
+    public void pushOnDeadLetterQueue(String queueName, byte[] data) {
+        LOGGER.debug("push on dead letter queue: %s: %s", queueName, data);
+        addToQueue(String.format("%s.deadletter", queueName), data, Priority.NORMAL);
+    }
+
     public void addToQueue(String queueName, byte[] data, Priority priority) {
         final List<byte[]> queue = getQueue(queueName);
         // getQueue - only returns static variables

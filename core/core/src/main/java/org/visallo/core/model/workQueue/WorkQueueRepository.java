@@ -552,6 +552,11 @@ public abstract class WorkQueueRepository {
         pushOnQueue(workQueueNames.getLongRunningProcessQueueName(), FlushFlag.DEFAULT, queueItem, priority);
     }
 
+    public void pushLongRunningProcessDeadLetterQueue(JSONObject queueItem) {
+        broadcastLongRunningProcessChange(queueItem);
+        pushOnDeadLetterQueue(workQueueNames.getLongRunningProcessQueueName(), queueItem);
+    }
+
     public void broadcast(String type, JSONObject data, JSONObject permissions) {
         checkNotNull(type);
 
@@ -955,7 +960,7 @@ public abstract class WorkQueueRepository {
         broadcastJson(json);
     }
 
-    private JSONObject getPermissionsWithUserIds(String ...userIds) {
+    private JSONObject getPermissionsWithUserIds(String... userIds) {
         JSONObject permissions = new JSONObject();
         JSONArray users = new JSONArray();
         for (String userId : userIds) {
@@ -1146,6 +1151,12 @@ public abstract class WorkQueueRepository {
             byte[] data,
             Priority priority
     );
+
+    public final void pushOnDeadLetterQueue(String queueName, JSONObject json) {
+        pushOnDeadLetterQueue(queueName, json.toString().getBytes());
+    }
+
+    public abstract void pushOnDeadLetterQueue(String queueName, byte[] data);
 
     public void init(Map map) {
 

@@ -17,6 +17,13 @@ public abstract class LongRunningProcessRepository {
         return enqueue(json, user, authorizations);
     }
 
+    public abstract String enqueueDeadLetter(JSONObject longRunningProcessQueueItem, User user, Authorizations authorizations);
+
+    public String enqueueDeadLetter(LongRunningProcessQueueItemBase longRunningProcessQueueItem, User user, Authorizations authorizations) {
+        JSONObject json = new JSONObject(ClientApiConverter.clientApiToString(longRunningProcessQueueItem));
+        return enqueueDeadLetter(json, user, authorizations);
+    }
+
     public void beginWork(JSONObject longRunningProcessQueueItem) {
     }
 
