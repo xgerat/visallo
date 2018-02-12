@@ -1236,7 +1236,8 @@ define([
                                 previewTemplate({
                                     elements: elements,
                                     didTruncate: result.didTruncate,
-                                    processedRows: F.number.pretty(result.processedRows)
+                                    processedRows: F.number.pretty(result.processedRows),
+                                    canPublishImmediately: result.canPublishImmediately
                                 })
                             )
                         })

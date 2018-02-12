@@ -1,10 +1,6 @@
 package org.visallo.web.structuredingest.core.routes;
 
 import com.google.inject.Singleton;
-import org.visallo.webster.ParameterizedHandler;
-import org.visallo.webster.annotations.Handle;
-import org.visallo.webster.annotations.Optional;
-import org.visallo.webster.annotations.Required;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.vertexium.Authorizations;
@@ -14,7 +10,10 @@ import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.exception.VisalloException;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
+import org.visallo.core.model.ontology.Concept;
+import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -26,17 +25,23 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.VisalloResponse;
 import org.visallo.web.clientapi.model.ClientApiObject;
+import org.visallo.web.clientapi.model.Privilege;
+import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.parameterProviders.ActiveWorkspaceId;
 import org.visallo.web.structuredingest.core.model.ClientApiMappingErrors;
+import org.visallo.web.structuredingest.core.model.ParseOptions;
 import org.visallo.web.structuredingest.core.model.StructuredIngestParser;
-import org.visallo.web.structuredingest.core.util.StructuredIngestParserFactory;
 import org.visallo.web.structuredingest.core.model.StructuredIngestQueueItem;
 import org.visallo.web.structuredingest.core.util.BaseStructuredFileParserHandler;
 import org.visallo.web.structuredingest.core.util.GraphBuilderParserHandler;
-import org.visallo.web.structuredingest.core.model.ParseOptions;
 import org.visallo.web.structuredingest.core.util.ProgressReporter;
+import org.visallo.web.structuredingest.core.util.StructuredIngestParserFactory;
 import org.visallo.web.structuredingest.core.util.mapping.ParseMapping;
 import org.visallo.web.structuredingest.core.worker.StructuredIngestProcessWorker;
+import org.visallo.webster.ParameterizedHandler;
+import org.visallo.webster.annotations.Handle;
+import org.visallo.webster.annotations.Optional;
+import org.visallo.webster.annotations.Required;
 
 import javax.inject.Inject;
 import java.io.InputStream;
@@ -57,15 +62,15 @@ public class Ingest implements ParameterizedHandler {
 
     @Inject
     public Ingest(
-        LongRunningProcessRepository longRunningProcessRepository,
-        OntologyRepository ontologyRepository,
-        PrivilegeRepository privilegeRepository,
-        WorkspaceRepository workspaceRepository,
-        WorkspaceHelper workspaceHelper,
-        StructuredIngestParserFactory structuredIngestParserFactory,
-        WorkQueueRepository workQueueRepository,
-        VisibilityTranslator visibilityTranslator,
-        Graph graph
+            LongRunningProcessRepository longRunningProcessRepository,
+            OntologyRepository ontologyRepository,
+            PrivilegeRepository privilegeRepository,
+            WorkspaceRepository workspaceRepository,
+            WorkspaceHelper workspaceHelper,
+            StructuredIngestParserFactory structuredIngestParserFactory,
+            WorkQueueRepository workQueueRepository,
+            VisibilityTranslator visibilityTranslator,
+            Graph graph
     ) {
         this.longRunningProcessRepository = longRunningProcessRepository;
         this.ontologyRepository = ontologyRepository;
@@ -89,7 +94,6 @@ public class Ingest implements ParameterizedHandler {
             @Optional(name = "publish", defaultValue = "false") boolean publish,
             @Optional(name = "preview", defaultValue = "true") boolean preview
     ) throws Exception {
-
         Vertex vertex = graph.getVertex(graphVertexId, authorizations);
         if (vertex == null) {
             throw new VisalloResourceNotFoundException("Could not find vertex:" + graphVertexId);
@@ -105,7 +109,6 @@ public class Ingest implements ParameterizedHandler {
         if (mappingErrors.mappingErrors.size() > 0) {
             return mappingErrors;
         }
-
 
         if (preview) {
             return previewIngest(user, workspaceId, authorizations, optionsJson, publish, vertex, rawPropertyValue, parseMapping);
@@ -135,7 +138,7 @@ public class Ingest implements ParameterizedHandler {
                     data.put("total", total);
 
                     // Broadcast when we get this change in percent
-                    int percent = (int) ((double)total * 0.01);
+                    int percent = (int) ((double) total * 0.01);
 
                     if (percent > 0 && row % percent == 0) {
                         workQueueRepository.broadcast("structuredImportDryrun", data, permissions);
@@ -161,6 +164,10 @@ public class Ingest implements ParameterizedHandler {
         parserHandler.dryRun = true;
         ParseOptions parseOptions = new ParseOptions(optionsJson);
 
+        boolean canPublishImmediately = privilegeRepository.hasPrivilege(user, Privilege.ONTOLOGY_ADD)
+                && canPublishImmediately(parseMapping, user, workspaceId);
+        parserHandler.clientApiIngestPreview.setCanPublishImmediately(canPublishImmediately);
+
         parse(vertex, rawPropertyValue, parseOptions, parserHandler);
 
         if (parserHandler.hasErrors()) {
@@ -183,5 +190,59 @@ public class Ingest implements ParameterizedHandler {
         try (InputStream in = rawPropertyValue.getInputStream()) {
             structuredIngestParser.ingest(in, parseOptions, parserHandler);
         }
+    }
+
+    private boolean canPublishImmediately(ParseMapping parseMapping,
+                                          User user,
+                                          String workspaceId
+    ) {
+        boolean canPublishOntology = privilegeRepository.hasPrivilege(user, Privilege.ONTOLOGY_PUBLISH);
+
+        // Checking to see if there are any changes to ontology concepts
+        long numberOfConcepts = parseMapping.vertexMappings.stream()
+                .flatMap(vertexMapping -> vertexMapping.propertyMappings.stream())
+                .filter(propertyMapping -> propertyMapping.name.equals(VisalloProperties.CONCEPT_TYPE.getPropertyName()))
+                .map(mapping -> {
+                    Concept concept = ontologyRepository.getConceptByIRI(mapping.value, workspaceId);
+                    if (concept == null) {
+                        throw new VisalloException("Unable to locate concept with IRI " + mapping.value);
+                    }
+                    return concept;
+                })
+                .filter(concept -> concept != null && concept.getSandboxStatus() != SandboxStatus.PUBLIC)
+                .count();
+
+        if (numberOfConcepts == 0) {
+            // Checking to see if there are any changes to ontology relationships
+            long numberOfRelationships = parseMapping.edgeMappings.stream()
+                    .map(edgeMapping -> {
+                        Relationship relationship = ontologyRepository.getRelationshipByIRI(edgeMapping.label, workspaceId);
+                        if (relationship == null) {
+                            throw new VisalloException("Unable to locate relationship with IRI " + edgeMapping.label);
+                        }
+                        return relationship;
+                    })
+                    .filter(relationship -> relationship != null && relationship.getSandboxStatus() != SandboxStatus.PUBLIC)
+                    .count();
+            if (numberOfRelationships == 0) {
+                // Checking to see if there are any changes to ontology properties on concepts
+                // Will need to update this check once structured ingest supports properties on edges
+                long numberOfProperties = parseMapping.vertexMappings.stream()
+                        .flatMap(vertexMapping -> vertexMapping.propertyMappings.stream())
+                        .map(mapping -> {
+                            OntologyProperty property = ontologyRepository.getPropertyByIRI(mapping.name, workspaceId);
+                            if (property == null) {
+                                throw new VisalloException("Unable to locate property with IRI " + mapping.name);
+                            }
+                            return property;
+                        })
+                        .filter(property -> property != null && property.getSandboxStatus() != SandboxStatus.PUBLIC)
+                        .count();
+                if (numberOfProperties == 0) {
+                    return true;
+                }
+            }
+        }
+        return canPublishOntology;
     }
 }

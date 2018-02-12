@@ -12,24 +12,33 @@ import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessWorker;
+import org.visallo.core.model.ontology.Concept;
+import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
+import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;
+import org.visallo.core.model.workQueue.WorkQueueRepository;
 import org.visallo.core.model.workspace.WorkspaceHelper;
 import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
+import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.structuredingest.core.model.StructuredIngestParser;
-import org.visallo.web.structuredingest.core.util.StructuredIngestParserFactory;
 import org.visallo.web.structuredingest.core.model.StructuredIngestQueueItem;
 import org.visallo.web.structuredingest.core.util.GraphBuilderParserHandler;
 import org.visallo.web.structuredingest.core.util.ProgressReporter;
+import org.visallo.web.structuredingest.core.util.StructuredIngestParserFactory;
 import org.visallo.web.structuredingest.core.util.mapping.ParseMapping;
 
 import java.io.InputStream;
 import java.text.NumberFormat;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Name("Structured Import")
 @Description("Extracts structured data from csv, and excel")
@@ -41,6 +50,7 @@ public class StructuredIngestProcessWorker extends LongRunningProcessWorker {
     private WorkspaceHelper workspaceHelper;
     private WorkspaceRepository workspaceRepository;
     private UserRepository userRepository;
+    private WorkQueueRepository workQueueRepository;
     private Configuration configuration;
     private StructuredIngestParserFactory structuredIngestParserFactory;
     private Graph graph;
@@ -66,7 +76,7 @@ public class StructuredIngestProcessWorker extends LongRunningProcessWorker {
                 if (totalRows != -1) {
                     longRunningProcessRepository.reportProgress(
                             longRunningProcessQueueItem,
-                            ((float)row) / ((float) totalRows),
+                            ((float) row) / ((float) totalRows),
                             "Row " + numberFormat.format(row) + " of " + numberFormat.format(totalRows));
                 }
             }
@@ -91,6 +101,26 @@ public class StructuredIngestProcessWorker extends LongRunningProcessWorker {
 
         parserHandler.dryRun = false;
         parserHandler.reset();
+        
+        if (structuredIngestQueueItem.isPublish()) {
+            String workspaceId = structuredIngestQueueItem.getWorkspaceId();
+            Stream<String> conceptIris = parseMapping.vertexMappings.stream()
+                    .flatMap(vertexMapping -> vertexMapping.propertyMappings.stream())
+                    .filter(propertyMapping -> propertyMapping.name.equals(VisalloProperties.CONCEPT_TYPE.getPropertyName()))
+                    .map(propertyMapping -> propertyMapping.value);
+
+            workspaceRepository.publishRequiredConcepts(conceptIris, workspaceId, user);
+
+            Stream<String> relationshipIris = parseMapping.edgeMappings.stream()
+                    .map(edgeMapping -> edgeMapping.label);
+            workspaceRepository.publishRequiredRelationships(relationshipIris, workspaceId, user);
+
+            Stream<String> propertyIris = parseMapping.vertexMappings.stream()
+                    .flatMap(vertexMapping -> vertexMapping.propertyMappings.stream())
+                    .map(propertyMapping -> propertyMapping.name);
+            workspaceRepository.publishRequiredPropertyTypes(propertyIris, workspaceId, user);
+        }
+
         try {
             parse(vertex, rawPropertyValue, parserHandler, structuredIngestQueueItem);
         } catch (Exception e) {
@@ -162,6 +192,11 @@ public class StructuredIngestProcessWorker extends LongRunningProcessWorker {
     @Inject
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
+    }
+
+    @Inject
+    public void setWorkQueueRepository(WorkQueueRepository workQueueRepository) {
+        this.workQueueRepository = workQueueRepository;
     }
 }
 

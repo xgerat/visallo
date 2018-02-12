@@ -11,4 +11,6 @@
   </tr>
   {{/each}}
 </table>
+{{#if canPublishImmediately}}
 <label class="shouldPublish requires-PUBLISH"><input type="checkbox" name="isPublish" style="margin:0" /> {{ i18n 'csv.file_import.preview.publish'}}</label>
+{{/if}}

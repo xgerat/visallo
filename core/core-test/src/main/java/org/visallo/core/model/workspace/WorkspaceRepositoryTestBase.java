@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.vertexium.*;
+import org.visallo.core.exception.VisalloException;
 import org.visallo.core.model.graph.VisibilityAndElementMutation;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
@@ -195,7 +196,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         }
     }
 
-    @Test
+    @Test(expected = VisalloException.class)
     public void testPublishingNewVertexWithUnknownConcept() {
         doTestPublishVertexAdd("junit-missing", "Unable to locate concept with IRI junit-missing", null);
     }
@@ -205,7 +206,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         doTestPublishVertexAdd(JUNIT_CONCEPT_TYPE, null, SandboxStatus.PUBLIC);
     }
 
-    @Test
+    @Test(expected = VisalloException.class)
     public void testPublishingNewVertexAndConceptWithoutOntologyPublishPrivilege() {
         setPrivileges(user, Sets.newHashSet(Privilege.ONTOLOGY_ADD));
 
@@ -284,7 +285,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         }
     }
 
-    @Test
+    @Test(expected = VisalloException.class)
     public void testPublishingNewEdgeWithUnknownRelationship() {
         doTestPublishEdgeAdd("junit-missing", "Unable to locate relationship with IRI junit-missing", null);
     }
@@ -294,7 +295,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         doTestPublishEdgeAdd(JUNIT_EDGE_LABEL, null, SandboxStatus.PUBLIC);
     }
 
-    @Test
+    @Test(expected = VisalloException.class)
     public void testPublishingNewEdgeAndRelationshipWithoutOntologyPublishPrivilege() {
         UserPropertyPrivilegeRepository privilegeRepository = (UserPropertyPrivilegeRepository) getPrivilegeRepository();
         privilegeRepository.setPrivileges(user, Sets.newHashSet(Privilege.ONTOLOGY_ADD), getUserRepository().getSystemUser());
@@ -379,7 +380,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         }
     }
 
-    @Test
+    @Test(expected = VisalloException.class)
     public void testPublishingNewPropertyWithUnknownIri() {
         doTestPublishPropertyAdd("junit-missing", "Unable to locate property with IRI junit-missing", null);
     }
@@ -389,7 +390,7 @@ public abstract class WorkspaceRepositoryTestBase extends VisalloInMemoryTestBas
         doTestPublishPropertyAdd(JUNIT_PROPERTY_NAME, null, SandboxStatus.PUBLIC);
     }
 
-    @Test
+    @Test(expected = VisalloException.class)
     public void testPublishingNewPropertyValueAndPropertyTypeWithoutOntologyPublishPrivilege() {
         UserPropertyPrivilegeRepository privilegeRepository = (UserPropertyPrivilegeRepository) getPrivilegeRepository();
         privilegeRepository.setPrivileges(user, Sets.newHashSet(Privilege.ONTOLOGY_ADD), getUserRepository().getSystemUser());

@@ -10,6 +10,7 @@ public class ClientApiIngestPreview implements ClientApiObject {
     public boolean didTruncate = false;
     public Preview vertices = new Preview();
     public Preview edges = new Preview();
+    public boolean canPublishImmediately = true;
 
     public void incrementVertices(String type, boolean isNew) {
         vertices.incrementType(type, isNew);
@@ -17,6 +18,10 @@ public class ClientApiIngestPreview implements ClientApiObject {
 
     public void incrementEdges(String label, boolean isNew) {
         edges.incrementType(label, isNew);
+    }
+
+    public void setCanPublishImmediately(boolean canPublishImmediately) {
+        this.canPublishImmediately = canPublishImmediately;
     }
 
     static class Preview {

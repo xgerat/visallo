@@ -439,18 +439,20 @@ public abstract class WorkspaceRepository {
 
         Map<String, List<String>> vertexIdsByConcept = StreamUtils.stream(verticesToPublish)
                 .collect(Collectors.groupingBy(VisalloProperties.CONCEPT_TYPE::getPropertyValue, Collectors.mapping(Vertex::getId, Collectors.toList())));
+        publishRequiredConcepts(vertexIdsByConcept.keySet().stream(), workspaceId, user);
+        CloseableUtils.closeQuietly(verticesToPublish);
+    }
 
-        List<String> publishedConceptIds = vertexIdsByConcept.keySet().stream()
-                .map(iri -> {
-                    Concept concept = ontologyRepository.getConceptByIRI(iri, workspaceId);
-                    if (concept == null) {
-                        vertexIdsByConcept.get(iri).forEach(vertexId -> {
-                            ClientApiVertexPublishItem data = publishDataByVertexId.get(vertexId);
-                            data.setErrorMessage("Unable to locate concept with IRI " + iri);
-                        });
-                    }
-                    return concept;
-                })
+    public void publishRequiredConcepts(Stream<String> iris,
+                                        String workspaceId,
+                                        User user) {
+        List<String> publishedConceptIds = iris.map(iri -> {
+            Concept concept = ontologyRepository.getConceptByIRI(iri, workspaceId);
+            if (concept == null) {
+                throw new VisalloException("Unable to locate concept with IRI " + iri);
+            }
+            return concept;
+        })
                 .filter(concept -> concept != null && concept.getSandboxStatus() != SandboxStatus.PUBLIC)
                 .flatMap(concept -> {
                     try {
@@ -460,22 +462,13 @@ public abstract class WorkspaceRepository {
                                     try {
                                         ontologyRepository.publishConcept(conceptOrAncestor, user, workspaceId);
                                     } catch (Exception ex) {
-                                        LOGGER.error("Error publishing concept %s", concept.getIRI(), ex);
-                                        vertexIdsByConcept.get(concept.getIRI()).forEach(vertexId -> {
-                                            ClientApiVertexPublishItem data = publishDataByVertexId.get(vertexId);
-                                            data.setErrorMessage("Unable to publish concept " + concept.getDisplayName());
-                                        });
+                                        throw new VisalloException("Unable to publish concept " + concept.getDisplayName());
                                     }
                                     return conceptOrAncestor.getId();
                                 });
                     } catch (Exception ex) {
-                        LOGGER.error("Error publishing concept %s", concept.getIRI(), ex);
-                        vertexIdsByConcept.get(concept.getIRI()).forEach(vertexId -> {
-                            ClientApiVertexPublishItem data = publishDataByVertexId.get(vertexId);
-                            data.setErrorMessage("Unable to publish concept " + concept.getDisplayName());
-                        });
+                        throw new VisalloException("Unable to publish concept " + concept.getDisplayName());
                     }
-                    return Stream.empty();
                 }).collect(Collectors.toList());
 
         if (!publishedConceptIds.isEmpty()) {
@@ -483,7 +476,7 @@ public abstract class WorkspaceRepository {
             workQueueRepository.pushOntologyConceptsChange(null, publishedConceptIds);
         }
 
-        CloseableUtils.closeQuietly(verticesToPublish);
+        CloseableUtils.closeQuietly(iris);
     }
 
     private void publishRequiredRelationships(
@@ -505,18 +498,20 @@ public abstract class WorkspaceRepository {
 
         Map<String, List<String>> edgeIdsByLabel = StreamUtils.stream(edgesToPublish)
                 .collect(Collectors.groupingBy(Edge::getLabel, Collectors.mapping(Edge::getId, Collectors.toList())));
+        publishRequiredRelationships(edgeIdsByLabel.keySet().stream(), workspaceId, user);
+        CloseableUtils.closeQuietly(edgesToPublish);
+    }
 
-        List<String> publishedRelationshipIds = edgeIdsByLabel.keySet().stream()
-                .map(iri -> {
-                    Relationship relationship = ontologyRepository.getRelationshipByIRI(iri, workspaceId);
-                    if (relationship == null) {
-                        edgeIdsByLabel.get(iri).forEach(edgeId -> {
-                            ClientApiRelationshipPublishItem data = publishDataByEdgeId.get(edgeId);
-                            data.setErrorMessage("Unable to locate relationship with IRI " + iri);
-                        });
-                    }
-                    return relationship;
-                })
+    public void publishRequiredRelationships(Stream<String> iris,
+                                             String workspaceId,
+                                             User user) {
+        List<String> publishedRelationshipIds = iris.map(iri -> {
+            Relationship relationship = ontologyRepository.getRelationshipByIRI(iri, workspaceId);
+            if (relationship == null) {
+                throw new VisalloException("Unable to locate relationship with IRI " + iri);
+            }
+            return relationship;
+        })
                 .filter(relationship -> relationship != null && relationship.getSandboxStatus() != SandboxStatus.PUBLIC)
                 .flatMap(relationship -> {
                     try {
@@ -526,22 +521,13 @@ public abstract class WorkspaceRepository {
                                     try {
                                         ontologyRepository.publishRelationship(relationshipOrAncestor, user, workspaceId);
                                     } catch (Exception ex) {
-                                        LOGGER.error("Error publishing relationship %s", relationship.getIRI(), ex);
-                                        edgeIdsByLabel.get(relationship.getIRI()).forEach(edgeId -> {
-                                            ClientApiRelationshipPublishItem data = publishDataByEdgeId.get(edgeId);
-                                            data.setErrorMessage("Unable to publish relationship " + relationship.getDisplayName());
-                                        });
+                                        throw new VisalloException("Unable to publish relationship " + relationship.getDisplayName());
                                     }
                                     return relationshipOrAncestor.getId();
                                 });
                     } catch (Exception ex) {
-                        LOGGER.error("Error publishing relationship %s", relationship.getIRI(), ex);
-                        edgeIdsByLabel.get(relationship.getIRI()).forEach(edgeId -> {
-                            ClientApiRelationshipPublishItem data = publishDataByEdgeId.get(edgeId);
-                            data.setErrorMessage("Unable to publish relationship " + relationship.getDisplayName());
-                        });
+                        throw new VisalloException("Unable to publish relationship " + relationship.getDisplayName());
                     }
-                    return Stream.empty();
                 }).collect(Collectors.toList());
 
         if (!publishedRelationshipIds.isEmpty()) {
@@ -549,7 +535,7 @@ public abstract class WorkspaceRepository {
             workQueueRepository.pushOntologyRelationshipsChange(null, publishedRelationshipIds);
         }
 
-        CloseableUtils.closeQuietly(edgesToPublish);
+        CloseableUtils.closeQuietly(iris);
     }
 
     private void publishRequiredPropertyTypes(
@@ -562,31 +548,28 @@ public abstract class WorkspaceRepository {
                 .map(data -> ((ClientApiPropertyPublishItem) data))
                 .filter(data -> data.getAction() == ClientApiPublishItem.Action.ADD_OR_UPDATE)
                 .collect(Collectors.groupingBy(ClientApiPropertyPublishItem::getName, Collectors.toList()));
+        publishRequiredPropertyTypes(publishDataByPropertyIri.keySet().stream(), workspaceId, user);
+    }
 
-        List<String> publishedPropertyIds = publishDataByPropertyIri.keySet().stream()
-                .map(iri -> {
-                    OntologyProperty property = ontologyRepository.getPropertyByIRI(iri, workspaceId);
-                    if (property == null) {
-                        publishDataByPropertyIri.get(iri).forEach(data ->
-                                data.setErrorMessage("Unable to locate property with IRI " + iri)
-                        );
-                    }
-                    return property;
-                })
+    public void publishRequiredPropertyTypes(Stream<String> iris,
+                                             String workspaceId,
+                                             User user) {
+        List<String> publishedPropertyIds = iris.map(iri -> {
+            OntologyProperty property = ontologyRepository.getPropertyByIRI(iri, workspaceId);
+            if (property == null) {
+                throw new VisalloException("Unable to locate property with IRI " + iri);
+            }
+            return property;
+        })
                 .filter(property -> property != null && property.getSandboxStatus() != SandboxStatus.PUBLIC)
                 .map(property -> {
                     try {
                         ontologyRepository.publishProperty(property, user, workspaceId);
-                        return null;
                     } catch (Exception ex) {
-                        LOGGER.error("Error publishing property %s", property.getIri(), ex);
-                        publishDataByPropertyIri.get(property.getIri()).forEach(data ->
-                                data.setErrorMessage("Unable to publish relationship " + property.getDisplayName())
-                        );
+                        throw new VisalloException("Unable to locate property with IRI " + property.getIri());
                     }
                     return property.getId();
                 })
-                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         if (!publishedPropertyIds.isEmpty()) {

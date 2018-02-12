@@ -179,7 +179,7 @@ public class GraphBuilderParserHandlerTest extends VisalloInMemoryTestBase {
         assertTrue("All have one concept type after reimport", getGenerated().stream().allMatch(hasOneConceptType));
     }
 
-        @Test
+    @Test
     public void testAddRowDryRun() throws Exception {
         doParse(true, true, 0, new String[]{"John Smith", "3/13/2015", "yes"});
 
@@ -235,11 +235,11 @@ public class GraphBuilderParserHandlerTest extends VisalloInMemoryTestBase {
 
         assertTrue("Unable to find new person vertex",
                 getGenerated().stream()
-                    .anyMatch(vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex).equals(PERSON_CONCEPT_TYPE)));
+                        .anyMatch(vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex).equals(PERSON_CONCEPT_TYPE)));
 
         assertFalse("Should not have found the transaction vertex",
                 getGenerated().stream()
-                    .anyMatch(vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex).equals(TX_CONCEPT_TYPE)));
+                        .anyMatch(vertex -> VisalloProperties.CONCEPT_TYPE.getPropertyValue(vertex).equals(TX_CONCEPT_TYPE)));
     }
 
     @Test
