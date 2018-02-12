@@ -17,6 +17,13 @@ public abstract class LongRunningProcessRepository {
         return enqueue(json, user, authorizations);
     }
 
+    public abstract String enqueueDeadLetter(JSONObject longRunningProcessQueueItem, User user, Authorizations authorizations);
+
+    public String enqueueDeadLetter(LongRunningProcessQueueItemBase longRunningProcessQueueItem, User user, Authorizations authorizations) {
+        JSONObject json = new JSONObject(ClientApiConverter.clientApiToString(longRunningProcessQueueItem));
+        return enqueueDeadLetter(json, user, authorizations);
+    }
+
     public void beginWork(JSONObject longRunningProcessQueueItem) {
     }
 
@@ -31,7 +38,7 @@ public abstract class LongRunningProcessRepository {
     public abstract void cancel(String longRunningProcessId, User user);
 
     public void reportProgress(JSONObject longRunningProcessQueueItem, double progressPercent, String message) {
-        reportProgress(longRunningProcessQueueItem.getString("id"), progressPercent, message);
+        reportProgress(longRunningProcessQueueItem.optString("id", null), progressPercent, message);
     }
 
     public abstract void reportProgress(String longRunningProcessId, double progressPercent, String message);

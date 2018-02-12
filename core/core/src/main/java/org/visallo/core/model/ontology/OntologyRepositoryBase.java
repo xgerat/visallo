@@ -381,18 +381,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     }
 
-    @Deprecated
-    @Override
-    public final void updatePropertyDependentIris(OntologyProperty property, Collection<String> dependentPropertyIris) {
-        updatePropertyDependentIris(property, dependentPropertyIris, null, PUBLIC);
-    }
-
-    @Deprecated
-    @Override
-    public final void updatePropertyDomainIris(OntologyProperty property, Set<String> domainIris) {
-        updatePropertyDomainIris(property, domainIris, null, PUBLIC);
-    }
-
     private void importOntologyClasses(OWLOntology o, File inDir, Authorizations authorizations) throws IOException {
         for (OWLClass ontologyClass : o.getClassesInSignature()) {
             importOntologyClass(o, ontologyClass, inDir, authorizations);
@@ -724,12 +712,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
-    @Deprecated
-    @Override
-    public final OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition) {
-        return getOrCreateProperty(ontologyPropertyDefinition, null, PUBLIC);
-    }
-
     @Override
     public final OntologyProperty getOrCreateProperty(OntologyPropertyDefinition ontologyPropertyDefinition, User user, String workspaceId) {
         checkPrivileges(user, workspaceId);
@@ -1001,12 +983,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return null;
     }
 
-    @Deprecated
-    @Override
-    public final Set<Concept> getConceptAndAllChildrenByIri(String conceptIRI) {
-        return getConceptAndAllChildrenByIri(conceptIRI, PUBLIC);
-    }
-
     @Override
     public Set<Concept> getConceptAndAllChildrenByIri(String conceptIRI, String workspaceId) {
         Concept concept = getConceptByIRI(conceptIRI, workspaceId);
@@ -1014,12 +990,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             return null;
         }
         return getConceptAndAllChildren(concept, workspaceId);
-    }
-
-    @Deprecated
-    @Override
-    public final Set<Concept> getConceptAndAllChildren(Concept concept) {
-        return getConceptAndAllChildren(concept, PUBLIC);
     }
 
     @Override
@@ -1061,12 +1031,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
 
     protected abstract List<Concept> getChildConcepts(Concept concept, String workspaceId);
 
-    @Deprecated
-    @Override
-    public final Set<Relationship> getRelationshipAndAllChildren(Relationship relationship) {
-        return getRelationshipAndAllChildren(relationship, PUBLIC);
-    }
-
     @Override
     public Set<Relationship> getRelationshipAndAllChildrenByIRI(String relationshipIRI, String workspaceId) {
         Relationship relationship = getRelationshipByIRI(relationshipIRI, workspaceId);
@@ -1106,24 +1070,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return result;
     }
 
-    @Deprecated
-    @Override
-    public final boolean hasRelationshipByIRI(String relationshipIRI) {
-        return hasRelationshipByIRI(relationshipIRI, PUBLIC);
-    }
-
     @Override
     public boolean hasRelationshipByIRI(String relationshipIRI, String workspaceId) {
         return getRelationshipByIRI(relationshipIRI, workspaceId) != null;
     }
 
     protected abstract List<Relationship> getChildRelationships(Relationship relationship, String workspaceId);
-
-    @Deprecated
-    @Override
-    public final void resolvePropertyIds(JSONArray filterJson) throws JSONException {
-        resolvePropertyIds(filterJson, PUBLIC);
-    }
 
     @Override
     public void resolvePropertyIds(JSONArray filterJson, String workspaceId) throws JSONException {
@@ -1141,12 +1093,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
-    @Deprecated
-    @Override
-    public final Concept getConceptByIRI(String conceptIRI) {
-        return getConceptByIRI(conceptIRI, PUBLIC);
-    }
-
     @Override
     public Concept getConceptByIRI(String conceptIRI, String workspaceId) {
         return Iterables.getFirst(getConceptsByIRI(Collections.singletonList(conceptIRI), workspaceId), null);
@@ -1157,12 +1103,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return StreamSupport.stream(getConceptsWithProperties(workspaceId).spliterator(), false)
                 .filter(concept -> conceptIRIs.contains(concept.getIRI()))
                 .collect(Collectors.toSet());
-    }
-
-    @Deprecated
-    @Override
-    public final OntologyProperty getPropertyByIRI(String propertyIRI) {
-        return getPropertyByIRI(propertyIRI, PUBLIC);
     }
 
     @Override
@@ -1177,12 +1117,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
                 .collect(Collectors.toList());
     }
 
-    @Deprecated
-    @Override
-    public final OntologyProperty getRequiredPropertyByIRI(String propertyIRI) {
-        return getRequiredPropertyByIRI(propertyIRI, PUBLIC);
-    }
-
     @Override
     public OntologyProperty getRequiredPropertyByIRI(String propertyIRI, String workspaceId) {
         OntologyProperty property = getPropertyByIRI(propertyIRI, workspaceId);
@@ -1190,42 +1124,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             throw new VisalloException("Could not find property by IRI: " + propertyIRI);
         }
         return property;
-    }
-
-    @Deprecated
-    @Override
-    public final Iterable<Relationship> getRelationships() {
-        return getRelationships(PUBLIC);
-    }
-
-    @Deprecated
-    @Override
-    public final Iterable<OntologyProperty> getProperties() {
-        return getProperties(PUBLIC);
-    }
-
-    @Deprecated
-    @Override
-    public final String getDisplayNameForLabel(String relationshipIRI) {
-        return getDisplayNameForLabel(relationshipIRI, PUBLIC);
-    }
-
-    @Deprecated
-    @Override
-    public Iterable<Concept> getConceptsWithProperties() {
-        return getConceptsWithProperties(PUBLIC);
-    }
-
-    @Deprecated
-    @Override
-    public final Concept getParentConcept(Concept concept) {
-        return getParentConcept(concept, PUBLIC);
-    }
-
-    @Deprecated
-    @Override
-    public final Relationship getRelationshipByIRI(String relationshipIRI) {
-        return getRelationshipByIRI(relationshipIRI, PUBLIC);
     }
 
     @Override
@@ -1238,12 +1136,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return StreamSupport.stream(getRelationships(workspaceId).spliterator(), false)
                 .filter(relationship -> relationshipIRIs.contains(relationship.getIRI()))
                 .collect(Collectors.toList());
-    }
-
-    @Deprecated
-    @Override
-    public final Concept getConceptByIntent(String intent) {
-        return getConceptByIntent(intent, PUBLIC);
     }
 
     @Override
@@ -1275,12 +1167,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         throw new VisalloException("Found multiple concepts for intent: " + intent + " (" + iris + ")");
     }
 
-    @Deprecated
-    @Override
-    public String getConceptIRIByIntent(String intent) {
-        return getConceptIRIByIntent(intent, PUBLIC);
-    }
-
     @Override
     public String getConceptIRIByIntent(String intent, String workspaceId) {
         Concept concept = getConceptByIntent(intent, workspaceId);
@@ -1288,12 +1174,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             return concept.getIRI();
         }
         return null;
-    }
-
-    @Deprecated
-    @Override
-    public final Concept getRequiredConceptByIntent(String intent) {
-        return getRequiredConceptByIntent(intent, PUBLIC);
     }
 
     @Override
@@ -1305,21 +1185,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return concept;
     }
 
-    @Deprecated
-    @Override
-    public final String getRequiredConceptIRIByIntent(String intent) {
-        return getRequiredConceptIRIByIntent(intent, PUBLIC);
-    }
-
     @Override
     public String getRequiredConceptIRIByIntent(String intent, String workspaceId) {
         return getRequiredConceptByIntent(intent, workspaceId).getIRI();
-    }
-
-    @Deprecated
-    @Override
-    public final Concept getRequiredConceptByIRI(String iri) {
-        return getRequiredConceptByIRI(iri, PUBLIC);
     }
 
     @Override
@@ -1352,12 +1220,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return getEntityConcept(PUBLIC);
     }
 
-    @Deprecated
-    @Override
-    public final Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir) {
-        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, null, PUBLIC);
-    }
-
     @Override
     public final Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, User user, String workspaceId) {
         return getOrCreateConcept(parent, conceptIRI, displayName, null, null, inDir, user, workspaceId);
@@ -1366,12 +1228,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     @Override
     public final Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, String color, File inDir, User user, String workspaceId) {
         return getOrCreateConcept(parent, conceptIRI, displayName, glyphIconHref, color, inDir, true, user, workspaceId);
-    }
-
-    @Deprecated
-    @Override
-    public final Concept getOrCreateConcept(Concept parent, String conceptIRI, String displayName, File inDir, boolean deleteChangeableProperties) {
-        return getOrCreateConcept(parent, conceptIRI, displayName, inDir, deleteChangeableProperties, null, PUBLIC);
     }
 
     @Override
@@ -1387,29 +1243,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
     }
 
     protected abstract Concept internalGetOrCreateConcept(Concept parent, String conceptIRI, String displayName, String glyphIconHref, String color, File inDir, boolean deleteChangeableProperties, User user, String workspaceId);
-
-    @Deprecated
-    @Override
-    public final Relationship getOrCreateRelationshipType(
-            Relationship parent,
-            Iterable<Concept> domainConcepts,
-            Iterable<Concept> rangeConcepts,
-            String relationshipIRI
-    ) {
-        return getOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, null, true, null, PUBLIC);
-    }
-
-    @Deprecated
-    @Override
-    public final Relationship getOrCreateRelationshipType(
-            Relationship parent,
-            Iterable<Concept> domainConcepts,
-            Iterable<Concept> rangeConcepts,
-            String relationshipIRI,
-            boolean deleteChangeableProperties
-    ) {
-        return getOrCreateRelationshipType(parent, domainConcepts, rangeConcepts, relationshipIRI, null, deleteChangeableProperties, null, PUBLIC);
-    }
 
     @Override
     public final Relationship getOrCreateRelationshipType(
@@ -1453,12 +1286,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             String workspaceId
     );
 
-    @Deprecated
-    @Override
-    public final Relationship getRelationshipByIntent(String intent) {
-        return getRelationshipByIntent(intent, PUBLIC);
-    }
-
     @Override
     public Relationship getRelationshipByIntent(String intent, String workspaceId) {
         String configurationKey = CONFIG_INTENT_RELATIONSHIP_PREFIX + intent;
@@ -1488,12 +1315,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         throw new VisalloException("Found multiple relationships for intent: " + intent + " (" + iris + ")");
     }
 
-    @Deprecated
-    @Override
-    public final String getRelationshipIRIByIntent(String intent) {
-        return getRelationshipIRIByIntent(intent, PUBLIC);
-    }
-
     @Override
     public String getRelationshipIRIByIntent(String intent, String workspaceId) {
         Relationship relationship = getRelationshipByIntent(intent, workspaceId);
@@ -1501,12 +1322,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             return relationship.getIRI();
         }
         return null;
-    }
-
-    @Deprecated
-    @Override
-    public final Relationship getRequiredRelationshipByIntent(String intent) {
-        return getRequiredRelationshipByIntent(intent, PUBLIC);
     }
 
     @Override
@@ -1518,21 +1333,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return relationship;
     }
 
-    @Deprecated
-    @Override
-    public final String getRequiredRelationshipIRIByIntent(String intent) {
-        return getRequiredRelationshipIRIByIntent(intent, PUBLIC);
-    }
-
     @Override
     public String getRequiredRelationshipIRIByIntent(String intent, String workspaceId) {
         return getRequiredRelationshipByIntent(intent, workspaceId).getIRI();
-    }
-
-    @Deprecated
-    @Override
-    public final OntologyProperty getPropertyByIntent(String intent) {
-        return getPropertyByIntent(intent, PUBLIC);
     }
 
     @Override
@@ -1564,12 +1367,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         throw new VisalloException("Found multiple properties for intent: " + intent + " (" + iris + ")");
     }
 
-    @Deprecated
-    @Override
-    public final String getPropertyIRIByIntent(String intent) {
-        return getPropertyIRIByIntent(intent, PUBLIC);
-    }
-
     @Override
     public String getPropertyIRIByIntent(String intent, String workspaceId) {
         OntologyProperty prop = getPropertyByIntent(intent, workspaceId);
@@ -1577,12 +1374,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             return prop.getTitle();
         }
         return null;
-    }
-
-    @Deprecated
-    @Override
-    public final OntologyProperty getRequiredPropertyByIntent(String intent) {
-        return getRequiredPropertyByIntent(intent, PUBLIC);
     }
 
     @Override
@@ -1594,21 +1385,9 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         return property;
     }
 
-    @Deprecated
-    @Override
-    public final String getRequiredPropertyIRIByIntent(String intent) {
-        return getRequiredPropertyIRIByIntent(intent, PUBLIC);
-    }
-
     @Override
     public String getRequiredPropertyIRIByIntent(String intent, String workspaceId) {
         return getRequiredPropertyByIntent(intent, workspaceId).getTitle();
-    }
-
-    @Deprecated
-    @Override
-    public final OntologyProperty getDependentPropertyParent(String iri) {
-        return getDependentPropertyParent(iri, PUBLIC);
     }
 
     @Override
@@ -1619,12 +1398,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             }
         }
         return null;
-    }
-
-    @Deprecated
-    @Override
-    public final <T extends VisalloProperty> T getVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType) {
-        return getVisalloPropertyByIntent(intent, visalloPropertyType, PUBLIC);
     }
 
     @Override
@@ -1642,12 +1415,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         }
     }
 
-    @Deprecated
-    @Override
-    public final <T extends VisalloProperty> T getRequiredVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType) {
-        return getRequiredVisalloPropertyByIntent(intent, visalloPropertyType, PUBLIC);
-    }
-
     @Override
     public <T extends VisalloProperty> T getRequiredVisalloPropertyByIntent(String intent, Class<T> visalloPropertyType, String workspaceId) {
         T result = getVisalloPropertyByIntent(intent, visalloPropertyType, workspaceId);
@@ -1655,12 +1422,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             throw new VisalloException("Could not find property by intent: " + intent);
         }
         return result;
-    }
-
-    @Deprecated
-    @Override
-    public final List<OntologyProperty> getPropertiesByIntent(String intent) {
-        return getPropertiesByIntent(intent, PUBLIC);
     }
 
     @Override
@@ -1673,12 +1434,6 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
             }
         }
         return results;
-    }
-
-    @Deprecated
-    @Override
-    public final ClientApiOntology getClientApiObject() {
-        return getClientApiObject(PUBLIC);
     }
 
     @Override
@@ -1958,24 +1713,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         } else throw new VisalloException("Unable to delete relationship that have children");
     }
 
-    @Deprecated
-    @Override
-    public final void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes) {
-        addConceptTypeFilterToQuery(query, conceptTypeIri, includeChildNodes, PUBLIC);
-    }
-
     @Override
     public void addConceptTypeFilterToQuery(Query query, String conceptTypeIri, boolean includeChildNodes, String workspaceId) {
         checkNotNull(conceptTypeIri, "conceptTypeIri cannot be null");
         List<ElementTypeFilter> filters = new ArrayList<>();
         filters.add(new ElementTypeFilter(conceptTypeIri, includeChildNodes));
         addConceptTypeFilterToQuery(query, filters, workspaceId);
-    }
-
-    @Deprecated
-    @Override
-    public final void addConceptTypeFilterToQuery(Query query, Collection<ElementTypeFilter> filters) {
-        addConceptTypeFilterToQuery(query, filters, PUBLIC);
     }
 
     @Override
@@ -2004,24 +1747,12 @@ public abstract class OntologyRepositoryBase implements OntologyRepository {
         query.has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), Contains.IN, conceptIds);
     }
 
-    @Deprecated
-    @Override
-    public final void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes) {
-        addEdgeLabelFilterToQuery(query, edgeLabel, includeChildNodes, PUBLIC);
-    }
-
     @Override
     public void addEdgeLabelFilterToQuery(Query query, String edgeLabel, boolean includeChildNodes, String workspaceId) {
         checkNotNull(edgeLabel, "edgeLabel cannot be null");
         List<ElementTypeFilter> filters = new ArrayList<>();
         filters.add(new ElementTypeFilter(edgeLabel, includeChildNodes));
         addEdgeLabelFilterToQuery(query, filters, workspaceId);
-    }
-
-    @Deprecated
-    @Override
-    public final void addEdgeLabelFilterToQuery(Query query, Collection<ElementTypeFilter> filters) {
-        addEdgeLabelFilterToQuery(query, filters, PUBLIC);
     }
 
     @Override

@@ -30,7 +30,6 @@ import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 import org.visallo.web.auth.AuthTokenFilter;
 import org.visallo.web.auth.AuthTokenWebSocketInterceptor;
-import org.visallo.web.initializers.ApplicationBootstrapInitializer;
 
 import javax.servlet.*;
 import javax.servlet.annotation.ServletSecurity;
@@ -73,7 +72,6 @@ public class ApplicationBootstrap implements ServletContextListener {
             verifyGraphVersion();
             setupGraphAuthorizations();
 
-            startApplicationBootstrapInitializers(context, config);
             startVisalloProcesses(config);
 
             setupWebApp(context, config);
@@ -99,15 +97,6 @@ public class ApplicationBootstrap implements ServletContextListener {
         for (VisalloProcess process : processes) {
             LOGGER.info("starting %s", process.getClass().getName());
             process.startProcess(options);
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    private void startApplicationBootstrapInitializers(ServletContext context, Configuration config) {
-        Iterable<ApplicationBootstrapInitializer> initializers =
-                ServiceLoaderUtil.load(ApplicationBootstrapInitializer.class, config);
-        for (ApplicationBootstrapInitializer initializer : initializers) {
-            initializer.initialize(context);
         }
     }
 
