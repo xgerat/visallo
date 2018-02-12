@@ -33,17 +33,17 @@ public class DefaultGraphCheckRule implements GraphCheckRule {
 
     }
 
-    protected void checkElementHasProperty(GraphCheckContext ctx, Element element, String propteryName) {
-        Property property = element.getProperty(propteryName);
+    protected void checkElementHasProperty(GraphCheckContext ctx, Element element, String propertyName) {
+        Property property = element.getProperty(propertyName);
         if (property == null) {
-            ctx.reportError(this, element, "Missing \"%s\"", propteryName);
+            ctx.reportError(this, element, "Missing \"%s\"", propertyName);
         }
     }
 
-    protected void checkElementDoesNotHaveProperty(GraphCheckContext ctx, Element element, String propteryName) {
-        Property property = element.getProperty(propteryName);
+    protected void checkElementDoesNotHaveProperty(GraphCheckContext ctx, Element element, String propertyName) {
+        Property property = element.getProperty(propertyName);
         if (property != null) {
-            ctx.reportError(this, element, "Should not have \"%s\"", propteryName);
+            ctx.reportError(this, element, "Should not have \"%s\"", propertyName);
         }
     }
 

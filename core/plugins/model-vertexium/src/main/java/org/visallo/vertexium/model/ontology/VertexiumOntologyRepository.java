@@ -176,14 +176,6 @@ public class VertexiumOntologyRepository extends OntologyRepositoryBase {
         return existingMd5 == null || !DigestUtils.md5Hex(inFileData).equals(existingMd5);
     }
 
-    @Deprecated
-    @Override
-    public boolean isOntologyDefined(String iri) {
-        Vertex rootConceptVertex = ((VertexiumConcept) getRootConcept(PUBLIC)).getVertex();
-        Property prop = OntologyProperties.ONTOLOGY_FILE.getProperty(rootConceptVertex, iri);
-        return prop != null;
-    }
-
     @Override
     public List<OWLOntology> loadOntologyFiles(OWLOntologyManager m, OWLOntologyLoaderConfiguration config, IRI excludedIRI) throws OWLOntologyCreationException, IOException {
         List<OWLOntology> loadedOntologies = new ArrayList<>();

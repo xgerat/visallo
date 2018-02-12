@@ -120,14 +120,6 @@ public class GraphPropertyWorkData {
         return visibilityJson;
     }
 
-    /**
-     * @deprecated  replaced by {@link #getElementVisibilityJson()}
-     */
-    @Deprecated
-    public VisibilityJson getVisibilityJson() {
-        return getElementVisibilityJson();
-    }
-
     public VisibilityJson getElementVisibilityJson() {
         VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(getElement());
         if (visibilityJson != null) {

@@ -35,6 +35,12 @@ public class TestWorkQueueRepository extends WorkQueueRepository {
         queue.add(data);
     }
 
+    @Override
+    public void pushOnDeadLetterQueue(String queueName, byte[] data) {
+        List<byte[]> queue = queues.computeIfAbsent(String.format("%s.deadletter", queueName), k -> new ArrayList<>());
+        queue.add(data);
+    }
+
     public List<byte[]> getWorkQueue(String queueName) {
         return queues.get(queueName);
     }
