@@ -161,63 +161,6 @@ public class FileImport {
         );
     }
 
-    @Deprecated
-    public Vertex importFile(
-            File f,
-            boolean queueDuplicates,
-            String conceptId,
-            ClientApiImportProperty[] properties,
-            String visibilitySource,
-            Workspace workspace,
-            boolean addToWorkspace,
-            boolean findExistingByFileHash,
-            Priority priority,
-            User user,
-            Authorizations authorizations
-    ) throws Exception {
-        return importFile(
-                f,
-                f.getName(),
-                queueDuplicates,
-                conceptId,
-                properties,
-                visibilitySource,
-                workspace,
-                findExistingByFileHash,
-                priority,
-                user,
-                authorizations
-        );
-    }
-
-    @Deprecated
-    public Vertex importFile(
-            File f,
-            boolean queueDuplicates,
-            String conceptId,
-            ClientApiImportProperty[] properties,
-            String visibilitySource,
-            Workspace workspace,
-            boolean findExistingByFileHash,
-            Priority priority,
-            User user,
-            Authorizations authorizations
-    ) throws Exception {
-        return importFile(
-                f,
-                f.getName(),
-                queueDuplicates,
-                conceptId,
-                properties,
-                visibilitySource,
-                workspace,
-                findExistingByFileHash,
-                priority,
-                user,
-                authorizations
-        );
-    }
-
     public Vertex importFile(
             File f,
             String originalFilename,

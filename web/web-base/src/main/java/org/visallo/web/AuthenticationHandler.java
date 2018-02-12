@@ -20,14 +20,4 @@ public class AuthenticationHandler implements RequestResponseHandler {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
         }
     }
-
-    /**
-     * @Deprecated
-     *
-     * Use RemoteAddressUtil.getClientIpAddr for future calls to get client IP addresses.
-     */
-    @Deprecated
-    public static String getRemoteAddr(HttpServletRequest request) {
-        return RemoteAddressUtil.getClientIpAddr(request);
-    }
 }

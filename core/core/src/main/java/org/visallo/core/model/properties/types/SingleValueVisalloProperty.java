@@ -154,23 +154,6 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
         updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, (Metadata) null, null, visibility);
     }
 
-    /**
-     * @param changedPropertiesOut Adds the property to this list if the property value changed
-     * @deprecated Use {@link #updateProperty(List, Element, ElementMutation, Object, PropertyMetadata)}
-     */
-    @SuppressWarnings("deprecation")
-    @Deprecated
-    public void updateProperty(
-            List<VisalloPropertyUpdate> changedPropertiesOut,
-            Element element,
-            ElementMutation m,
-            TRaw newValue,
-            PropertyMetadata metadata,
-            Visibility visibility
-    ) {
-        updateProperty(changedPropertiesOut, element, m, newValue, metadata, null, visibility);
-    }
-
     public void updateProperty(
             List<VisalloPropertyUpdate> changedPropertiesOut,
             Element element,
@@ -188,23 +171,6 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
             PropertyMetadata metadata
     ) {
         updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), newValue, metadata.createMetadata(), null, metadata.getPropertyVisibility());
-    }
-
-    /**
-     * @param changedPropertiesOut Adds the property to this list if the property value changed
-     * @deprecated Use {@link #updateProperty(List, Element, ElementMutation, Object, PropertyMetadata, Long)}
-     */
-    @Deprecated
-    public void updateProperty(
-            List<VisalloPropertyUpdate> changedPropertiesOut,
-            Element element,
-            ElementMutation m,
-            TRaw newValue,
-            PropertyMetadata metadata,
-            Long timestamp,
-            Visibility visibility
-    ) {
-        updateProperty(changedPropertiesOut, element, m, newValue, metadata == null ? null : metadata.createMetadata(), timestamp, visibility);
     }
 
     public void updateProperty(

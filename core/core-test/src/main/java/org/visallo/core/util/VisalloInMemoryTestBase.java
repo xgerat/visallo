@@ -270,6 +270,9 @@ public abstract class VisalloInMemoryTestBase {
             protected UserRepository getUserRepository() {
                 return VisalloInMemoryTestBase.this.getUserRepository();
             }
+
+            @Override
+            protected WorkspaceRepository getWorkspaceRepository() { return VisalloInMemoryTestBase.this.getWorkspaceRepository(); }
         };
         return workQueueRepository;
     }

@@ -665,11 +665,6 @@ public abstract class WorkQueueRepository {
         pushGraphPropertyQueue(element, (String) null, null, beforeDeletionTimestamp, priority);
     }
 
-    @Deprecated
-    public void pushElements(Iterable<? extends Element> elements) {
-        pushElements(elements, Priority.NORMAL);
-    }
-
     public void pushElements(Iterable<? extends Element> elements, Priority priority) {
         pushMultipleGraphPropertyQueue(
                 elements,

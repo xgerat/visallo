@@ -184,19 +184,6 @@ public class InMemoryOntologyRepository extends OntologyRepositoryBase {
         }
     }
 
-    @Deprecated
-    @Override
-    public boolean isOntologyDefined(String iri) {
-        synchronized (fileCache) {
-            for (OwlData owlData : fileCache) {
-                if (owlData.iri.equals(iri)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
     @Override
     public void updatePropertyDependentIris(OntologyProperty property, Collection<String> dependentPropertyIris, User user, String workspaceId) {
         if (!isPublic(workspaceId) || property.getSandboxStatus() == SandboxStatus.PRIVATE) {

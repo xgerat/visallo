@@ -13,9 +13,9 @@ import org.vertexium.inmemory.InMemoryAuthorizations;
 import org.vertexium.property.StreamingPropertyValue;
 import org.vertexium.query.Query;
 import org.vertexium.query.SortDirection;
-import org.visallo.core.ingest.graphProperty.GraphPropertyWorkerTestBase;
 import org.visallo.core.model.properties.VisalloProperties;
-import org.visallo.core.model.workspace.Workspace;
+import org.visallo.core.user.User;
+import org.visallo.core.util.VisalloInMemoryGPWTestBase;
 import org.visallo.web.clientapi.model.VisibilityJson;
 
 import java.io.InputStream;
@@ -25,24 +25,23 @@ import java.util.stream.Collectors;
 import static ${package}.worker.OntologyConstants.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.visallo.core.util.StreamUtil.stream;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ExampleGraphPropertyWorkerTest extends GraphPropertyWorkerTestBase {
+public class ExampleGraphPropertyWorkerTest extends VisalloInMemoryGPWTestBase {
     private static final String VISIBILITY_SOURCE = "TheVisibilitySource";
     private static final String WORKSPACE_ID = "WORKSPACE_ID";
     private Visibility visibility;
     private Authorizations authorizations;
     private Vertex archiveVertex;
     private ExampleGraphPropertyWorker worker;
+    private User user;
 
     @Before
     public void before() throws Exception {
+        QueueIdGenerator graphIdGenerator = new QueueIdGenerator();
         for (int i = 0; i < 100; i++) {
-            ((QueueIdGenerator) getGraphIdGenerator()).push("id" + i);
+            graphIdGenerator.push("id" + i);
         }
 
         VisibilityJson visibilityJson = new VisibilityJson();
@@ -59,10 +58,8 @@ public class ExampleGraphPropertyWorkerTest extends GraphPropertyWorkerTestBase 
         VisalloProperties.RAW.setProperty(archiveVertex, value, visibility, authorizations);
         archiveIn.close();
 
-        Workspace workspace = mock(Workspace.class);
-        when(workspace.getWorkspaceId()).thenReturn(WORKSPACE_ID);
-        when(workspaceRepository.findById(WORKSPACE_ID, getUser())).thenReturn(workspace);
-        when(workspaceRepository.toClientApi(any(), any(), any())).thenCallRealMethod();
+        user = getUserRepository().findOrAddUser("test", "test", "test@test.com", "test");
+        getWorkspaceRepository().add(WORKSPACE_ID, "Test", user);
 
         worker = new ExampleGraphPropertyWorker();
     }
@@ -92,7 +89,7 @@ public class ExampleGraphPropertyWorkerTest extends GraphPropertyWorkerTestBase 
 
     @Test
     public void executeShouldCreatePersonVerticesFromContactsCsvFileVertex() throws Exception {
-        run(worker, getWorkerPrepareData(), archiveVertex, WORKSPACE_ID);
+        run(worker, createWorkerPrepareData(null, user, null, null), archiveVertex, WORKSPACE_ID);
 
         Query csvFileQuery = getGraph().query(authorizations)
                 .has(VisalloProperties.CONCEPT_TYPE.getPropertyName(), CONTACTS_CSV_FILE_CONCEPT_TYPE);
