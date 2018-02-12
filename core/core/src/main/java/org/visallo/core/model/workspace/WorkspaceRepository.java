@@ -704,6 +704,12 @@ public abstract class WorkspaceRepository {
             return;
         }
 
+        publishVertex(vertex, workspaceId, authorizations);
+    }
+
+    public void publishVertex(Vertex vertex,
+                              String workspaceId,
+                              Authorizations authorizations) {
         LOGGER.debug("publishing vertex %s(%s)", vertex.getId(), vertex.getVisibility().toString());
         VisibilityJson visibilityJson = VisalloProperties.VISIBILITY_JSON.getPropertyValue(vertex);
 

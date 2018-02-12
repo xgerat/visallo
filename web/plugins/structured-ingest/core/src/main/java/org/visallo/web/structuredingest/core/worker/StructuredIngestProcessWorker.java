@@ -12,10 +12,7 @@ import org.visallo.core.model.Description;
 import org.visallo.core.model.Name;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.longRunningProcess.LongRunningProcessWorker;
-import org.visallo.core.model.ontology.Concept;
-import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.user.UserRepository;
@@ -25,7 +22,6 @@ import org.visallo.core.model.workspace.WorkspaceRepository;
 import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.user.User;
 import org.visallo.core.util.ClientApiConverter;
-import org.visallo.web.clientapi.model.SandboxStatus;
 import org.visallo.web.structuredingest.core.model.StructuredIngestParser;
 import org.visallo.web.structuredingest.core.model.StructuredIngestQueueItem;
 import org.visallo.web.structuredingest.core.util.GraphBuilderParserHandler;
@@ -35,9 +31,6 @@ import org.visallo.web.structuredingest.core.util.mapping.ParseMapping;
 
 import java.io.InputStream;
 import java.text.NumberFormat;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Name("Structured Import")
@@ -101,7 +94,7 @@ public class StructuredIngestProcessWorker extends LongRunningProcessWorker {
 
         parserHandler.dryRun = false;
         parserHandler.reset();
-        
+
         if (structuredIngestQueueItem.isPublish()) {
             String workspaceId = structuredIngestQueueItem.getWorkspaceId();
             Stream<String> conceptIris = parseMapping.vertexMappings.stream()
@@ -125,6 +118,11 @@ public class StructuredIngestProcessWorker extends LongRunningProcessWorker {
             parse(vertex, rawPropertyValue, parserHandler, structuredIngestQueueItem);
         } catch (Exception e) {
             throw new VisalloException("Unable to ingest vertex: " + vertex, e);
+        }
+
+        // Auto-publishing the source if user chose to publish immediately
+        if (structuredIngestQueueItem.isPublish()) {
+            workspaceRepository.publishVertex(vertex, structuredIngestQueueItem.getWorkspaceId(), authorizations);
         }
     }
 
