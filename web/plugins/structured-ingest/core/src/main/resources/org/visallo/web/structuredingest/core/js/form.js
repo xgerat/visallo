@@ -29,6 +29,7 @@ define([
     'use strict';
 
     var ANIMATION_DURATION = 200;
+    var CreatedObjectPopover;
 
     return defineComponent(StructuredMappingForm, withDataRequest, withElementScrollingUpdates);
 
@@ -202,6 +203,10 @@ define([
         this.onCreatedObjectsClick = function(event) {
             var self = this;
 
+            if (CreatedObjectPopover && $(event.target).lookupComponent(CreatedObjectPopover)) {
+                return;
+            }
+
             if (this.$node.find('.segmented-control .entities.active').length) {
                 event.stopPropagation();
                 event.preventDefault();
@@ -209,13 +214,13 @@ define([
                 Promise.all([
                     this.dataRequest('ontology', 'properties'),
                     Promise.require('org/visallo/web/structuredingest/core/js/createdObjectPopover')
-                ]).done(function(results) {
-                    var ontologyProperties = results.shift(),
-                        CreatedObjectPopover = results.shift(),
-                        $target = $(event.target),
+                ]).spread(function(ontologyProperties, popover) {
+                    var $target = $(event.target),
                         $li = $target.closest('li'),
                         index = $li.index(),
                         object;
+
+                    CreatedObjectPopover = popover;
 
                     if ($li.is('.edge')) {
                         object = self.mappedObjects.edges[index - self.mappedObjects.vertices.length];
@@ -224,16 +229,13 @@ define([
                     }
 
                     $target.find('.badge').teardownAllComponents();
-                    if ($target.lookupComponent(CreatedObjectPopover)) {
-                        CreatedObjectPopover.teardownAll();
-                    } else {
-                        CreatedObjectPopover.teardownAll();
-                        CreatedObjectPopover.attachTo(event.target, {
-                            headers: self.headers,
-                            object: object,
-                            ontologyProperties: ontologyProperties
-                        });
-                    }
+
+                    CreatedObjectPopover.teardownAll();
+                    CreatedObjectPopover.attachTo(event.target, {
+                        headers: self.headers,
+                        object: object,
+                        ontologyProperties: ontologyProperties
+                    });
                 });
             }
         };
@@ -723,7 +725,7 @@ define([
 
             $container.css('height', parseInt($container.height(), 10) + 'px');
 
-            var $editor = $container.find('div').teardownComponent(Editor),
+            var $editor = $container.children('div').teardownComponent(Editor),
                 $placeholder = $container.find('h1.help');
 
             if ($placeholder.css('display') !== 'none') {
