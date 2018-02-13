@@ -5,8 +5,6 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
 
 public interface MetricsManager {
-    @Deprecated
-    String getNamePrefix(Object obj);
 
     Counter counter(String metricName);
 

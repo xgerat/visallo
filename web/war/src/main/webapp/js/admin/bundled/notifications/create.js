@@ -70,7 +70,7 @@ define([
                     n.startDate
                 );
 
-            this.select('buttonSelector').prop('disabled', Boolean(valid));
+            this.select('buttonSelector').prop('disabled', !valid);
         }
 
         this.getNotification = function() {

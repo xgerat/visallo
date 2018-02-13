@@ -60,8 +60,7 @@ define([
                 up: '↑',
                 down: '↓',
                 left: '←',
-                right: '→',
-                drag: isMac ? (isFirefox ? null : '') : null
+                right: '→'
             }
         };
 

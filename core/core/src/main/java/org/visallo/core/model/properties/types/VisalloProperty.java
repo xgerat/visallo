@@ -163,25 +163,6 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
 
     /**
      * @param changedPropertiesOut Adds the property to this list if the property value changed
-     * @deprecated Use {@link #updateProperty(List, Element, ElementMutation, String, Object, PropertyMetadata)}
-     */
-    @SuppressWarnings("deprecation")
-    @Deprecated
-    public void updateProperty(
-            List<VisalloPropertyUpdate> changedPropertiesOut,
-            Element element,
-            ElementMutation m,
-            String propertyKey,
-            TRaw newValue,
-            PropertyMetadata metadata,
-            Visibility visibility
-    ) {
-        checkNotNull(metadata, "metadata cannot be null");
-        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata.createMetadata(), null, visibility);
-    }
-
-    /**
-     * @param changedPropertiesOut Adds the property to this list if the property value changed
      */
     public void updateProperty(
             List<VisalloPropertyUpdate> changedPropertiesOut,
@@ -203,25 +184,6 @@ public abstract class VisalloProperty<TRaw, TGraph> extends VisalloPropertyBase<
     ) {
         checkNotNull(metadata, "metadata is required");
         updateProperty(ctx.getProperties(), ctx.getElement(), ctx.getMutation(), propertyKey, newValue, metadata.createMetadata(), null, metadata.getPropertyVisibility());
-    }
-
-    /**
-     * @param changedPropertiesOut Adds the property to this list if the property value changed
-     * @deprecated Use {@link #updateProperty(List, Element, ElementMutation, String, Object, PropertyMetadata, Long)}
-     */
-    @Deprecated
-    public void updateProperty(
-            List<VisalloPropertyUpdate> changedPropertiesOut,
-            Element element,
-            ElementMutation m,
-            String propertyKey,
-            TRaw newValue,
-            PropertyMetadata metadata,
-            Long timestamp,
-            Visibility visibility
-    ) {
-        checkNotNull(metadata, "metadata is required");
-        updateProperty(changedPropertiesOut, element, m, propertyKey, newValue, metadata.createMetadata(), timestamp, visibility);
     }
 
     /**

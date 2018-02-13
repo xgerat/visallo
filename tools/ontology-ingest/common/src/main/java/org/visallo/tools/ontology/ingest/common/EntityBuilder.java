@@ -41,33 +41,6 @@ public abstract class EntityBuilder {
         return propertyAdditions;
     }
 
-    /**
-     * @deprecated replaced by {@link #setMetadata(Map<String, Object>)} to get rid of confusion of casting return value back to subclass
-     */
-    @Deprecated
-    public EntityBuilder withMetadata(Map<String, Object> metdata) {
-        this.setMetadata(metdata);
-        return this;
-    }
-
-    /**
-     * @deprecated replaced by {@link #setTimestamp(Long)} to get rid of confusion of casting return value back to subclass
-     */
-    @Deprecated
-    public EntityBuilder withTimestamp(Long timestamp) {
-        this.setTimestamp(timestamp);
-        return this;
-    }
-
-    /**
-     * @deprecated replaced by {@link #setVisibility(String)}  to get rid of confusion of casting return value back to subclass
-     */
-    @Deprecated
-    public EntityBuilder withVisibility(String visibility) {
-        this.setVisibility(visibility);
-        return this;
-    }
-
     public void setVisibility(String visibility) {
         this.visibility = visibility;
     }
