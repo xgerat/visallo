@@ -13,7 +13,6 @@ import org.visallo.core.model.longRunningProcess.LongRunningProcessRepository;
 import org.visallo.core.model.ontology.Concept;
 import org.visallo.core.model.ontology.OntologyProperty;
 import org.visallo.core.model.ontology.OntologyRepository;
-import org.visallo.core.model.ontology.Relationship;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.model.user.PrivilegeRepository;
 import org.visallo.core.model.workQueue.WorkQueueRepository;
@@ -45,6 +44,7 @@ import org.visallo.webster.annotations.Required;
 
 import javax.inject.Inject;
 import java.io.InputStream;
+import java.util.stream.Stream;
 
 @Singleton
 public class Ingest implements ParameterizedHandler {
@@ -199,45 +199,26 @@ public class Ingest implements ParameterizedHandler {
         boolean canPublishOntology = privilegeRepository.hasPrivilege(user, Privilege.ONTOLOGY_PUBLISH);
 
         // Checking to see if there are any changes to ontology concepts
-        long numberOfConcepts = parseMapping.vertexMappings.stream()
+        Stream<String> conceptIris = parseMapping.vertexMappings.stream()
                 .flatMap(vertexMapping -> vertexMapping.propertyMappings.stream())
                 .filter(propertyMapping -> propertyMapping.name.equals(VisalloProperties.CONCEPT_TYPE.getPropertyName()))
-                .map(mapping -> {
-                    Concept concept = ontologyRepository.getConceptByIRI(mapping.value, workspaceId);
-                    if (concept == null) {
-                        throw new VisalloException("Unable to locate concept with IRI " + mapping.value);
-                    }
-                    return concept;
-                })
-                .filter(concept -> concept != null && concept.getSandboxStatus() != SandboxStatus.PUBLIC)
-                .count();
+                .map(propertyMapping -> propertyMapping.value);
+        Stream<Concept> sandboxedConcepts = workspaceRepository.getSandboxedConcepts(conceptIris, workspaceId);
+        long numberOfConcepts = sandboxedConcepts.count();
 
         if (numberOfConcepts == 0) {
             // Checking to see if there are any changes to ontology relationships
-            long numberOfRelationships = parseMapping.edgeMappings.stream()
-                    .map(edgeMapping -> {
-                        Relationship relationship = ontologyRepository.getRelationshipByIRI(edgeMapping.label, workspaceId);
-                        if (relationship == null) {
-                            throw new VisalloException("Unable to locate relationship with IRI " + edgeMapping.label);
-                        }
-                        return relationship;
-                    })
-                    .filter(relationship -> relationship != null && relationship.getSandboxStatus() != SandboxStatus.PUBLIC)
+            Stream<String> relationshipIris = parseMapping.edgeMappings.stream()
+                    .map(edgeMapping -> edgeMapping.label);
+            long numberOfRelationships = workspaceRepository.getSandboxedRelationships(relationshipIris, workspaceId)
                     .count();
             if (numberOfRelationships == 0) {
                 // Checking to see if there are any changes to ontology properties on concepts
                 // Will need to update this check once structured ingest supports properties on edges
-                long numberOfProperties = parseMapping.vertexMappings.stream()
+                Stream<String> propertyIris = parseMapping.vertexMappings.stream()
                         .flatMap(vertexMapping -> vertexMapping.propertyMappings.stream())
-                        .map(mapping -> {
-                            OntologyProperty property = ontologyRepository.getPropertyByIRI(mapping.name, workspaceId);
-                            if (property == null) {
-                                throw new VisalloException("Unable to locate property with IRI " + mapping.name);
-                            }
-                            return property;
-                        })
-                        .filter(property -> property != null && property.getSandboxStatus() != SandboxStatus.PUBLIC)
-                        .count();
+                        .map(propertyMapping -> propertyMapping.name);
+                long numberOfProperties = workspaceRepository.getSandboxedOntologyProperties(propertyIris, workspaceId).count();
                 if (numberOfProperties == 0) {
                     return true;
                 }

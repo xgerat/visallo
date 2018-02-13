@@ -47,7 +47,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.vertexium.util.IterableUtils.toList;
 import static org.visallo.core.model.ontology.OntologyRepository.PUBLIC;
 import static org.visallo.core.util.StreamUtil.stream;
 
@@ -446,14 +445,7 @@ public abstract class WorkspaceRepository {
     public void publishRequiredConcepts(Stream<String> iris,
                                         String workspaceId,
                                         User user) {
-        List<String> publishedConceptIds = iris.map(iri -> {
-            Concept concept = ontologyRepository.getConceptByIRI(iri, workspaceId);
-            if (concept == null) {
-                throw new VisalloException("Unable to locate concept with IRI " + iri);
-            }
-            return concept;
-        })
-                .filter(concept -> concept != null && concept.getSandboxStatus() != SandboxStatus.PUBLIC)
+        List<String> publishedConceptIds = getSandboxedConcepts(iris, workspaceId)
                 .flatMap(concept -> {
                     try {
                         return ontologyRepository.getConceptAndAncestors(concept, workspaceId).stream()
@@ -477,6 +469,17 @@ public abstract class WorkspaceRepository {
         }
 
         CloseableUtils.closeQuietly(iris);
+    }
+
+    public Stream<Concept> getSandboxedConcepts(Stream<String> iris,
+                                                String workspaceId) {
+        return iris.map(iri -> {
+            Concept concept = ontologyRepository.getConceptByIRI(iri, workspaceId);
+            if (concept == null) {
+                throw new VisalloException("Unable to locate concept with IRI " + iri);
+            }
+            return concept;
+        }).filter(concept -> concept != null && concept.getSandboxStatus() != SandboxStatus.PUBLIC);
     }
 
     private void publishRequiredRelationships(
@@ -505,14 +508,7 @@ public abstract class WorkspaceRepository {
     public void publishRequiredRelationships(Stream<String> iris,
                                              String workspaceId,
                                              User user) {
-        List<String> publishedRelationshipIds = iris.map(iri -> {
-            Relationship relationship = ontologyRepository.getRelationshipByIRI(iri, workspaceId);
-            if (relationship == null) {
-                throw new VisalloException("Unable to locate relationship with IRI " + iri);
-            }
-            return relationship;
-        })
-                .filter(relationship -> relationship != null && relationship.getSandboxStatus() != SandboxStatus.PUBLIC)
+        List<String> publishedRelationshipIds = getSandboxedRelationships(iris, workspaceId)
                 .flatMap(relationship -> {
                     try {
                         return ontologyRepository.getRelationshipAndAncestors(relationship, workspaceId).stream()
@@ -538,6 +534,17 @@ public abstract class WorkspaceRepository {
         CloseableUtils.closeQuietly(iris);
     }
 
+    public Stream<Relationship> getSandboxedRelationships(Stream<String> iris,
+                                                          String workspaceId) {
+        return iris.map(iri -> {
+            Relationship relationship = ontologyRepository.getRelationshipByIRI(iri, workspaceId);
+            if (relationship == null) {
+                throw new VisalloException("Unable to locate relationship with IRI " + iri);
+            }
+            return relationship;
+        }).filter(relationship -> relationship != null && relationship.getSandboxStatus() != SandboxStatus.PUBLIC);
+    }
+
     private void publishRequiredPropertyTypes(
             List<ClientApiPublishItem> publishData,
             User user,
@@ -554,14 +561,7 @@ public abstract class WorkspaceRepository {
     public void publishRequiredPropertyTypes(Stream<String> iris,
                                              String workspaceId,
                                              User user) {
-        List<String> publishedPropertyIds = iris.map(iri -> {
-            OntologyProperty property = ontologyRepository.getPropertyByIRI(iri, workspaceId);
-            if (property == null) {
-                throw new VisalloException("Unable to locate property with IRI " + iri);
-            }
-            return property;
-        })
-                .filter(property -> property != null && property.getSandboxStatus() != SandboxStatus.PUBLIC)
+        List<String> publishedPropertyIds = getSandboxedOntologyProperties(iris, workspaceId)
                 .map(property -> {
                     try {
                         ontologyRepository.publishProperty(property, user, workspaceId);
@@ -576,6 +576,17 @@ public abstract class WorkspaceRepository {
             ontologyRepository.clearCache();
             workQueueRepository.pushOntologyPropertiesChange(null, publishedPropertyIds);
         }
+    }
+
+    public Stream<OntologyProperty> getSandboxedOntologyProperties(Stream<String> iris,
+                                                                   String workspaceId) {
+        return iris.map(iri -> {
+            OntologyProperty property = ontologyRepository.getPropertyByIRI(iri, workspaceId);
+            if (property == null) {
+                throw new VisalloException("Unable to locate property with IRI " + iri);
+            }
+            return property;
+        }).filter(property -> property != null && property.getSandboxStatus() != SandboxStatus.PUBLIC);
     }
 
     private void publishEdges(
