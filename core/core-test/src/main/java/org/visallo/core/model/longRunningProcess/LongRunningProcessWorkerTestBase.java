@@ -3,18 +3,8 @@ package org.visallo.core.model.longRunningProcess;
 import com.google.inject.Injector;
 import org.json.JSONObject;
 import org.mockito.Mock;
-import org.vertexium.Authorizations;
-import org.vertexium.Graph;
-import org.vertexium.inmemory.InMemoryGraph;
-import org.visallo.core.model.graph.GraphRepository;
-import org.visallo.core.model.termMention.TermMentionRepository;
-import org.visallo.core.model.user.AuthorizationRepository;
-import org.visallo.core.model.user.UserRepository;
-import org.visallo.core.model.workQueue.WorkQueueRepository;
-import org.visallo.core.security.VisibilityTranslator;
 import org.visallo.core.status.MetricsManager;
-import org.visallo.core.user.SystemUser;
-import org.visallo.core.user.User;
+import org.visallo.core.util.VisalloInMemoryTestBase;
 import org.visallo.core.util.VisalloLogger;
 import org.visallo.core.util.VisalloLoggerFactory;
 
@@ -24,21 +14,8 @@ import java.util.Map;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
-public class LongRunningProcessWorkerTestBase {
+public class LongRunningProcessWorkerTestBase extends VisalloInMemoryTestBase {
     private static final VisalloLogger LOGGER = VisalloLoggerFactory.getLogger(LongRunningProcessWorkerTestBase.class);
-    private Graph graph;
-    private GraphRepository graphRepository;
-
-    private SystemUser systemUser = new SystemUser();
-
-    @Mock
-    private User user;
-    @Mock
-    private LongRunningProcessRepository longRunningProcessRepository;
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private AuthorizationRepository authorizationRepository;
     @Mock
     private Injector injector;
     @Mock
@@ -49,25 +26,14 @@ public class LongRunningProcessWorkerTestBase {
     private com.codahale.metrics.Timer mockTimer;
     @Mock
     private com.codahale.metrics.Meter mockMeter;
-    @Mock
-    private VisibilityTranslator visibilityTranslator;
-    @Mock
-    private TermMentionRepository termMentionRepository;
-    @Mock
-    private WorkQueueRepository workQueueRepository;
-    @Mock
-    private Authorizations systemUserAuthorizations;
 
-    protected void before() {
-        graph = InMemoryGraph.create();
+    public void before() {
         when(metricsManager.counter(any())).thenReturn(mockCounter);
         when(metricsManager.counter(any(), any())).thenReturn(mockCounter);
         when(metricsManager.timer(any())).thenReturn(mockTimer);
         when(metricsManager.timer(any(), any())).thenReturn(mockTimer);
         when(metricsManager.meter(any())).thenReturn(mockMeter);
         when(metricsManager.meter(any(), any())).thenReturn(mockMeter);
-        when(userRepository.getSystemUser()).thenReturn(systemUser);
-        when(authorizationRepository.getGraphAuthorizations(systemUser)).thenReturn(systemUserAuthorizations);
     }
 
     protected void prepare(LongRunningProcessWorker worker) {
@@ -86,26 +52,6 @@ public class LongRunningProcessWorkerTestBase {
         return injector;
     }
 
-    protected Graph getGraph() {
-        return graph;
-    }
-
-    protected LongRunningProcessRepository getLongRunningProcessRepository() {
-        return longRunningProcessRepository;
-    }
-
-    protected UserRepository getUserRepository() {
-        return userRepository;
-    }
-
-    protected AuthorizationRepository getAuthorizationRepository() {
-        return authorizationRepository;
-    }
-
-    protected User getUser() {
-        return user;
-    }
-
     protected Map getConfig() {
         return new HashMap();
     }
@@ -114,35 +60,11 @@ public class LongRunningProcessWorkerTestBase {
         return metricsManager;
     }
 
-    public GraphRepository getGraphRepository() {
-        if (graphRepository == null) {
-            graphRepository = new GraphRepository(
-                    getGraph(),
-                    getVisibilityTranslator(),
-                    getTermMentionRepository(),
-                    getWorkQueueRepository()
-            );
-        }
-        return graphRepository;
-    }
-
     protected void run(LongRunningProcessWorker worker, JSONObject queueItem) {
         if (worker.isHandled(queueItem)) {
             worker.process(queueItem);
         } else {
             LOGGER.warn("Unhandled: %s", queueItem.toString());
         }
-    }
-
-    public VisibilityTranslator getVisibilityTranslator() {
-        return visibilityTranslator;
-    }
-
-    public TermMentionRepository getTermMentionRepository() {
-        return termMentionRepository;
-    }
-
-    public WorkQueueRepository getWorkQueueRepository() {
-        return workQueueRepository;
     }
 }

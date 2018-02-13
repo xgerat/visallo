@@ -138,6 +138,10 @@ public class GraphBuilderParserHandler extends BaseStructuredFileParserHandler {
         createdEdgeIds.clear();
     }
 
+    public boolean isPublish() {
+        return publish;
+    }
+
     public boolean hasErrors() {
         return !parseErrors.errors.isEmpty();
     }
@@ -414,9 +418,9 @@ public class GraphBuilderParserHandler extends BaseStructuredFileParserHandler {
         if (identifierParts.isEmpty()) {
             // By default just allow the same file to ingest without creating new entities
             hasher
-                .putString(structuredFileVertex.getId()).putString("|")
-                .putLong(rowNum).putString("|")
-                .putLong(vertexNum);
+                    .putString(structuredFileVertex.getId()).putString("|")
+                    .putLong(rowNum).putString("|")
+                    .putLong(vertexNum);
         } else {
             // Hash all the identifier values and the concept. Use delimiter to minimize collisions
             identifierParts

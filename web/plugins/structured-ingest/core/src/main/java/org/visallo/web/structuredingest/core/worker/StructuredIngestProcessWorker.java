@@ -88,30 +88,28 @@ public class StructuredIngestProcessWorker extends LongRunningProcessWorker {
                 parseMapping,
                 reporter);
 
-
         longRunningProcessRepository.reportProgress(longRunningProcessQueueItem, 0, "Deleting previous imports");
         parserHandler.cleanUpExistingImport();
 
         parserHandler.dryRun = false;
         parserHandler.reset();
 
-        if (structuredIngestQueueItem.isPublish()) {
-            String workspaceId = structuredIngestQueueItem.getWorkspaceId();
+        if (parserHandler.isPublish()) {
             Stream<String> conceptIris = parseMapping.vertexMappings.stream()
                     .flatMap(vertexMapping -> vertexMapping.propertyMappings.stream())
                     .filter(propertyMapping -> propertyMapping.name.equals(VisalloProperties.CONCEPT_TYPE.getPropertyName()))
                     .map(propertyMapping -> propertyMapping.value);
 
-            workspaceRepository.publishRequiredConcepts(conceptIris, workspaceId, user);
+            workspaceRepository.publishRequiredConcepts(conceptIris, structuredIngestQueueItem.getWorkspaceId(), user);
 
             Stream<String> relationshipIris = parseMapping.edgeMappings.stream()
                     .map(edgeMapping -> edgeMapping.label);
-            workspaceRepository.publishRequiredRelationships(relationshipIris, workspaceId, user);
+            workspaceRepository.publishRequiredRelationships(relationshipIris, structuredIngestQueueItem.getWorkspaceId(), user);
 
             Stream<String> propertyIris = parseMapping.vertexMappings.stream()
                     .flatMap(vertexMapping -> vertexMapping.propertyMappings.stream())
                     .map(propertyMapping -> propertyMapping.name);
-            workspaceRepository.publishRequiredPropertyTypes(propertyIris, workspaceId, user);
+            workspaceRepository.publishRequiredPropertyTypes(propertyIris, structuredIngestQueueItem.getWorkspaceId(), user);
         }
 
         try {
@@ -120,8 +118,8 @@ public class StructuredIngestProcessWorker extends LongRunningProcessWorker {
             throw new VisalloException("Unable to ingest vertex: " + vertex, e);
         }
 
-        // Auto-publishing the source if user chose to publish immediately
-        if (structuredIngestQueueItem.isPublish()) {
+        // Auto-publishing the source if user chose to publish immediately and no errors occurred
+        if (parserHandler.isPublish() && parserHandler.parseErrors.errors.isEmpty()) {
             workspaceRepository.publishVertex(vertex, structuredIngestQueueItem.getWorkspaceId(), authorizations);
         }
     }
