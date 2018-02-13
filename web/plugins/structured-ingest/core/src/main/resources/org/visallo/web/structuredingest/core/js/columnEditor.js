@@ -123,12 +123,29 @@ define([
                     this.selectedVertex = _.last(this.attr.vertices);
                 }
                 this.select('selectSelector').val(this.selectedVertex.id);
-                this.$node.find('.identifier input').prop('checked',
-                    property && property.hints && property.hints.isIdentifier
-                );
+
+                this.updateIdentifier();
+
                 return this.showField(property)
             }
         };
+
+        this.updateIdentifier = function(property) {
+            const isIdentifier = property && property.hints && property.hints.isIdentifier;
+            this.$node.find('.identifier input').prop('checked', isIdentifier);
+            const list = this.selectedVertex.properties.reduce((list, prop) => {
+                if (prop.hints && prop.hints.isIdentifier) {
+                    list.push(prop);
+                }
+                return list;
+            }, [])
+            this.$node.find('.identifier .identifier_text').text(
+                (list.length - (isIdentifier ? 1 : 0)) > 0 ?
+                i18n('csv.file_import.mapping.import.entity.unique.column.identifier.add') :
+                i18n('csv.file_import.mapping.import.entity.unique.column.identifier')
+            );
+            this.$node.find('.identifier').toggle(Boolean(property))
+        }
 
         this.onClose = function() {
             this.trigger('updateMappedObject');
@@ -157,7 +174,6 @@ define([
 
             this.cleanupUnusedEntities();
 
-            this.$node.find('.field input').removeClass('invalid');
             this.$node.find('.field-error').hide()
 
             if (selectedId) {
@@ -264,7 +280,7 @@ define([
                             placeholder: i18n('csv.file_import.mapping.properties.placeholder'),
                             onlyDataTypes: onlyDataTypes,
                             rollupCompound: false,
-                            selectedProperty: ontologyProperty,
+                            selectedProperty: property && property.name,
                             limitParentConceptId: conceptProperty.value
                         });
                         if (ontologyProperty) {
@@ -278,13 +294,8 @@ define([
 
         this.onPropertySelected = function(event, data) {
             const selectedProperty = data && data.property;
-            if (selectedProperty && this.selectedVertex.properties.some((property) => property.name === selectedProperty.title)) {
-                this.$node.find('.field input').addClass('invalid');
-                this.$node.find('.field-error').show()
-                    .text(i18n('csv.file_import.mapping.error.duplicate.property', this.selectedVertex.displayName));
-            } else {
-                this.$node.find('.field input').removeClass('invalid');
-                this.$node.find('.field-error').hide()
+            this.$node.find('.field-error').hide()
+            if (selectedProperty) {
                 this.setOntologyProperty(selectedProperty, this.mapping)
             }
         };
@@ -304,7 +315,7 @@ define([
 
             this.$node.find('.aux_fields').teardownAllComponents().empty();
             const hasMapping = Boolean(mapping);
-            this.$node.find('.identifier').toggle(hasMapping);
+            this.updateIdentifier(mapping);
             const $visibility = this.$node.find('.field-visibility').teardownComponent(Visibility).toggle(hasMapping);
             this.select('addMappingButtonSelector').prop('disabled', !hasMapping);
 
