@@ -61,7 +61,7 @@ public abstract class SingleValueVisalloProperty<TRaw, TGraph> extends VisalloPr
         element.setProperty(getPropertyName(), wrap(value), metadata, visibility, authorizations);
     }
 
-    public final TRaw getPropertyValue(Element element) {
+    public TRaw getPropertyValue(Element element) {
         Object value = element != null ? element.getPropertyValue(getPropertyName()) : null;
         return value != null ? getRawConverter().apply(value) : null;
     }
