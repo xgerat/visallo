@@ -106,7 +106,7 @@ public class StructuredIngestWebAppPlugin implements WebAppPlugin {
                 "/structured-ingest/ingest",
                 authenticator,
                 csrfProtector,
-                ReadPrivilegeFilter.class,
+                EditPrivilegeFilter.class,
                 Ingest.class
         );
 
