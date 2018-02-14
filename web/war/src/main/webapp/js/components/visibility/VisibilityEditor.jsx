@@ -71,8 +71,10 @@ define([
 
     return redux.connect(
         (state, props) => {
+            const authorizations = props.authorizations || userSelectors.getAuthorizations(state);
+
             return {
-                authorizations: userSelectors.getAuthorizations(state)
+                authorizations
             };
         }
     )(RegistryInjectorHOC(VisibilityEditor, [

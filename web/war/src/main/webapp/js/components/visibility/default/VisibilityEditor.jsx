@@ -12,16 +12,16 @@ define([
      * @property {string} [placeholder] The placeholder text to display when no
      * value
      * @property {string} [readonly] Show the form in read-only mode
-     * @property {array} [authorizations] The available visibilities, defaults to the current user's visibility authorizations
-     * @property {function} onVisibilityChange The callback to invoke when the visibility is changed
+     * @property {object} [authorizations] The available visibilities, defaults to the current user's visibility authorizations
+     * @property {function} visibilitychange The callback to invoke when the visibility is changed
      */
     const VisibilityEditor = createReactClass({
         propTypes: {
-            onVisibilityChange: PropTypes.func
+            //TODO
         },
 
         getDefaultProps() {
-            return { value: '', placeholder: i18n('visibility.label'), onVisibilityChange: () => {} }
+            return { value: '', placeholder: i18n('visibility.label') }
         },
 
         getInitialState() {
@@ -54,7 +54,7 @@ define([
             const valid = this.checkValid(value);
 
             this.setState({ value, valid })
-            this.props.onVisibilityChange({ value, valid })
+            this.props.visibilitychange({ value, valid })
         },
 
         clear() {
