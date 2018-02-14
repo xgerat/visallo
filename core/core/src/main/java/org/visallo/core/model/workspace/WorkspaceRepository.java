@@ -479,7 +479,7 @@ public abstract class WorkspaceRepository {
                 throw new VisalloException("Unable to locate concept with IRI " + iri);
             }
             return concept;
-        }).filter(concept -> concept != null && concept.getSandboxStatus() != SandboxStatus.PUBLIC);
+        }).filter(concept -> concept.getSandboxStatus() != SandboxStatus.PUBLIC);
     }
 
     private void publishRequiredRelationships(
@@ -542,7 +542,7 @@ public abstract class WorkspaceRepository {
                 throw new VisalloException("Unable to locate relationship with IRI " + iri);
             }
             return relationship;
-        }).filter(relationship -> relationship != null && relationship.getSandboxStatus() != SandboxStatus.PUBLIC);
+        }).filter(relationship -> relationship.getSandboxStatus() != SandboxStatus.PUBLIC);
     }
 
     private void publishRequiredPropertyTypes(
@@ -586,7 +586,7 @@ public abstract class WorkspaceRepository {
                 throw new VisalloException("Unable to locate property with IRI " + iri);
             }
             return property;
-        }).filter(property -> property != null && property.getSandboxStatus() != SandboxStatus.PUBLIC);
+        }).filter(property -> property.getSandboxStatus() != SandboxStatus.PUBLIC);
     }
 
     private void publishEdges(

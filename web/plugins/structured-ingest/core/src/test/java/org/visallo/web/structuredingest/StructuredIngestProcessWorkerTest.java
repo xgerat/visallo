@@ -69,17 +69,7 @@ public class StructuredIngestProcessWorkerTest extends LongRunningProcessWorkerT
         structuredIngestProcessWorker.setMetricsManager(getMetricsManager());
         prepare(structuredIngestProcessWorker);
 
-        try {
-            byte[] inFileData = IOUtils.toByteArray(this.getClass().getResourceAsStream("sample.owl"));
-            getOntologyRepository().importFileData(
-                    inFileData,
-                    IRI.create("http://visallo.org/structured-file-test"),
-                    null,
-                    authorizations
-            );
-        } catch (Exception e) {
-            throw new VisalloException("Error ingesting sample owl file", e);
-        }
+        getOntologyRepository().importResourceOwl(this.getClass(), "sample.owl", "http://visallo.org/structured-file-test", authorizations);
 
         VertexBuilder structuredFileVertexBuilder = getGraph().prepareVertex(new Visibility(""));
         VisibilityJson visibilityJson = VisibilityJson.updateVisibilitySourceAndAddWorkspaceId(new VisibilityJson(), "", WORKSPACE_ID);

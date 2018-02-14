@@ -1,5 +1,6 @@
 package org.visallo.web.structuredingest.core.routes;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -164,8 +165,7 @@ public class Ingest implements ParameterizedHandler {
         parserHandler.dryRun = true;
         ParseOptions parseOptions = new ParseOptions(optionsJson);
 
-        boolean canPublishImmediately = privilegeRepository.hasPrivilege(user, Privilege.ONTOLOGY_ADD)
-                && canPublishImmediately(parseMapping, user, workspaceId);
+        boolean canPublishImmediately = canPublishImmediately(parseMapping, user, workspaceId);
         parserHandler.clientApiIngestPreview.setCanPublishImmediately(canPublishImmediately);
 
         parse(vertex, rawPropertyValue, parseOptions, parserHandler);
@@ -196,7 +196,11 @@ public class Ingest implements ParameterizedHandler {
                                           User user,
                                           String workspaceId
     ) {
-        boolean canPublishOntology = privilegeRepository.hasPrivilege(user, Privilege.ONTOLOGY_PUBLISH);
+        boolean canPublishOntology = privilegeRepository.hasAllPrivileges(user, Sets.newHashSet(Privilege.ONTOLOGY_PUBLISH, Privilege.ONTOLOGY_ADD));
+
+        if (canPublishOntology) {
+            return true;
+        }
 
         // Checking to see if there are any changes to ontology concepts
         Stream<String> conceptIris = parseMapping.vertexMappings.stream()
