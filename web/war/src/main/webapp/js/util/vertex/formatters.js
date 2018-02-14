@@ -275,17 +275,13 @@ define([
              */
             properties: {
 
-                /**
-                 * Visibility can be customized with the
-                 * {@link http://docs.visallo.org/extension-points/front-end/visibility/|visibility extension point}
-                 */
                 visibility: function(el, property, element) {
-                    visibilityUtil.attachComponent('viewer', el, {
-                        property: property,
-                        value: property.value && property.value.source,
-                        element: element
-                    })
+                    let value = property.value && property.value.source;
+                    if (!_.isString(value)) {
+                        value = value.toString();
+                    }
 
+                    $(el).text('VISIBILITY FORMATTER'/*TODO value*/);
                     return el;
                 },
 

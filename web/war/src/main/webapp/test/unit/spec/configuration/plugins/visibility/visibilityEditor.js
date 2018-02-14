@@ -28,7 +28,7 @@ describeComponent('util/visibility/default/edit', function(VisibilityEditor) {
     })
 
     it('Should clear value on event', function() {
-        this.$node.trigger('visibilityclear');
+        this.$node.trigger('visibilityclear'); //TODO
         expect(this.$node.find('input').val()).to.equal('');
     })
 

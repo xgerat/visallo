@@ -1,5 +1,6 @@
 define([
     'flight/lib/component',
+    'react-dom',
     './template.hbs',
     './dropdowns/commentForm/commentForm',
     'util/withCollapsibleSections',
@@ -7,9 +8,11 @@ define([
     'util/withDataRequest',
     'util/requirejs/promise!util/service/propertiesPromise',
     'util/popovers/propertyInfo/withPropertyInfo',
+    'util/visibility/util',
     'd3'
 ], function(
     defineComponent,
+    ReactDOM,
     template,
     CommentForm,
     withCollapsibleSections,
@@ -17,6 +20,7 @@ define([
     withDataRequest,
     config,
     withPropertyInfo,
+    VisibilityUtil,
     d3) {
     'use strict';
 
@@ -204,16 +208,17 @@ define([
                 });
             if (self.showVisibility !== 'false') {
                 selection.select('.visibility').each(function(p) {
+                    ReactDOM.unmountComponentAtNode(this);//TODO: store attacher.teardown as data attribute on node and call that instead of only reactDOM unmount (for flight extensions)
                     this.textContent = '';
+
                     if (p[0].redacted) {
                         $(this).hide();
                         return;
                     }
-                    F.vertex.properties.visibility(
-                        this,
-                        {value: p[0].metadata && p[0].metadata[VISIBILITY_NAME]},
-                        self.attr.data.id
-                    );
+
+                    VisibilityUtil.attachComponent('viewer', this, {
+                        value: p[0].metadata && p[0].metadata[VISIBILITY_NAME] && p[0].metadata[VISIBILITY_NAME].source
+                    })
                 });
             }
             selection.select('.user').each(function(p, i) {

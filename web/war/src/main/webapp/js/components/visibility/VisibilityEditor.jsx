@@ -5,73 +5,94 @@ define([
     'data/web-worker/store/user/selectors',
     '../Attacher',
     '../RegistryInjectorHOC'
-], function(createReactClass, PropTypes, redux, userSelectors, Attacher, RegistryInjectorHOC) {
+], function(
+    createReactClass,
+    PropTypes,
+    redux,
+    userSelectors,
+    Attacher,
+    RegistryInjectorHOC) {
     'use strict';
 
-    const DEFAULT_FLIGHT_EDITOR = 'util/visibility/default/edit';
+    const DEFAULT_EDITOR = 'components/visibility/default/VisibilityEditor';
+    const apiWarnings = {};
 
     const VisibilityEditor = createReactClass({
         propTypes: {
-            onVisibilityChanged: PropTypes.func
+            onVisibilityChange: PropTypes.func
+            // TODO
         },
-        getDefaultProps() {
-            return { value: '', placeholder: i18n('visibility.label') }
-        },
-        getInitialState() {
-            return { value: this.props.value, valid: true }
-        },
-        componentWillReceiveProps({ value }) {
-            if (value !== this.state.value) {
-                this.setState({ value, valid: this.checkValid(value) })
-            }
-        },
-        render() {
-            const { registry, style, value: oldValue, placeholder, ...rest } = this.props;
-            const { value, valid } = this.state;
-            const custom = _.first(registry['org.visallo.visibility']);
 
-            // Use new react visibility renderer as default if no custom exists
-            if (custom && custom.editorComponentPath !== DEFAULT_FLIGHT_EDITOR) {
-                return (
-                    <Attacher
-                        value={value}
-                        placeholder={placeholder}
-                        componentPath={custom.editorComponentPath}
-                        {...rest} />
-                );
+        getInitialState() {
+            return {
+                componentPath: DEFAULT_EDITOR
             }
+        },
+
+        componentDidMount() {
+            $(this.node).on('visibilityClear', this.onVisibilityClear);
+        },
+
+        componentWillUnmount() {
+            $(this.node).off('visibilityClear', this.onVisibilityClear);
+        },
+
+        componentWillReceiveProps(nextProps) {
+            const extensions = _.values(nextProps.registry['org.visallo.visibility']).map(e => e.editorComponentPath);
+            const componentPath = extensions[0] || DEFAULT_EDITOR;
+
+            if (componentPath !== this.state.componentPath) {
+                this.setState({ componentPath });
+            }
+        },
+
+        render() {
+            const { registry, ...passthru } = this.props;
+            const { componentPath } = this.state;
 
             return (
-                <input
-                    type="text"
-                    onChange={this.onChange}
-                    value={value}
-                    placeholder={placeholder}
-                    className={valid ? '' : 'invalid'} />
-            )
+                <Attacher
+                    ref={r => { this._ref = r }}
+                    componentPath={componentPath}
+                    behavior={{
+                        onVisibilityChange: this.onVisibilityChange
+                    }}
+                    {...passthru}
+                />
+            );
         },
-        onChange(event) {
-            const value = event.target.value;
-            const valid = this.checkValid(value)
-            this.setState({ value, valid })
-            this.props.onVisibilityChanged({ value, valid })
+
+        onVisibilityChange(inst, data) {
+            const { onVisibilityChange, legacyOnVisibilityChange } = this.props;
+
+            if (onVisibilityChange) {
+                onVisibilityChange(data)
+            } else if (legacyOnVisibilityChange) {
+                legacyOnVisibilityChange(data);
+            }
         },
-        checkValid(value) {
-            var authorizations = this.props.authorizations;
-            return Boolean(!value.length || value in authorizations);
+
+        onVisibilityClear() {
+            const { componentPath } = this.state;
+            const component = this.asdf;
+
+            if (component) {
+                if (_.isFunction(component.onClear)) {
+                    component.onClear();
+                } else if (!(componentPath in apiWarnings)) {
+                    console.warn(`${componentPath} missing onClear method, see the documentation for org.visallo.visibility extension point`);
+                    apiWarnings[componentPath] = true;
+                }
+            }
         }
     });
 
     return redux.connect(
         (state, props) => {
             return {
-                authorizations: userSelectors.getAuthorizations(state),
-                ...props
+                authorizations: userSelectors.getAuthorizations(state)
             };
-        },
-
-        (dispatch, props) => ({
-        })
+        }
     )(RegistryInjectorHOC(VisibilityEditor, [
         'org.visallo.visibility'
     ]));

@@ -1,10 +1,15 @@
-define(['configuration/plugins/registry', 'util/promise'], function(registry) {
+define([
+    'util/component/attacher',
+    'configuration/plugins/registry',
+    'components/visibility/VisibilityViewer',
+    'components/visibility/VisibilityEditor'
+], function(Attacher, registry, VisibilityViewer, VisibilityEditor) {
     'use strict';
 
     /**
      * Plugin to configure the user interface for displaying and editing visibility authorization strings.
      *
-     * The visibility component requires two FlightJS components registered for viewing and editing:
+     * The visibility component requires two FlightJS components registered for viewing and editing: TODO
      *
      * @param {string} editorComponentPath The path to {@link org.visallo.visibility~Editor} component
      * @param {string} viewerComponentPath The path to {@link org.visallo.visibility~Viewer} component
@@ -18,19 +23,12 @@ define(['configuration/plugins/registry', 'util/promise'], function(registry) {
         'http://docs.visallo.org/extension-points/front-end/visibility'
     );
 
-    var defaultVisibility = {
-            editorComponentPath: 'util/visibility/default/edit',
-            viewerComponentPath: 'util/visibility/default/view'
-        },
-        point = 'org.visallo.visibility',
-        visibilityExtensions = registry.extensionsForPoint(point),
-        components = {
-            editor: undefined,
-            viewer: undefined
-        },
-        setComponent = function(type, Component) {
-            components[type] = Component;
-        };
+    const defaultVisibility = {
+        editorComponentPath: 'components/visibility/default/VisibilityEditor',
+        viewerComponentPath: 'components/visibility/default/VisibilityViewer'
+    };
+    const point = 'org.visallo.visibility';
+    let visibilityExtensions = registry.extensionsForPoint(point);
 
 
     if (visibilityExtensions.length === 0) {
@@ -42,31 +40,15 @@ define(['configuration/plugins/registry', 'util/promise'], function(registry) {
         console.warn('Multiple visibility extensions loaded', visibilityExtensions);
     }
 
-    var promises = {
-            editor: Promise.require(
-                visibilityExtensions[0].editorComponentPath || defaultVisibility.editorComponentPath
-            ).then(_.partial(setComponent, 'editor')),
-            viewer: Promise.require(
-                visibilityExtensions[0].viewerComponentPath || defaultVisibility.viewerComponentPath
-            ).then(_.partial(setComponent, 'viewer'))
-        },
-        internalAttach = function(Component, node, attrs) {
-            $(node).teardownComponent(Component);
-            Component.attachTo(node, attrs);
-        };
-
     return {
-        attachComponent: function(type, node, attrs) {
-            var promise;
-            if (components[type]) {
-                internalAttach(components[type], node, attrs);
-                promise = Promise.resolve();
-            } else {
-                promise = promises[type].then(function(C) {
-                    internalAttach(C, node, attrs);
-                });
-            }
-            return promise;
+        attachComponent: function(type, node, params) {
+            const Component = type === 'viewer' ? VisibilityViewer : VisibilityEditor;
+            const attacher = Attacher().node(node).component(Component).params(params);
+
+            attacher.teardown({ react: true, flight: true });
+            attacher.attach();
+
+            return attacher;
         }
     };
 });

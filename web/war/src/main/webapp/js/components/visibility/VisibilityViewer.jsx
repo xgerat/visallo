@@ -1,37 +1,28 @@
 define([
     'create-react-class',
+    'prop-types',
     '../Attacher',
     '../RegistryInjectorHOC'
-], function(createReactClass, Attacher, RegistryInjectorHOC) {
+], function(
+    createReactClass,
+    PropTypes,
+    Attacher,
+    RegistryInjectorHOC) {
     'use strict';
 
-    const DEFAULT_FLIGHT_VIEWER = 'util/visibility/default/view';
+    const DEFAULT_VIEWER = 'components/visibility/default/VisibilityViewer';
 
     const VisibilityViewer = createReactClass({
+        propTypes: {
+            //
+        },
+
         render() {
-            const { registry, style, value, ...rest } = this.props;
-            const custom = _.first(registry['org.visallo.visibility']);
+            const { registry, ...props } = this.props;
+            const extensions = _.values(registry['org.visallo.visibility']).map(e => e.viewerComponentPath);
+            const componentPath = extensions[0] || DEFAULT_VIEWER;
 
-            // Use new react visibility renderer as default if no custom exists
-            if (custom && custom.viewerComponentPath !== DEFAULT_FLIGHT_VIEWER) {
-                return (
-                    <Attacher
-                        nodeClassName="visibility"
-                        nodeStyle={style}
-                        value={value}
-                        componentPath={custom.viewerComponentPath}
-                        {...rest} />
-                );
-            }
-
-            return (
-                <div className="visibility" style={style}>
-                    {_.isUndefined(value) || value === '' ?
-                        (<i>{i18n('visibility.blank')}</i>) :
-                        value
-                    }
-                </div>
-            )
+            return <Attacher componentPath={componentPath} {...props} />
         }
     });
 

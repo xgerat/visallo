@@ -291,10 +291,7 @@ define([
                 this.currentValue = 'point(' + this.currentValue.latitude + ',' + this.currentValue.longitude + ')';
             }
 
-            if (visibilityValue) {
-                visibilityValue = visibilityValue.source;
-                this.visibilitySource = { value: visibilityValue, valid: true };
-            }
+            this.visibilitySource = { value: visibilityValue ? visibilityValue.source : '', valid: true };
 
             if (property.name === 'http://visallo.org#visibilityJson') {
                 vertexProperty = property;
@@ -504,7 +501,7 @@ define([
                 this.valid = valid;
             }
 
-            if (this.valid && _.some(this.modified)) {
+            if (this.valid && _.some(this.modified) || this.settingVisibility) {
                 this.select('saveButtonSelector').prop('disabled', false);
             } else {
                 this.select('saveButtonSelector').prop('disabled', true);
@@ -604,13 +601,10 @@ define([
         };
 
         this.onSave = function(evt) {
-            var self = this;
-
             if (!this.valid) return;
 
             this.saving = true;
 
-            const vertexId = this.attr.data.id;
             const propertyKey = this.currentProperty.key;
             const propertyName = this.currentProperty.title;
             const oldMetadata = this.currentProperty.metadata;

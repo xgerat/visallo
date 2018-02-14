@@ -20,6 +20,7 @@ Describes the form for editing visibility values.
 Accessible in plugin as `this.attr`
 
 * `value`: Previous value to populate.
+// placeholder, readonly
 
 ### Events
 
@@ -55,3 +56,4 @@ Describes the display of visibility values.
 
 * `value`: Current visibility value.
 * `property`: Current property.
+// missing element

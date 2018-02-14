@@ -44,9 +44,6 @@ define([
             throw new Error('Valid component or path is required')
         }
         if (this._params) {
-            if ('visalloApi' in this._params) {
-                throw new Error('Refrain from setting visalloApi key in params to avoid collisions');
-            }
             if (!_.isObject(this._params) || _.isArray(this._params) || _.isFunction(this._params)) {
                 throw new Error('Params must be an object')
             }

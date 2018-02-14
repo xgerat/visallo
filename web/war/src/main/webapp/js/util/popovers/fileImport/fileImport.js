@@ -108,7 +108,7 @@ define([
             this.after('setupWithTemplate', function() {
                 var self = this;
 
-                this.visibilitySource = null;
+                this.visibilitySource = { value: '', valid: true };
                 this.visibilitySources = new Array(config.files.length);
                 this.concepts = new Array(config.files.length);
 

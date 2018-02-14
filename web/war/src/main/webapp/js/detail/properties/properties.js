@@ -1,19 +1,22 @@
-
 define([
     'flight/lib/component',
+    'react-dom',
     '../dropdowns/propertyForm/propForm',
     'util/vertex/formatters',
     'util/privileges',
     'util/withDataRequest',
     'util/popovers/propertyInfo/withPropertyInfo',
+    'util/visibility/util',
     'd3'
 ], function(
     defineComponent,
+    ReactDOM,
     PropertyForm,
     F,
     Privileges,
     withDataRequest,
     withPropertyInfo,
+    VisibilityUtil,
     d3) {
     'use strict';
 
@@ -757,16 +760,22 @@ define([
                             dataType = ontologyProperty && ontologyProperty.dataType,
                             displayType = ontologyProperty && ontologyProperty.displayType;
 
+                        if (visibility) {
+                            ReactDOM.unmountComponentAtNode(valueSpan);
+                        }
                         valueSpan.textContent = '';
+                        ReactDOM.unmountComponentAtNode(visibilitySpan);
                         visibilitySpan.textContent = '';
 
                         if (visibility) {
                             dataType = 'visibility';
                         } else if (config['showVisibilityInDetailsPane'] !== 'false' && property.hideVisibility !== true) {
-                            F.vertex.properties.visibility(
-                                visibilitySpan,
-                                { value: property.metadata && property.metadata[VISIBILITY_NAME] },
-                                vertex);
+                            const value = property.metadata && property.metadata[VISIBILITY_NAME] && property.metadata[VISIBILITY_NAME].source;
+                            VisibilityUtil.attachComponent('viewer', visibilitySpan, {
+                                value,
+                                property,
+                                element: vertex
+                            }); //TODO: store attacher.teardown as data attribute on node and call that instead of only reactDOM unmount (for flight extensions)
                         }
 
                         var isEditable = (
@@ -786,6 +795,13 @@ define([
 
                         if (displayType && F.vertex.properties[displayType]) {
                             F.vertex.properties[displayType](valueSpan, property, vertex);
+                        } else if (visibility) {
+                            const value = property.value && property.value.source;
+                            VisibilityUtil.attachComponent('viewer', valueSpan, {
+                                value,
+                                property,
+                                element: vertex
+                            });
                         } else if (dataType && F.vertex.properties[dataType]) {
                             F.vertex.properties[dataType](valueSpan, property, vertex);
                         } else if (isJustification(property)) {

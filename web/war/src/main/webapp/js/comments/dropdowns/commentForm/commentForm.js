@@ -51,12 +51,13 @@ define([
             require([
                 'util/visibility/edit'
             ], function(Visibility) {
-                Visibility.attachTo(self.$node.find('.visibility'), {
-                    value: self.attr.comment &&
-                        self.attr.comment.metadata &&
-                        self.attr.comment.metadata['http://visallo.org#visibilityJson'] &&
-                        self.attr.comment.metadata['http://visallo.org#visibilityJson'].source
-                });
+                const value = self.attr.comment
+                    && self.attr.comment.metadata
+                    && self.attr.comment.metadata['http://visallo.org#visibilityJson']
+                    && self.attr.comment.metadata['http://visallo.org#visibilityJson'].source;
+
+                self.visibilitySource = { value: value || '', valid: true };
+                Visibility.attachTo(self.$node.find('.visibility'), { value });
                 self.manualOpen();
             });
 
