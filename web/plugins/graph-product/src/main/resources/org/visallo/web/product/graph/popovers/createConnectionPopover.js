@@ -50,7 +50,7 @@ define([
         });
 
         this.popoverInitialize = function() {
-            this.visibilitySource = null;
+            this.visibilitySource = { value: '', valid: true };
             this.on('visibilitychange', this.onVisibilityChange);
             this.on('justificationchange', this.onJustificationChange);
             this.on('relationshipSelected', this.onRelationshipSelected);
