@@ -9,7 +9,7 @@ define([
     /**
      * Plugin to configure the user interface for displaying and editing visibility authorization strings.
      *
-     * The visibility component requires two FlightJS components registered for viewing and editing: TODO
+     * Accepts component paths for one or both of the visibility viewer and visibility editor components
      *
      * @param {string} editorComponentPath The path to {@link org.visallo.visibility~Editor} component
      * @param {string} viewerComponentPath The path to {@link org.visallo.visibility~Viewer} component
@@ -17,8 +17,8 @@ define([
     registry.documentExtensionPoint('org.visallo.visibility',
         'Implement custom interface for visibility display and editing',
         function(e) {
-            return _.isString(e.editorComponentPath) ||
-                _.isString(e.viewerComponentPath)
+            return (_.isUndefined(e.editorComponentPath) || _.isString(e.editorComponentPath))
+                && (_.isUndefined(e.viewerComponentPath) || _.isString(e.viewerComponentPath))
         },
         'http://docs.visallo.org/extension-points/front-end/visibility'
     );

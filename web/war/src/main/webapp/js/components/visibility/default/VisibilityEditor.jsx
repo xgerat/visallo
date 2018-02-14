@@ -8,12 +8,12 @@ define([
 
     /**
      * @typedef org.visallo.visibility~Editor
-     * @property {string} [value] The visibility source to prepopulate the editor
+     * @property {string} value The visibility source to prepopulate the editor
      * @property {string} [placeholder] The placeholder text to display when no
      * value
      * @property {string} [readonly] Show the form in read-only mode
-     * @listens org.visallo.visibility#visibilityclear
-     * @fires org.visallo.visibility#visibilitychange
+     * @property {array} [authorizations] The available visibilities, defaults to the current user's visibility authorizations
+     * @property {function} onVisibilityChange The callback to invoke when the visibility is changed
      */
     const VisibilityEditor = createReactClass({
         propTypes: {
@@ -57,7 +57,7 @@ define([
             this.props.onVisibilityChange({ value, valid })
         },
 
-        onClear() {
+        clear() {
             this.setState({ value: '', valid: true });
         },
 

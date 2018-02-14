@@ -277,8 +277,8 @@ define([
 
                 visibility: function(el, property, element) {
                     let value = property.value && property.value.source;
-                    if (!_.isString(value)) {
-                        value = value.toString();
+                    if (_.isObject(value)) {
+                        value = JSON.stringify(value);
                     }
 
                     $(el).text('VISIBILITY FORMATTER'/*TODO value*/);

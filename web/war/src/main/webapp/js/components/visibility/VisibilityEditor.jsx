@@ -15,7 +15,6 @@ define([
     'use strict';
 
     const DEFAULT_EDITOR = 'components/visibility/default/VisibilityEditor';
-    const apiWarnings = {};
 
     const VisibilityEditor = createReactClass({
         propTypes: {
@@ -25,29 +24,19 @@ define([
 
         getInitialState() {
             return {
-                componentPath: DEFAULT_EDITOR
+                componentPath: this.getComponentPath(this.props.registry)
             }
         },
 
-        componentDidMount() {
-            $(this.node).on('visibilityClear', this.onVisibilityClear);
-        },
-
-        componentWillUnmount() {
-            $(this.node).off('visibilityClear', this.onVisibilityClear);
-        },
-
         componentWillReceiveProps(nextProps) {
-            const extensions = _.values(nextProps.registry['org.visallo.visibility']).map(e => e.editorComponentPath);
-            const componentPath = extensions[0] || DEFAULT_EDITOR;
-
+            const componentPath = this.getComponentPath(nextProps.registry);
             if (componentPath !== this.state.componentPath) {
                 this.setState({ componentPath });
             }
         },
 
         render() {
-            const { registry, ...passthru } = this.props;
+            const { registry, onVisibilityChange, legacyOnVisibilityChange, ...passthru } = this.props;
             const { componentPath } = this.state;
 
             return (
@@ -55,7 +44,7 @@ define([
                     ref={r => { this._ref = r }}
                     componentPath={componentPath}
                     behavior={{
-                        onVisibilityChange: this.onVisibilityChange
+                        visibilitychange: this.onVisibilityChange
                     }}
                     {...passthru}
                 />
@@ -72,18 +61,11 @@ define([
             }
         },
 
-        onVisibilityClear() {
-            const { componentPath } = this.state;
-            const component = this.asdf;
+        getComponentPath(registry) {
+            const extensions = _.values(registry['org.visallo.visibility']).map(e => e.editorComponentPath);
+            const componentPath = extensions[0] || DEFAULT_EDITOR;
 
-            if (component) {
-                if (_.isFunction(component.onClear)) {
-                    component.onClear();
-                } else if (!(componentPath in apiWarnings)) {
-                    console.warn(`${componentPath} missing onClear method, see the documentation for org.visallo.visibility extension point`);
-                    apiWarnings[componentPath] = true;
-                }
-            }
+            return componentPath;
         }
     });
 

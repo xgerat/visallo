@@ -30,6 +30,15 @@ define([
                 legacyOnVisibilityChange: legacyOnVisibilityChange.bind(this)
             });
 
+            /**
+             * The user has adjusted the visibility so notify if no onVisibilityChange handler was provided
+             *
+             * @deprecated use the onVisibilityChange callback instead
+             * @event org.visallo.visibility#visibilitychange
+             * @param {object} data
+             * @param {string} data.value The new visibility value
+             * @param {boolean} data.valid Whether the value is valid
+             */
             function legacyOnVisibilityChange(data) {
                 this.trigger('visibilitychange', data);
             }

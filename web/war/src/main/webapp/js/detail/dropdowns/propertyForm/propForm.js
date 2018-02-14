@@ -275,7 +275,8 @@ define([
                 previousValue = vertexProperty && vertexProperty.value,
                 visibilityValue = vertexProperty &&
                     vertexProperty.metadata &&
-                    vertexProperty.metadata['http://visallo.org#visibilityJson'],
+                    vertexProperty.metadata['http://visallo.org#visibilityJson'] &&
+                    vertexProperty.metadata['http://visallo.org#visibilityJson'].source,
                 sandboxStatus = vertexProperty && vertexProperty.sandboxStatus,
                 isExistingProperty = typeof vertexProperty !== 'undefined',
                 isEditingVisibility = propertyName === 'http://visallo.org#visibilityJson' || (
@@ -291,7 +292,7 @@ define([
                 this.currentValue = 'point(' + this.currentValue.latitude + ',' + this.currentValue.longitude + ')';
             }
 
-            this.visibilitySource = { value: visibilityValue ? visibilityValue.source : '', valid: true };
+            this.visibilitySource = { value: visibilityValue || '', valid: true };
 
             if (property.name === 'http://visallo.org#visibilityJson') {
                 vertexProperty = property;
