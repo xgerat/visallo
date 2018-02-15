@@ -396,11 +396,15 @@ public class GraphPropertyRunner extends WorkerBase<GraphPropertyWorkerItem> {
         );
 
         LOGGER.debug("Begin work on element %s property %s", element.getId(), propertyText);
-        if (property != null && property.getValue() instanceof StreamingPropertyValue) {
-            StreamingPropertyValue spb = (StreamingPropertyValue) property.getValue();
-            safeExecuteStreamingPropertyValue(interestedWorkerWrappers, workData, spb);
-        } else {
-            safeExecuteNonStreamingProperty(interestedWorkerWrappers, workData);
+        try {
+            if (property != null && property.getValue() instanceof StreamingPropertyValue) {
+                StreamingPropertyValue spb = (StreamingPropertyValue) property.getValue();
+                safeExecuteStreamingPropertyValue(interestedWorkerWrappers, workData, spb);
+            } else {
+                safeExecuteNonStreamingProperty(interestedWorkerWrappers, workData);
+            }
+        } catch (Exception ex) {
+            throw new VisalloException(String.format("Could not execute on element %s property %s", element.getId(), propertyText), ex);
         }
 
         lastProcessedPropertyTime.set(System.currentTimeMillis());

@@ -2,10 +2,6 @@ package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.visallo.webster.ParameterizedHandler;
-import org.visallo.webster.annotations.Handle;
-import org.visallo.webster.annotations.Optional;
-import org.visallo.webster.annotations.Required;
 import org.apache.commons.io.IOUtils;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
@@ -15,6 +11,10 @@ import org.vertexium.property.StreamingPropertyValue;
 import org.visallo.core.exception.VisalloResourceNotFoundException;
 import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.web.VisalloResponse;
+import org.visallo.webster.ParameterizedHandler;
+import org.visallo.webster.annotations.Handle;
+import org.visallo.webster.annotations.Optional;
+import org.visallo.webster.annotations.Required;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 @Singleton
 public class VertexGetPropertyValue implements ParameterizedHandler {
     private static final Pattern RANGE_PATTERN = Pattern.compile("bytes=([0-9]*)-([0-9]*)");
+    private static final long UNKNOWN_SPV_LENGTH_PARTIAL_CHUNK_SIZE = 100 * 1024;
     private Graph graph;
 
     @Inject
@@ -71,7 +72,7 @@ public class VertexGetPropertyValue implements ParameterizedHandler {
 
         setFileNameHeaders(response, fileName, playbackOptions);
 
-        long totalLength;
+        Long totalLength;
         InputStream in;
         if (property.getValue() instanceof StreamingPropertyValue) {
             StreamingPropertyValue streamingPropertyValue = (StreamingPropertyValue) property.getValue();
@@ -80,7 +81,7 @@ public class VertexGetPropertyValue implements ParameterizedHandler {
         } else {
             byte[] value = property.getValue().toString().getBytes();
             in = new ByteArrayInputStream(value);
-            totalLength = value.length;
+            totalLength = (long) value.length;
         }
 
         try {
@@ -108,7 +109,7 @@ public class VertexGetPropertyValue implements ParameterizedHandler {
         }
     }
 
-    private void handlePartialPlayback(VisalloResponse response, InputStream in, long totalLength, PlaybackOptions playbackOptions) throws IOException {
+    private void handlePartialPlayback(VisalloResponse response, InputStream in, Long totalLength, PlaybackOptions playbackOptions) throws IOException {
         long partialStart = 0;
         Long partialEnd = null;
 
@@ -125,22 +126,34 @@ public class VertexGetPropertyValue implements ParameterizedHandler {
         }
 
         if (partialEnd == null) {
-            partialEnd = totalLength;
+            if (totalLength == null) {
+                partialEnd = partialStart + UNKNOWN_SPV_LENGTH_PARTIAL_CHUNK_SIZE;
+            } else {
+                partialEnd = totalLength;
+            }
         }
 
-        // Ensure that the last byte position is less than the instance-length
-        partialEnd = Math.min(partialEnd, totalLength - 1);
-        long partialLength = totalLength;
+        if (totalLength != null) {
+            // Ensure that the last byte position is less than the instance-length
+            partialEnd = Math.min(partialEnd, totalLength - 1);
+        }
+        Long partialLength = totalLength;
 
         if (playbackOptions.range != null) {
             partialLength = partialEnd - partialStart + 1;
-            response.addHeader("Content-Range", "bytes " + partialStart + "-" + partialEnd + "/" + totalLength);
+            response.addHeader("Content-Range", String.format("bytes %d-%d/%s", partialStart, partialEnd, totalLength == null ? "*" : totalLength));
+            if (partialStart > 0) {
+                in.skip(partialStart);
+            }
         }
 
-        response.addHeader("Content-Length", "" + partialLength);
-
         try (OutputStream out = response.getOutputStream()) {
-            IOUtils.copyLarge(in, out, partialStart, partialLength);
+            if (partialLength != null) {
+                response.addHeader("Content-Length", "" + partialLength);
+                IOUtils.copyLarge(in, out, partialStart, partialLength);
+            } else {
+                IOUtils.copyLarge(in, out);
+            }
         }
         response.flushBuffer();
     }

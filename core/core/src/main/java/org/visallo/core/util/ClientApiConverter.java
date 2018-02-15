@@ -494,7 +494,13 @@ public class ClientApiConverter extends org.visallo.web.clientapi.util.ClientApi
         if (spv.getValueType() == String.class) {
             return readStreamingPropertyValueStringForHistory(spv);
         } else {
-            return String.format(locale, resourceBundle.getString("history.nondisplayable"), spv.getLength());
+            return String.format(
+                    locale,
+                    resourceBundle.getString("history.nondisplayable"),
+                    spv.getLength() == null
+                            ? resourceBundle.getString("history.nondisplayable.unknownLength")
+                            : String.format(locale, "%,d bytes", spv.getLength())
+            );
         }
     }
 

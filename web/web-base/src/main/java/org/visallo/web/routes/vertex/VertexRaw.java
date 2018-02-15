@@ -2,10 +2,6 @@ package org.visallo.web.routes.vertex;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.visallo.webster.ParameterizedHandler;
-import org.visallo.webster.annotations.Handle;
-import org.visallo.webster.annotations.Optional;
-import org.visallo.webster.annotations.Required;
 import org.vertexium.Authorizations;
 import org.vertexium.Graph;
 import org.vertexium.Vertex;
@@ -17,6 +13,10 @@ import org.visallo.core.model.properties.VisalloProperties;
 import org.visallo.core.util.LimitInputStream;
 import org.visallo.web.BadRequestException;
 import org.visallo.web.VisalloResponse;
+import org.visallo.webster.ParameterizedHandler;
+import org.visallo.webster.annotations.Handle;
+import org.visallo.webster.annotations.Optional;
+import org.visallo.webster.annotations.Required;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Singleton
 public class VertexRaw implements ParameterizedHandler {
     private static final Pattern RANGE_PATTERN = Pattern.compile("bytes=([0-9]*)-([0-9]*)");
+    public static final int UNKNOWN_SPV_LENGTH_PARTIAL_CHUNK_SIZE = 100 * 1024;
 
     private final Graph graph;
 
@@ -86,7 +87,6 @@ public class VertexRaw implements ParameterizedHandler {
         }
 
         InputStream in;
-        Long totalLength;
         long partialStart = 0;
         Long partialEnd = null;
         String range = request.getHeader("Range");
@@ -109,28 +109,37 @@ public class VertexRaw implements ParameterizedHandler {
 
         StreamingPropertyValue mediaPropertyValue = getStreamingPropertyValue(artifactVertex, type);
 
-        totalLength = mediaPropertyValue.getLength();
+        Long totalLength = mediaPropertyValue.getLength();
         in = mediaPropertyValue.getInputStream();
 
         if (partialEnd == null) {
-            partialEnd = totalLength;
+            if (totalLength == null) {
+                partialEnd = partialStart + UNKNOWN_SPV_LENGTH_PARTIAL_CHUNK_SIZE;
+            } else {
+                partialEnd = totalLength;
+            }
         }
 
-        // Ensure that the last byte position is less than the instance-length
-        partialEnd = Math.min(partialEnd, totalLength - 1);
-        long partialLength = totalLength;
+        if (totalLength != null) {
+            // Ensure that the last byte position is less than the instance-length
+            partialEnd = Math.min(partialEnd, totalLength - 1);
+        }
+        Long partialLength = totalLength;
 
         if (range != null) {
             partialLength = partialEnd - partialStart + 1;
-            response.addHeader("Content-Range", "bytes " + partialStart + "-" + partialEnd + "/" + totalLength);
+            response.addHeader("Content-Range", String.format("bytes %d-%d/%s", partialStart, partialEnd, totalLength == null ? "*" : totalLength));
             if (partialStart > 0) {
                 in.skip(partialStart);
             }
         }
 
-        response.addHeader("Content-Length", "" + partialLength);
-
-        return new LimitInputStream(in, partialLength);
+        if (partialLength != null) {
+            response.addHeader("Content-Length", "" + partialLength);
+            return new LimitInputStream(in, partialLength);
+        } else {
+            return in;
+        }
     }
 
     private StreamingPropertyValue getStreamingPropertyValue(Vertex artifactVertex, String type) {
